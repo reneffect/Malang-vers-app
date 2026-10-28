@@ -98,4 +98,12 @@ Buka alamat lokal yang ditampilkan di terminal. Jika aplikasi memerlukan databas
 
 ## Lisensi
 
-Lisensi proyek belum ditentukan. Ketentuan penggunaan dan distribusi kode maupun materi perlu ditetapkan oleh pemilik proyek.
+## Lisensi
+
+Proyek **MalangVerse Translation** dilisensikan di bawah [MIT License](https://opensource.org/license/mit).
+
+Copyright (c) 2026 MalangVerse Translation
+
+Dengan lisensi MIT, siapa pun diperbolehkan menggunakan, menyalin, memodifikasi, menggabungkan, menerbitkan, mendistribusikan, memberikan sublisensi, dan/atau menjual salinan perangkat lunak ini, dengan tetap menyertakan pemberitahuan hak cipta dan teks lisensi.
+
+Lihat file [`LICENSE`](LICENSE) untuk ketentuan lisensi selengkapnya.
