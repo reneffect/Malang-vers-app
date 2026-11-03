@@ -1,0 +1,187 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+    --color-brand: #f53003;
+    --color-brand-dark: #f61500;
+    --color-ink: #1b1b18;
+    --color-paper: #fdfdfc;
+    --color-paper-dark: #0a0a0a;
+    --color-muted: #706f6c;
+    --color-accent: #f8b803;
+}
+
+body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: #fff;
+    font-family: var(--font-sans);
+}
+
+.site-header {
+    width: 100%;
+    background: #3e5bff;
+    color: #fff;
+}
+
+.site-navbar {
+    display: flex;
+    width: min(100% - 48px, 1280px);
+    min-height: 68px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    margin: 0 auto;
+}
+
+.brand {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.brand-mark {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    background: #fff;
+    color: #3e5bff;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.brand-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.brand-tagline {
+    margin-top: 2px;
+    font-size: 8px;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.navbar-links,
+.navbar-actions {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-links {
+    gap: 32px;
+}
+
+.navbar-link {
+    color: #fff;
+    font-size: 11px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+a.navbar-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+.navbar-actions {
+    flex-shrink: 0;
+    gap: 8px;
+}
+
+.language-button {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    margin-right: 4px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+}
+
+.language-button svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.button {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.button-outline {
+    border-color: rgb(255 255 255 / 35%);
+    color: #fff;
+}
+
+.button-light {
+    background: #fff;
+    color: #3e5bff;
+}
+
+.button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+@media (max-width: 700px) {
+    .site-navbar {
+        width: calc(100% - 32px);
+        min-height: 60px;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 10px 0;
+    }
+
+    .navbar-links {
+        order: 3;
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 4px 0;
+    }
+
+    .navbar-actions {
+        margin-left: auto;
+    }
+
+    .language-button {
+        display: none;
+    }
+}
+
+@media (max-width: 400px) {
+    .brand-tagline {
+        display: none;
+    }
+
+    .button {
+        padding: 0 12px;
+    }
+}

@@ -1,22 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-Use Illuminate\Http\Controllers;
-
-Route::get('/', function () {
-    return view('welcome');
-});
+use App\Http\Controllers\HomeController;
 
 // Publik (guest)
-
-Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Member (harus login)
-Route::middleware(['auth', 'role:member'])->group(function () {
-    Route::get('/member/dashboard', [MemberController::class, 'dashboard']);
-});
+// Route::middleware(['auth', 'role:member'])->group(function () {
+//     Route::get('/member/dashboard', [MemberController::class, 'dashboard']);
+// });
 
 // Admin (harus login dan role admin)
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard']);
-});
+// Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+//     Route::get('/dashboard', [AdminController::class, 'dashboard']);
+// });
