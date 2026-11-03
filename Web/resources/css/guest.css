@@ -149,6 +149,33 @@ a.navbar-link:hover {
     opacity: 0.75;
 }
 
+.page-content {
+    width: min(100% - 48px, 960px);
+    margin: 72px auto;
+    color: #1b1b18;
+}
+
+.page-eyebrow {
+    margin-bottom: 8px;
+    color: #3e5bff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.page-content h1 {
+    margin-bottom: 12px;
+    font-size: clamp(28px, 5vw, 40px);
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.page-content > p:last-child {
+    max-width: 640px;
+    color: #62616a;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
 @media (max-width: 700px) {
     .site-navbar {
         width: calc(100% - 32px);
@@ -173,6 +200,11 @@ a.navbar-link:hover {
 
     .language-button {
         display: none;
+    }
+
+    .page-content {
+        width: calc(100% - 32px);
+        margin: 48px auto;
     }
 }
 

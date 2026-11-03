@@ -8,6 +8,9 @@ class HomeController extends Controller
 {
     public function index()
     {
-        return view('Guest');
+        return view('guest.page', [
+            'title' => 'Beranda',
+            'description' => 'Selamat datang di MalangVerse, ruang untuk mengenal dan melestarikan Boso Walikan.',
+        ]);
     }
 }
