@@ -149,6 +149,65 @@ a.navbar-link:hover {
     opacity: 0.75;
 }
 
+.hero {
+    position: relative;
+    overflow: hidden;
+    padding: 28px 24px 120px;
+    background: linear-gradient(180deg, #1f63f2 0%, #2d5ef7 100%);
+    color: #fff;
+    text-align: center;
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    left: -8%;
+    right: -8%;
+    bottom: -32px;
+    height: 150px;
+    background: #f7f7f5;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow: 0 -6px 0 0 rgba(255, 255, 255, 0.18) inset;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 980px;
+    margin: 0 auto;
+    padding-top: 24px;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 8px 16px;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 12%);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.hero-title {
+    margin: 0;
+    font-size: clamp(42px, 6vw, 76px);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1.02;
+}
+
+.hero-subtitle {
+    max-width: 760px;
+    margin: 18px auto 0;
+    font-size: clamp(16px, 2vw, 19px);
+    line-height: 1.55;
+    opacity: 0.92;
+}
+
 .page-content {
     width: min(100% - 48px, 960px);
     margin: 72px auto;
