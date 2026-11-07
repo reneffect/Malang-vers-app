@@ -1,33 +1,38 @@
 <?php
 
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\GuestController;
+use Illuminate\Support\Facades\Route;
 
-// Publik (guest)
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/beranda', [HomeController::class, 'index'])->name('beranda');
-Route::view('/kamus', 'guest.page', [
-    'title' => 'Kamus Boso Walikan',
+/*
+|--------------------------------------------------------------------------
+| Publik (guest)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/', [GuestController::class, 'index'])->name('home');
+Route::get('/beranda', [GuestController::class, 'index'])->name('beranda');
+
+Route::view('/kamus', 'guest.Guest', [
+    'title'       => 'Kamus Boso Walikan',
     'description' => 'Jelajahi kosakata Boso Walikan khas Malang.',
 ])->name('kamus');
-Route::view('/membership', 'guest.page', [
-    'title' => 'Langganan',
+
+Route::view('/membership', 'guest.Guest', [
+    'title'       => 'Langganan',
     'description' => 'Informasi layanan keanggotaan MalangVerse akan tersedia di sini.',
 ])->name('membership');
-Route::view('/login', 'guest.page', [
-    'title' => 'Masuk',
+
+Route::view('/login', 'guest.Guest', [
+    'title'       => 'Masuk',
     'description' => 'Halaman autentikasi sedang disiapkan.',
 ])->name('login');
-Route::view('/register', 'guest.page', [
-    'title' => 'Daftar',
+
+Route::view('/register', 'guest.Guest', [
+    'title'       => 'Daftar',
     'description' => 'Pendaftaran akun MalangVerse sedang disiapkan.',
 ])->name('register');
 
-// Member (harus login)
-// Route::middleware(['auth', 'role:member'])->group(function () {
-//     Route::get('/member/dashboard', [MemberController::class, 'dashboard']);
-// });
-
-// Admin (harus login dan role admin)
-// Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-//     Route::get('/dashboard', [AdminController::class, 'dashboard']);
-// });
+// Endpoint penerjemah (dipanggil via fetch POST dari halaman guest)
+Route::post('/terjemah', fn () => response()->json([
+    'hasil' => 'Fitur terjemahan belum tersedia.',
+]))->name('terjemah');
