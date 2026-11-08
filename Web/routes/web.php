@@ -22,14 +22,12 @@ Route::view('/membership', 'guest.Guest', [
     'description' => 'Informasi layanan keanggotaan MalangVerse akan tersedia di sini.',
 ])->name('membership');
 
-Route::view('/login', 'guest.Guest', [
-    'title'       => 'Masuk',
-    'description' => 'Halaman autentikasi sedang disiapkan.',
+Route::view('/login', 'Login', [
+    'title' => 'Masuk',
 ])->name('login');
 
-Route::view('/register', 'guest.Guest', [
-    'title'       => 'Daftar',
-    'description' => 'Pendaftaran akun MalangVerse sedang disiapkan.',
+Route::view('/register', 'Register', [
+    'title' => 'Daftar',
 ])->name('register');
 
 // Endpoint penerjemah (dipanggil via fetch POST dari halaman guest)
