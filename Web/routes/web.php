@@ -1,11 +1,12 @@
 <?php
 
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\Auth\LoginController; // ← INI YANG BENAR (Import Controller)
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Publik (guest)
+| Publik (Guest)
 |--------------------------------------------------------------------------
 */
 
@@ -22,15 +23,25 @@ Route::view('/membership', 'guest.Guest', [
     'description' => 'Informasi layanan keanggotaan MalangVerse akan tersedia di sini.',
 ])->name('membership');
 
-Route::view('/login', 'Login', [
-    'title' => 'Masuk',
-])->name('login');
-
-Route::view('/register', 'Register', [
-    'title' => 'Daftar',
-])->name('register');
-
 // Endpoint penerjemah (dipanggil via fetch POST dari halaman guest)
 Route::post('/terjemah', fn () => response()->json([
     'hasil' => 'Fitur terjemahan belum tersedia.',
 ]))->name('terjemah');
+
+/*
+|--------------------------------------------------------------------------
+| Autentikasi (Login & Register)
+|--------------------------------------------------------------------------
+*/
+
+// --- REGISTER ---
+Route::get('/register', [LoginController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [LoginController::class, 'register']);
+
+// --- LOGIN MEMBER ---
+Route::get('/login', [LoginController::class, 'showMemberLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'loginMember']);
+
+// --- LOGIN ADMIN ---
+Route::get('/admin/login', [LoginController::class, 'showAdminLogin'])->name('admin.login');
+Route::post('/admin/login', [LoginController::class, 'loginAdmin']);
