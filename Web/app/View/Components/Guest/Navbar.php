@@ -26,13 +26,23 @@ class Navbar extends Component
             ];
         }
 
-        $loggedIn = auth()->check();
-        $authLinks = $loggedIn
-            ? [['label' => 'Dashboard', 'href' => url('/dashboard')]]
-            : [
+        $user = auth()->user();
+        $loggedIn = $user !== null;
+
+        if ($user !== null) {
+            $dashboardRoute = $user->role === 'admin' ? 'admin.dashboard' : 'member.member-home';
+            $dashboardFallback = $user->role === 'admin' ? '/admin/dashboard' : '/member-home';
+
+            $authLinks = [[
+                'label' => $user->name,
+                'href' => Route::has($dashboardRoute) ? route($dashboardRoute) : url($dashboardFallback),
+            ]];
+        } else {
+            $authLinks = [
                 ['label' => 'Masuk', 'href' => Route::has('login') ? route('login') : url('/login')],
                 ['label' => 'Daftar', 'href' => Route::has('register') ? route('register') : url('/register')],
             ];
+        }
 
         return view('components.guest.navbar', [
             'loggedIn' => $loggedIn,

@@ -60,7 +60,7 @@ class LoginController extends Controller
         Auth::login($user);
 
         // Redirect ke dashboard member
-        return redirect()->route('member.dashboard');
+        return redirect()->route('member.member-home');
     }
 
     /**
@@ -70,7 +70,7 @@ class LoginController extends Controller
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -81,16 +81,17 @@ class LoginController extends Controller
             // Cegah akun admin masuk lewat pintu member
             if ($user->role === 'admin') {
                 Auth::logout();
+
                 return back()->withErrors([
-                    'email' => 'Akun Admin tidak diizinkan login melalui halaman ini.'
+                    'email' => 'Akun Admin tidak diizinkan login melalui halaman ini.',
                 ])->onlyInput('email');
             }
 
-            return redirect()->intended(route('member.dashboard'));
+            return redirect()->intended(route('member.member-home'));
         }
 
         return back()->withErrors([
-            'email' => 'Email atau password salah.'
+            'email' => 'Email atau password salah.',
         ])->onlyInput('email');
     }
 
@@ -101,7 +102,7 @@ class LoginController extends Controller
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
@@ -112,8 +113,9 @@ class LoginController extends Controller
             // Cegah user biasa masuk lewat pintu admin
             if ($user->role !== 'admin') {
                 Auth::logout();
+
                 return back()->withErrors([
-                    'email' => 'Akses ditolak. Hanya akun Admin yang diizinkan.'
+                    'email' => 'Akses ditolak. Hanya akun Admin yang diizinkan.',
                 ])->onlyInput('email');
             }
 
@@ -121,7 +123,28 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Kredensial admin salah.'
+            'email' => 'Kredensial admin salah.',
         ])->onlyInput('email');
+    }
+
+    /**
+     * Logout umum untuk member dan admin.
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
+    }
+
+    /**
+     * Alias logout admin.
+     */
+    public function logoutAdmin(Request $request)
+    {
+        return $this->logout($request);
     }
 }

@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-blue: #3155f5;
+  --color-brand-purple: #6747e8;
+  --color-brand-light: #5375ff;
+  --color-primary-50: #f0f9ff;
+  --color-primary-100: #e0f2fe;
+  --color-primary-200: #bae6fd;
+  --color-primary-300: #7dd3fc;
+  --color-primary-400: #38bdf8;
+  --color-primary-500: #0ea5e9;
+  --color-primary-600: #0284c7;
+  --color-primary-700: #0369a1;
+  --color-primary-800: #075985;
+  --color-primary-900: #0c4a6e;
+  --color-primary-950: #082f49;
+}
+
+.member-page {
+  min-height: 100vh;
+  background: #f7f8ff;
+}
+
+.member-page .site-header {
+  background: #fff;
+  color: #172554;
+  box-shadow: 0 2px 12px rgb(15 23 42 / 6%);
+}
+
+.member-page .site-navbar {
+  width: min(100% - 48px, 1200px);
+  min-height: 64px;
+  gap: 24px;
+}
+
+.member-page .brand-mark {
+  background: linear-gradient(135deg, #6d5dfc, #3985ff);
+  color: #fff;
+}
+
+.member-page .brand-tagline {
+  color: #64748b;
+}
+
+.member-page .navbar-links {
+  gap: 28px;
+}
+
+.member-page .navbar-link {
+  color: #475569;
+  font-size: 12px;
+}
+
+.member-page .navbar-link.font-semibold {
+  color: #3155f5;
+  text-decoration-color: #3155f5;
+  text-underline-offset: 22px;
+}
+
+.member-page .button-light {
+  min-height: 34px;
+  background: #f1f4ff;
+  color: #3155f5;
+}
+
+@layer base {
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600
+           text-white font-semibold rounded-xl shadow-lg shadow-primary-600/30
+           hover:shadow-xl hover:shadow-primary-600/40 hover:-translate-y-0.5
+           transition-all duration-300 flex items-center gap-2;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 border-2 border-primary-600 text-primary-600
+           font-semibold rounded-lg hover:bg-primary-600 hover:text-white
+           transition-all duration-200;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 border border-gray-200 text-gray-600
+           rounded-lg hover:border-primary-600 hover:text-primary-600
+           transition-all duration-200 flex items-center gap-1.5 text-sm;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-lg shadow-black/5;
+  }
+
+  .glass-badge {
+    @apply inline-flex items-center gap-2 px-4 py-1.5
+           bg-white/15 backdrop-blur-md border border-white/25
+           text-white text-sm font-semibold rounded-full;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-purple-400;
+  }
+}
+
+@media (max-width: 700px) {
+  .member-page .site-navbar {
+    width: calc(100% - 32px);
+    gap: 12px;
+  }
+
+  .member-page .navbar-links {
+    gap: 16px;
+  }
+}

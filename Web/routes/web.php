@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\Auth\LoginController; // ← INI YANG BENAR (Import Controller)
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\WalikanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,8 +45,17 @@ Route::post('/register', [LoginController::class, 'register']);
 Route::get('/login', [LoginController::class, 'showMemberLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'loginMember']);
 
+Route::middleware('auth')->group(function () {
+    Route::get('/member-home', [MemberController::class, 'index'])->name('member.member-home');
+    Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+});
+
 // --- LOGIN ADMIN ---
-Route::middleware(['auth', 'is_admin'])->prefix('admin')->group(function () {
+Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::post('/logout', [LoginController::class, 'logoutAdmin'])->name('admin.logout');
 });
+
+Route::get('/', [WalikanController::class, 'index'])->name('home');
+Route::post('/translate', [WalikanController::class, 'translate'])->name('translate');
+Route::get('/api/popular-phrases', [WalikanController::class, 'popularPhrases'])->name('popular.phrases');

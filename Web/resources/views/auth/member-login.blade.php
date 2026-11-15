@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Masuk | MalangVerse</title>
-    @vite(['resources/css/login/login.css', 'resources/js/app.js'])
+    @vite(['resources/css/login/login.css', 'resources/js/login/login.js'])
 </head>
 <body class="font-sans antialiased bg-white text-slate-800">
 
