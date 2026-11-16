@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -9,16 +8,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id(); // ← UBAH: dari id_users jadi id (konvensi Laravel)
+            $table->id();
             $table->string('name', 100);
             $table->string('email', 150)->unique();
             $table->string('password', 255);
-            $table->string('phone', 28)->nullable();
-            $table->string('avatar', 255)->nullable();
-            $table->enum('role', ['admin', 'member', 'user'])->default('user');
-            $table->enum('status', ['active', 'inactive', 'suspended', 'pending'])->default('active');
+            $table->rememberToken(); // = token_ingat_login, varchar(100) nullable
+            $table->enum('role', ['admin', 'member'])->default('member'); // ⚠️ nilai tebakan
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

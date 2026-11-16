@@ -6,6 +6,7 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WalikanController;
+use App\Http\Controllers\BookController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,3 +60,4 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 Route::get('/', [WalikanController::class, 'index'])->name('home');
 Route::post('/translate', [WalikanController::class, 'translate'])->name('translate');
 Route::get('/api/popular-phrases', [WalikanController::class, 'popularPhrases'])->name('popular.phrases');
+Route::get('/kamus', [BookController::class, 'index'])->name('kamus');

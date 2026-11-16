@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('dictionary_entries', function (Blueprint $table) {
             $table->id();
+            $table->string('walikan_word', 150);
+            $table->string('indonesian_word', 150);
+            $table->string('javanese_word', 150);
             $table->timestamps();
         });
     }
