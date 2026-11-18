@@ -14,13 +14,13 @@
     <x-guest.navbar />
 
     {{-- HERO SECTION --}}
-    <section class="bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white py-16 px-4">
-        <div class="max-w-6xl mx-auto text-center">
-            <div class="inline-block bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-semibold mb-4 border border-white/30">
-                <i class="fas fa-book-open mr-2"></i> KOLEKSI LENGKAP
+    <section class="page-hero">
+        <div class="page-hero-content max-w-6xl mx-auto text-center py-12 md:py-14 px-4">
+            <div class="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-1 rounded-full text-xs font-semibold mb-5 border border-white/25">
+                <i class="fas fa-book-open"></i> KOLEKSI LENGKAP
             </div>
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Kamus Boso Walikan</h1>
-            <p class="text-blue-100 max-w-2xl mx-auto mb-8 text-lg">
+            <h1 class="text-3xl sm:text-4xl font-extrabold mb-3">Kamus Boso Walikan</h1>
+            <p class="text-blue-100 max-w-2xl mx-auto mb-7 text-sm md:text-base">
                 Koleksi komprehensif kamus Boso Walikan khas Malang dalam format e-book, 
                 mulai dari tingkat dasar hingga mahir.
             </p>

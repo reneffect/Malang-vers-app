@@ -11,17 +11,40 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ebooks', function (Blueprint $table) {
+        if (Schema::hasTable('ebook_reading_progress')) {
+            if (! Schema::hasColumns('ebook_reading_progress', [
+                'id',
+                'user_id',
+                'ebook_id',
+                'last_page',
+                'progress_percentage',
+                'last_read_at',
+                'created_at',
+                'updated_at',
+            ])) {
+                throw new RuntimeException('The existing ebook_reading_progress table does not match the expected schema.');
+            }
+
+            if (! Schema::hasTable('buku_digital')) {
+                throw new RuntimeException('The buku_digital table is required to link existing ebook reading progress.');
+            }
+
+            if (! Schema::hasForeignKey('ebook_reading_progress', 'ebook_id')) {
+                Schema::table('ebook_reading_progress', function (Blueprint $table) {
+                    $table->foreign('ebook_id')->references('id')->on('buku_digital');
+                });
+            }
+
+            return;
+        }
+
+        Schema::create('ebook_reading_progress', function (Blueprint $table) {
             $table->id();
-            $table->string('title', 200);
-            $table->string('slug', 220)->unique();
-            $table->string('author', 150)->nullable();
-            $table->string('cover_path', 255)->nullable();
-            $table->string('preview_path', 255)->nullable();
-            $table->string('file_path', 255);
-            $table->integer('page_count')->nullable();
-            $table->decimal('price', 12, 2)->default(0)->comment('Price 0 means free; access still Member-only');
-            $table->boolean('is_published')->default(false);
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('ebook_id')->constrained('buku_digital');
+            $table->integer('last_page')->default(1);
+            $table->decimal('progress_percentage', 5, 2)->default(0);
+            $table->dateTime('last_read_at')->nullable();
             $table->timestamps();
         });
     }

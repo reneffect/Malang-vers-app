@@ -18,12 +18,43 @@
         </div>
 
         <div class="navbar-actions">
-            @foreach ($authLinks as $index => $link)
-                <a href="{{ $link['href'] }}"
-                   class="button {{ $loggedIn || $index === 1 ? 'button-light' : 'button-outline' }}">
-                    {{ $link['label'] }}
-                </a>
-            @endforeach
+            @if ($profile)
+                <details class="profile-dropdown">
+                    <summary class="profile-trigger" aria-label="Buka menu profil {{ $profile['name'] }}">
+                        <span class="profile-avatar" aria-hidden="true">
+                            {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
+                        </span>
+                        <span class="profile-name">{{ $profile['name'] }}</span>
+                        <span class="profile-badge">{{ $profile['badge'] }}</span>
+                        <svg class="profile-chevron" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="m4 6 4 4 4-4" />
+                        </svg>
+                    </summary>
+
+                    <div class="profile-menu">
+                        <div class="profile-menu-header">
+                            <span class="profile-menu-name">{{ $profile['name'] }}</span>
+                            <span class="profile-menu-email">{{ $profile['email'] }}</span>
+                        </div>
+
+                        <a class="profile-menu-link" href="{{ $profile['profileHref'] }}">Profil Saya</a>
+                        <a class="profile-menu-link" href="{{ $profile['dashboardHref'] }}">Dashboard</a>
+                        <a class="profile-menu-link" href="{{ $profile['membershipHref'] }}">Langganan</a>
+
+                        <form method="POST" action="{{ $profile['logoutHref'] }}">
+                            @csrf
+                            <button class="profile-menu-logout" type="submit">Keluar</button>
+                        </form>
+                    </div>
+                </details>
+            @else
+                @foreach ($authLinks as $index => $link)
+                    <a href="{{ $link['href'] }}"
+                       class="button {{ $index === 1 ? 'button-light' : 'button-outline' }}">
+                        {{ $link['label'] }}
+                    </a>
+                @endforeach
+            @endif
         </div>
     </div>
 </nav>

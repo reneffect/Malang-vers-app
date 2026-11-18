@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('credit_accounts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->unique()->constrained('users'); // one-to-one
+            $table->smallInteger('credit_balance')->default(100);
+            $table->dateTime('last_top_up_at')->nullable();
+            $table->dateTime('next_top_up_at')->nullable();
             $table->timestamps();
         });
     }

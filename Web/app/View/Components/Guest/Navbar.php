@@ -27,17 +27,24 @@ class Navbar extends Component
         }
 
         $user = auth()->user();
-        $loggedIn = $user !== null;
 
         if ($user !== null) {
             $dashboardRoute = $user->role === 'admin' ? 'admin.dashboard' : 'member.member-home';
             $dashboardFallback = $user->role === 'admin' ? '/admin/dashboard' : '/member-home';
+            $logoutRoute = $user->role === 'admin' ? 'admin.logout' : 'logout';
 
-            $authLinks = [[
-                'label' => $user->name,
-                'href' => Route::has($dashboardRoute) ? route($dashboardRoute) : url($dashboardFallback),
-            ]];
+            $profile = [
+                'name' => $user->name,
+                'email' => $user->email,
+                'badge' => $user->role === 'admin' ? 'ADMIN' : 'PRO',
+                'dashboardHref' => Route::has($dashboardRoute) ? route($dashboardRoute) : url($dashboardFallback),
+                'profileHref' => Route::has('profile.index') ? route('profile.index') : url('/pengaturan-profil'),
+                'membershipHref' => Route::has('membership') ? route('membership') : url('/membership'),
+                'logoutHref' => Route::has($logoutRoute) ? route($logoutRoute) : url('/logout'),
+            ];
+            $authLinks = [];
         } else {
+            $profile = null;
             $authLinks = [
                 ['label' => 'Masuk', 'href' => Route::has('login') ? route('login') : url('/login')],
                 ['label' => 'Daftar', 'href' => Route::has('register') ? route('register') : url('/register')],
@@ -45,10 +52,10 @@ class Navbar extends Component
         }
 
         return view('components.guest.navbar', [
-            'loggedIn' => $loggedIn,
             'brandHref' => Route::has('home') ? route('home') : url('/'),
             'menus' => $menus,
             'authLinks' => $authLinks,
+            'profile' => $profile,
         ]);
     }
 }

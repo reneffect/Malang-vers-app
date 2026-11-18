@@ -9,15 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('translation_histories', function (Blueprint $table) {
-            $table->bigIncrements('id_translation');
-            $table->unsignedBigInteger('id_users');
-            $table->enum('source_language', ['id', 'jv', 'en'])->default('id');
-            $table->enum('target_language', ['id', 'jv', 'en'])->default('jv');
+            $table->id();
+            $table->foreignId('user_id')->constrained('users');
+            $table->enum('source_language', ['id', 'jv', 'en']); // ⚠️ kode_bahasa
+            $table->enum('target_language', ['id', 'jv', 'en']); // ⚠️
             $table->text('input_text');
-            $table->text('translated_text')->nullable();
-            $table->timestamps();
-
-            $table->foreign('id_users')->references('id_users')->on('users')->cascadeOnDelete();
+            $table->text('translated_text');
+            $table->integer('word_count')->default(0);
+            $table->integer('credit_used')->default(0);
         });
     }
 

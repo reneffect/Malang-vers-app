@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Auth; // ← PERBAIKAN: Namespace sesuai folder Auth
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // ← TAMBAHAN: Wajib untuk Auth::
-use App\Models\User; // ← TAMBAHAN: Untuk create user baru
-use Illuminate\Support\Facades\Hash; // ← TAMBAHAN: Untuk hash password
-use Illuminate\Validation\Rules\Password; // ← TAMBAHAN: Untuk validasi password
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 
 class LoginController extends Controller
 {
@@ -48,7 +48,7 @@ class LoginController extends Controller
         ]);
 
         // Buat user baru
-        $user = User::create([
+        User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -56,11 +56,7 @@ class LoginController extends Controller
             'is_active' => true,
         ]);
 
-        // Login otomatis setelah register
-        Auth::login($user);
-
-        // Redirect ke dashboard member
-        return redirect()->route('member.member-home');
+        return redirect()->route('login');
     }
 
     /**

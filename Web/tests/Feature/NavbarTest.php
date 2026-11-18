@@ -9,7 +9,7 @@ class NavbarTest extends TestCase
 {
     public function test_guest_sees_login_and_registration_links(): void
     {
-        $response = $this->get('/kamus');
+        $response = $this->get('/beranda');
 
         $response->assertOk()
             ->assertSee('Masuk')
@@ -23,11 +23,17 @@ class NavbarTest extends TestCase
             'role' => 'member',
         ]);
 
-        $response = $this->actingAs($user)->get('/kamus');
+        $response = $this->actingAs($user)->get('/beranda');
 
         $response->assertOk()
             ->assertSee('Nama Member')
+            ->assertSee('PRO')
+            ->assertSee('<details class="profile-dropdown">', false)
+            ->assertSee('<summary class="profile-trigger"', false)
+            ->assertSee('Profil Saya')
+            ->assertSee('href="'.route('profile.index').'"', false)
             ->assertSee('href="'.route('member.member-home').'"', false)
+            ->assertSee('action="'.route('logout').'"', false)
             ->assertDontSee('href="'.route('login').'"', false);
     }
 
@@ -38,11 +44,14 @@ class NavbarTest extends TestCase
             'role' => 'admin',
         ]);
 
-        $response = $this->actingAs($user)->get('/kamus');
+        $response = $this->actingAs($user)->get('/beranda');
 
         $response->assertOk()
             ->assertSee('Nama Admin')
+            ->assertSee('ADMIN')
+            ->assertSee('<details class="profile-dropdown">', false)
             ->assertSee('href="'.route('admin.dashboard').'"', false)
+            ->assertSee('action="'.route('admin.logout').'"', false)
             ->assertDontSee('href="'.route('login').'"', false);
     }
 }

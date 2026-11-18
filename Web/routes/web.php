@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\MemberController;
-use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PricingController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WalikanController;
-use App\Http\Controllers\BookController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,14 +20,11 @@ Route::get('/', [GuestController::class, 'index'])->name('home');
 Route::get('/beranda', [GuestController::class, 'index'])->name('beranda');
 
 Route::view('/kamus', 'guest.guest', [
-    'title'       => 'Kamus Boso Walikan',
+    'title' => 'Kamus Boso Walikan',
     'description' => 'Jelajahi kosakata Boso Walikan khas Malang.',
 ])->name('kamus');
 
-Route::view('/membership', 'guest.guest', [
-    'title'       => 'Langganan',
-    'description' => 'Informasi layanan keanggotaan MalangVerse akan tersedia di sini.',
-])->name('membership');
+Route::get('/membership', [PricingController::class, 'index'])->name('membership');
 
 // Endpoint penerjemah (dipanggil via fetch POST dari halaman guest)
 Route::post('/terjemah', fn () => response()->json([
@@ -57,7 +56,14 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::post('/logout', [LoginController::class, 'logoutAdmin'])->name('admin.logout');
 });
 
-Route::get('/', [WalikanController::class, 'index'])->name('home');
 Route::post('/translate', [WalikanController::class, 'translate'])->name('translate');
 Route::get('/api/popular-phrases', [WalikanController::class, 'popularPhrases'])->name('popular.phrases');
 Route::get('/kamus', [BookController::class, 'index'])->name('kamus');
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/pengaturan-profil', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/pengaturan-profil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/ubah-kata-sandi', [ProfileController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar');
+});

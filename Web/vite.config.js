@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/css/login/admin/login.css',
                 'resources/js/login/admin/login.js',
                 'resources/css/user/member/member-home.css',
+                'resources/css/user/member/membership.css',
                 'resources/js/user/member/member-home.js',
             ],
             refresh: true,

@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('saved_phrases', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('dictionary_entry_id')->nullable()->constrained('dictionary_entries');
+            $table->enum('source_language', ['id', 'jv', 'en']);
+            $table->enum('target_language', ['id', 'jv', 'en']);
+            $table->text('original_text');
+            $table->text('translated_text');
+            $table->timestamp('created_at')->nullable();
         });
     }
 

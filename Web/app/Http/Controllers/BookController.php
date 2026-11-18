@@ -10,23 +10,17 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $category = $request->query('category', 'semua');
-
-        // Query buku (menggunakan scope regular yang sudah kita buat di Model)
         $query = Book::regular();
 
         if ($category !== 'semua') {
-            $query->where('kategori', $category); // Ubah 'category' jadi 'kategori'
+            $query->where('kategori', $category);
         }
 
-        // Search
-        if ($request->has('search') && $request->search != '') {
-            $query->where('judul', 'like', '%'.$request->search.'%'); // Ubah 'title' jadi 'judul'
+        if ($request->filled('search')) {
+            $query->where('judul', 'like', '%'.$request->input('search').'%');
         }
 
-        // Ubah 'sold' jadi 'terjual'
-        $books = $query->orderBy('terjual', 'desc')->get();
-
-        // Ambil data bundle untuk banner bawah
+        $books = $query->orderByDesc('terjual')->get();
         $bundle = Book::bundle()->first();
 
         return view('member.kamus-bosowalikan', compact('books', 'bundle', 'category'));
