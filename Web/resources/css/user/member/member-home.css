@@ -4,24 +4,29 @@
   --color-brand-blue: #3155f5;
   --color-brand-purple: #6747e8;
   --color-brand-light: #5375ff;
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
-  --color-primary-950: #082f49;
+
+  /* Primary disamakan dengan biru brand (sebelumnya cyan, bikin konflik) */
+  --color-primary-50:  #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #3155f5;
+  --color-primary-700: #2742c9;
+  --color-primary-800: #1e3399;
+  --color-primary-900: #1a2b7a;
+  --color-primary-950: #111c4e;
 }
 
+/* ============ SCOPING MEMBER ============ */
 .member-page {
   min-height: 100vh;
   background: #f7f8ff;
+  color: #172554;
 }
 
+/* --- Navbar versi member (override navbar.css global) --- */
 .member-page .site-header {
   background: #fff;
   color: #172554;
@@ -34,28 +39,31 @@
   gap: 24px;
 }
 
+/* brand-mark sekarang <img> → gradient dihapus, pakai ukuran + object-fit */
 .member-page .brand-mark {
-  background: linear-gradient(135deg, #6d5dfc, #3985ff);
-  color: #fff;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
 }
 
-.member-page .brand-tagline {
-  color: #64748b;
-}
+.member-page .brand-name    { color: #3155f5; }
+.member-page .brand-tagline { color: #64748b; }
 
-.member-page .navbar-links {
-  gap: 28px;
-}
+.member-page .navbar-links { gap: 28px; }
 
 .member-page .navbar-link {
   color: #475569;
-  font-size: 12px;
+  font-size: 15px;          /* 12px terlalu kecil */
 }
+.member-page .navbar-link:hover { color: #3155f5; }
 
 .member-page .navbar-link.font-semibold {
   color: #3155f5;
   text-decoration-color: #3155f5;
-  text-underline-offset: 22px;
+  text-underline-offset: 6px;   /* 22px bikin underline melayang */
 }
 
 .member-page .button-light {
@@ -64,17 +72,38 @@
   color: #3155f5;
 }
 
+/* --- HERO: perbaiki teks putih yang hilang di bg terang --- */
+.member-page .page-hero,
+.member-page .member-hero {
+  background: #fff;
+  color: #172554;
+}
+.member-page .page-hero h1,
+.member-page .member-hero h1 { color: #172554; }
+.member-page .page-hero p,
+.member-page .member-hero p  { color: #64748b; }
+
+/* glass-badge di member = versi terang (bukan putih transparan) */
+.member-page .glass-badge {
+  background: #eef2ff;
+  color: #3155f5;
+  border-color: #c7d2fe;
+}
+
+/* ============ BASE ============ */
 @layer base {
   body {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 }
 
+/* ============ COMPONENTS ============ */
 @layer components {
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-primary-600 to-purple-600
+    @apply px-6 py-3 bg-gradient-to-r from-primary-600 to-brand-purple
            text-white font-semibold rounded-xl shadow-lg shadow-primary-600/30
            hover:shadow-xl hover:shadow-primary-600/40 hover:-translate-y-0.5
            transition-all duration-300 flex items-center gap-2;
@@ -103,18 +132,19 @@
   }
 }
 
+/* ============ UTILITIES ============ */
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-purple-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-400 to-brand-purple;
   }
 }
 
+/* ============ RESPONSIVE ============ */
 @media (max-width: 700px) {
   .member-page .site-navbar {
     width: calc(100% - 32px);
     gap: 12px;
   }
-
   .member-page .navbar-links {
     gap: 16px;
   }

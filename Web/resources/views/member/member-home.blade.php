@@ -13,12 +13,13 @@
 
     @vite([
         'resources/css/guest.css',
+        'resources/css/components/navbar.css',
         'resources/css/user/member/member-home.css',
         'resources/js/user/member/member-home.js',
     ])
 </head>
 
-<body class="member-page bg-indigo-50/50 min-h-screen font-sans antialiased text-gray-900">
+<body class="member-page bg-gray-50 font-sans antialiased text-gray-900">
 
     {{-- Panggil Component Navbar --}}
     <x-guest.navbar />

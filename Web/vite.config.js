@@ -13,9 +13,11 @@ export default defineConfig({
                 'resources/js/login/login.js',
                 'resources/css/login/admin/login.css',
                 'resources/js/login/admin/login.js',
+                'resources/css/user/admin/dashboard.css',
                 'resources/css/user/member/member-home.css',
                 'resources/css/user/member/membership.css',
                 'resources/js/user/member/member-home.js',
+                'resources/js/user/member/profile.js',
             ],
             refresh: true,
             fonts: [

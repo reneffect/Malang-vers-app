@@ -37,6 +37,7 @@ class Navbar extends Component
                 'name' => $user->name,
                 'email' => $user->email,
                 'badge' => $user->role === 'admin' ? 'ADMIN' : 'PRO',
+                'avatarUrl' => $user->avatar ? asset('storage/'.$user->avatar) : null,
                 'dashboardHref' => Route::has($dashboardRoute) ? route($dashboardRoute) : url($dashboardFallback),
                 'profileHref' => Route::has('profile.index') ? route('profile.index') : url('/pengaturan-profil'),
                 'membershipHref' => Route::has('membership') ? route('membership') : url('/membership'),

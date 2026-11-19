@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    @vite(['resources/css/guest.css']) {{-- Sesuaikan dengan nama file CSS ni-sama --}}
+    @vite(['resources/css/user/member/member-home.css', 'resources/css/components/navbar.css', 'resources/js/user/member/profile.js'])
 </head>
 
 <body class="bg-gray-50 font-sans antialiased text-gray-900">
@@ -55,7 +55,7 @@
             <aside class="space-y-5">
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center">
                     <div class="relative inline-block mb-3">
-                        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto overflow-hidden ring-4 ring-white">
+                        <div data-avatar-container class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto overflow-hidden ring-4 ring-white">
                             @if ($user->avatar)
                                 <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="avatar-img w-full h-full object-cover">
                             @else
@@ -135,7 +135,7 @@
                         {{-- Avatar Upload Section --}}
                         <div class="flex items-center gap-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
                             <div class="relative shrink-0">
-                                <div id="avatarPreview" class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden ring-4 ring-white shadow-md">
+                                <div id="avatarPreview" data-avatar-container class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden ring-4 ring-white shadow-md">
                                     @if ($user->avatar)
                                         <img src="{{ asset('storage/' . $user->avatar) }}" class="avatar-img w-full h-full object-cover">
                                     @else
@@ -145,7 +145,7 @@
                                 <label for="avatarInput" title="Pilih foto" class="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-600 text-white rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-700 hover:scale-110 transition-all shadow-md border-2 border-white">
                                     <i class="fas fa-camera text-xs"></i>
                                 </label>
-                                <input type="file" id="avatarInput" accept="image/*" class="hidden">
+                                <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" class="hidden">
                             </div>
 
                             <div class="flex-1 min-w-0">
@@ -157,7 +157,11 @@
                                         <i class="fas fa-folder-open"></i> Pilih Foto
                                     </button>
 
-                                    <button type="button" id="btnUploadAvatar" onclick="uploadAvatar()" disabled class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-700 active:scale-95 transition-all flex items-center gap-2">
+                                    <button type="button"
+                                            id="btnUploadAvatar"
+                                            data-url="{{ route('profile.avatar') }}"
+                                            disabled
+                                            class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-700 active:scale-95 transition-all flex items-center gap-2">
                                         <i class="fas fa-upload"></i> Unggah
                                     </button>
                                 </div>
@@ -254,86 +258,5 @@
     {{-- Toast global --}}
     <div id="toast" class="fixed bottom-8 right-8 z-50 pointer-events-none bg-gray-900 text-white px-6 py-3.5 rounded-xl shadow-2xl text-sm font-medium translate-y-32 opacity-0 transition-all duration-300"></div>
 
-    <script>
-        const avatarInput = document.getElementById('avatarInput');
-        const avatarPreview = document.getElementById('avatarPreview');
-        const uploadButton = document.getElementById('btnUploadAvatar');
-        const avatarStatus = document.getElementById('avatarStatus');
-
-        avatarInput.addEventListener('change', () => {
-            const file = avatarInput.files[0];
-
-            if (!file) {
-                return;
-            }
-
-            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-                showAvatarStatus('Format foto harus JPG, PNG, atau WEBP.', true);
-                avatarInput.value = '';
-                uploadButton.disabled = true;
-                return;
-            }
-
-            if (file.size > 2 * 1024 * 1024) {
-                showAvatarStatus('Ukuran foto maksimal 2MB.', true);
-                avatarInput.value = '';
-                uploadButton.disabled = true;
-                return;
-            }
-
-            avatarPreview.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="Pratinjau avatar" class="avatar-img w-full h-full object-cover">`;
-            uploadButton.disabled = false;
-            showAvatarStatus('Foto siap diunggah.', false);
-        });
-
-        async function uploadAvatar() {
-            const file = avatarInput.files[0];
-
-            if (!file) {
-                showAvatarStatus('Pilih foto terlebih dahulu.', true);
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('avatar', file);
-
-            uploadButton.disabled = true;
-            uploadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunggah';
-            showAvatarStatus('Mengunggah foto...', false);
-
-            try {
-                const response = await fetch(@json(route('profile.avatar')), {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                    },
-                    body: formData,
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.message || 'Foto gagal diunggah.');
-                }
-
-                document.querySelectorAll('.avatar-img').forEach((image) => {
-                    image.src = `${data.url}?t=${Date.now()}`;
-                });
-                showAvatarStatus('Foto profil berhasil diperbarui.', false);
-            } catch (error) {
-                showAvatarStatus(error.message, true);
-                uploadButton.disabled = false;
-            } finally {
-                uploadButton.innerHTML = '<i class="fas fa-upload"></i> Unggah';
-            }
-        }
-
-        function showAvatarStatus(message, isError) {
-            avatarStatus.textContent = message;
-            avatarStatus.classList.remove('hidden', 'text-red-500', 'text-green-600');
-            avatarStatus.classList.add(isError ? 'text-red-500' : 'text-green-600');
-        }
-    </script>
 </body>
 </html>

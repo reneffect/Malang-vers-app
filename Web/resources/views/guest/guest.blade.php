@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }} - MalangVerse</title>
 
-    @vite(['resources/css/guest.css', 'resources/js/guest.js'])
+    @vite(['resources/css/guest.css', 'resources/css/components/navbar.css', 'resources/js/guest.js'])
 </head>
 <body class="min-h-screen flex flex-col">
     <x-guest.navbar />
@@ -160,7 +160,7 @@
                                 class="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-semibold text-center hover:bg-blue-700">
                                 Daftar Sekarang (Gratis)
                             </a>
-                            <a href="{{ route('membership') }}"
+                            <a href="{{ route('pricing') }}"
                                 class="text-sm font-medium text-slate-700 hover:text-blue-600">
                                 Pelajari Keuntungan Member →
                             </a>

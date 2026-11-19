@@ -109,5 +109,9 @@ class ProfileTest extends TestCase
         $avatar = $user->fresh()->avatar;
         $this->assertNotNull($avatar);
         Storage::disk('public')->assertExists($avatar);
+
+        $profileResponse = $this->actingAs($user)->get(route('profile.index'));
+        $profileResponse->assertOk()
+            ->assertSee(asset('storage/'.$avatar), false);
     }
 }

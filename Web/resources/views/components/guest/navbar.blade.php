@@ -1,7 +1,9 @@
 <nav class="site-header">
     <div class="site-navbar">
         <a href="{{ $brandHref }}" class="brand" aria-label="MalangVerse home">
-            <span class="brand-mark">M</span>
+            <img src="{{ asset('images/brand.png') }}" 
+                 alt="Logo MalangVerse" 
+                 class="brand-mark">
             <span class="brand-copy">
                 <span class="brand-name">MalangVerse</span>
                 <span class="brand-tagline">Preservasi Boso Walikan</span>
@@ -22,7 +24,11 @@
                 <details class="profile-dropdown">
                     <summary class="profile-trigger" aria-label="Buka menu profil {{ $profile['name'] }}">
                         <span class="profile-avatar" aria-hidden="true">
-                            {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
+                            @if ($profile['avatarUrl'])
+                                <img data-navbar-avatar src="{{ $profile['avatarUrl'] }}" alt="" class="w-full h-full rounded-full object-cover">
+                            @else
+                                {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
+                            @endif
                         </span>
                         <span class="profile-name">{{ $profile['name'] }}</span>
                         <span class="profile-badge">{{ $profile['badge'] }}</span>

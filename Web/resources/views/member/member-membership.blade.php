@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    @vite(['resources/css/user/member/membership.css', 'resources/js/app.js'])
+    @vite(['resources/css/guest.css', 'resources/css/components/navbar.css', 'resources/js/guest.js'])
 </head>
 
 <body class="bg-gray-50 font-sans antialiased text-gray-900">
