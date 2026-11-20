@@ -71,4 +71,20 @@ class User extends Authenticatable
 
         return min(100.0, max(0.0, ($currentProgress / $xpForNext) * 100));
     }
+
+    // ============================================================
+    //  ACCESSOR: Label role untuk UI
+    // ============================================================
+
+    /**
+     * Label role yang siap tampil di UI.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'superadmin' => 'Super Administrator',
+            'admin'      => 'Administrator',
+            default      => 'Member',
+        };
+    }
 }

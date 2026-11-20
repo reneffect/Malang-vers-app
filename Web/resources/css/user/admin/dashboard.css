@@ -218,6 +218,89 @@ body {
     font-size: 0.8rem;
 }
 
+.admin-table-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.admin-table-heading h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.admin-table-heading > span {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.admin-table-wrapper {
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    color: #374151;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.admin-table th {
+    background: #f9fafb;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.admin-table td:first-child {
+    white-space: normal;
+}
+
+.admin-table-description {
+    display: block;
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.75rem;
+}
+
+.admin-status {
+    display: inline-flex;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.admin-status.active {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-status.inactive {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+.admin-empty-state {
+    margin: 0;
+    padding: 2rem 1rem;
+    color: #6b7280;
+    text-align: center;
+}
+
 @media (max-width: 768px) {
     .admin-layout {
         flex-direction: column;

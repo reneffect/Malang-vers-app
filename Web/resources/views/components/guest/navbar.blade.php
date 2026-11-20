@@ -25,7 +25,7 @@
                     <summary class="profile-trigger" aria-label="Buka menu profil {{ $profile['name'] }}">
                         <span class="profile-avatar" aria-hidden="true">
                             @if ($profile['avatarUrl'])
-                                <img data-navbar-avatar src="{{ $profile['avatarUrl'] }}" alt="" class="w-full h-full rounded-full object-cover">
+                                <img data-navbar-avatar src="{{ $profile['avatarUrl'] }}" alt="" class="profile-avatar-image">
                             @else
                                 {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
                             @endif

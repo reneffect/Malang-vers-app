@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/css/user/admin/dashboard.css',
                 'resources/css/user/member/member-home.css',
                 'resources/css/user/member/membership.css',
+                'resources/css/user/member/profile.css',
                 'resources/js/user/member/member-home.js',
                 'resources/js/user/member/profile.js',
             ],

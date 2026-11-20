@@ -13,32 +13,26 @@
 
     @vite([
         'resources/css/guest.css',
-        'resources/css/components/navbar.css',
         'resources/css/user/member/member-home.css',
         'resources/js/user/member/member-home.js',
     ])
 </head>
 
-<body class="member-page bg-gray-50 font-sans antialiased text-gray-900">
+<body class="bg-gray-50 font-sans antialiased text-gray-900">
 
     {{-- Panggil Component Navbar --}}
     <x-guest.navbar />
 
     {{-- ============ HERO ============ --}}
-    <section class="relative bg-gradient-to-br from-brand-blue via-brand-purple to-brand-light overflow-hidden">
-        <div class="absolute inset-0 opacity-30">
-            <div class="absolute top-0 left-1/4 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse-slow"></div>
-            <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse-slow" style="animation-delay:2s"></div>
-        </div>
-
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 text-center">
-            <div class="glass-badge mb-6">
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
                 <i class="fas fa-crown text-amber-400"></i> Member Pro
             </div>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
+            <h1 class="hero-title">
                 Penerjemah Boso Walikan Member Pro
             </h1>
-            <p class="text-base md:text-lg text-white/85 max-w-2xl mx-auto leading-relaxed">
+            <p class="hero-subtitle">
                 Terjemahkan teks dan frasa bahasa Indonesia ke Boso Walikan (bahasa terbalik khas Malang) secara instan.
                 Dilengkapi kamus lengkap, riwayat terjemahan, dan frasa populer.
             </p>

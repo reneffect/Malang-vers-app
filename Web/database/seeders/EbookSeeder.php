@@ -9,53 +9,81 @@ class EbookSeeder extends Seeder
 {
     public function run(): void
     {
-        $ebooks = [
+        $data = [
             [
-                'judul' => 'Kamus Alit Boso Walikan (Edisi Lengkap)',
-                'kode_url' => 'kamus-alit-boso-walikan',
-                'kategori' => 'pemula',
-                'harga' => 50000,
-                'terjual' => 120,
+                'judul'       => 'Kamus Akbar Boso Walikan Malang',
+                'penulis'     => 'Tim Budayawan Arema',
+                'deskripsi'   => 'Edisi Lengkap Alinea Malangan',
+                'harga'       => 50000,
+                'terjual'     => 1240,
+                'rating'      => 4.9,
+                'halaman'     => 480,
+                'format'      => 'PDF',
+                'warna_cover' => 'from-blue-600 to-indigo-800',
+                'is_active'   => true,
             ],
             [
-                'judul' => 'Kamus Boso Walikan Populer',
-                'kode_url' => 'kamus-boso-walikan-populer',
-                'kategori' => 'pemula',
-                'harga' => 35000,
-                'terjual' => 340,
+                'judul'       => 'Kamus Saku Kiwalan Populer',
+                'penulis'     => 'Sam Kaji & Nawak',
+                'deskripsi'   => 'Panduan Gaul Anak Muda Ngalam',
+                'harga'       => 35000,
+                'terjual'     => 890,
+                'rating'      => 4.8,
+                'halaman'     => 180,
+                'format'      => 'PDF',
+                'warna_cover' => 'from-sky-500 to-blue-700',
+                'is_active'   => true,
             ],
             [
-                'judul' => 'Kamus Boso Walikan Gaya Kuno',
-                'kode_url' => 'kamus-boso-walikan-gaya-kuno',
-                'kategori' => 'lengkap',
-                'harga' => 75000,
-                'terjual' => 85,
+                'judul'       => 'Ensiklopedia Oseb Kiwalan Gerilya 1949',
+                'penulis'     => 'Sejarah Arema 1949',
+                'deskripsi'   => 'Sandi Rahasia Pejuang Kemerdekaan',
+                'harga'       => 75000,
+                'terjual'     => 680,
+                'rating'      => 4.7,
+                'halaman'     => 620,
+                'format'      => 'PDF',
+                'warna_cover' => 'from-amber-700 to-stone-800',
+                'is_active'   => true,
             ],
             [
-                'judul' => 'Percakapan Sehari-hari Boso Walikan',
-                'kode_url' => 'percakapan-sehari-hari-boso-walikan',
-                'kategori' => 'lengkap',
-                'harga' => 40000,
-                'terjual' => 210,
+                'judul'       => 'Percakapan Harian Kiwalan Ngalam',
+                'penulis'     => 'Komunitas Oseb Ngalam',
+                'deskripsi'   => 'Edisi Interaksi Sosial Warga',
+                'harga'       => 40000,
+                'terjual'     => 610,
+                'rating'      => 4.6,
+                'halaman'     => 210,
+                'format'      => 'PDF',
+                'warna_cover' => 'from-orange-400 to-rose-500',
+                'is_active'   => true,
             ],
-            [
-                'judul' => 'Beli Bundling 4 Kamus Sekalian Hemat 35% via QRIS',
-                'kode_url' => 'bundle-4-kamus',
-                'kategori' => 'bundle',
-                'harga' => 115000,
-                'terjual' => 50,
-                'is_bundle' => true,
-            ],
+            // Tambah 8 data lagi biar total 12 (sesuai screenshot "12 Judul")
+            // ... (bisa di-copy paste struktur di atas dengan data berbeda)
         ];
 
-        foreach ($ebooks as $ebook) {
-            $ebook['lokasi_berkas'] = 'ebooks/seed-data/'.$ebook['kode_url'].'.pdf';
-            $ebook['sudah_diterbitkan'] = false;
+        // Hapus data lama dulu biar bersih (opsional)
+        Ebook::truncate(); 
 
-            Ebook::updateOrCreate(
-                ['kode_url' => $ebook['kode_url']],
-                $ebook,
-            );
+        foreach ($data as $item) {
+            Ebook::create($item);
         }
+        
+        // Tambah 8 data dummy lagi biar total 12
+        for ($i = 5; $i <= 12; $i++) {
+            Ebook::create([
+                'judul'       => "Kamus Kiwalan Edisi ke-{$i}",
+                'penulis'     => 'Tim Kurator',
+                'harga'       => 30000 + ($i * 5000),
+                'terjual'     => 100 + ($i * 10),
+                'rating'      => 4.5,
+                'halaman'     => 200,
+                'format'      => 'PDF',
+                'warna_cover' => 'from-gray-500 to-gray-700',
+                'is_active'   => true,
+            ]);
+        }
+
+        $this->command->info('✅ 12 E-Book berhasil di-seed!');
     }
 }

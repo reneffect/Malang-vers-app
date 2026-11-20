@@ -63,32 +63,22 @@ Route::middleware('auth')->group(function () {
 */
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // Guest: form login admin
-    Route::middleware('guest')->group(function () {
-        Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
-    });
+    // 1. Form login admin (Bisa diakses siapa saja, bahkan member yang sedang login)
+    Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
 
-    // Login sebagai admin: dashboard + logout
-    Route::middleware(['auth', 'admin'])->group(function () {
+    // 2. Fitur Admin (HANYA pakai middleware 'admin', karena di dalamnya sudah ada cek Auth::check())
+    Route::middleware('admin')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
         // CRUD admin
         Route::get('/verifikasi', [AdminController::class, 'verifikasi'])->name('verifikasi');
         Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
-    });
 
-    Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
-    Route::get('/verifikasi', [AdminController::class, 'verifikasi'])->name('verifikasi');
-
-    // 👇 INI YANG BELUM ADA, TAMBAHKAN
-    Route::get('/membership', [AdminController::class, 'membership'])->name('membership');
-    Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::get('/transaksi', [AdminController::class, 'transaksi'])->name('transaksi');
-
-    Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+        // Fitur tambahan
+        Route::get('/membership', [AdminController::class, 'membership'])->name('membership');
+        Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::get('/transaksi', [AdminController::class, 'transaksi'])->name('transaksi');
     });
 });

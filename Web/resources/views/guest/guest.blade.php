@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }} - MalangVerse</title>
 
-    @vite(['resources/css/guest.css', 'resources/css/components/navbar.css', 'resources/js/guest.js'])
+    @vite(['resources/css/guest.css', 'resources/js/guest.js'])
 </head>
 <body class="min-h-screen flex flex-col">
     <x-guest.navbar />
