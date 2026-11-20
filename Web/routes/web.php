@@ -58,27 +58,29 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin (SATU BLOK, tanpa duplikat!)
+| Admin (SATU BLOK, URL & Nama Route Sudah Bersih!)
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // 1. Form login admin (Bisa diakses siapa saja, bahkan member yang sedang login)
+    // 1. Form login admin (Bisa diakses siapa saja)
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
 
-    // 2. Fitur Admin (HANYA pakai middleware 'admin', karena di dalamnya sudah ada cek Auth::check())
-    Route::middleware('admin')->group(function () {
-        Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
-
-        // CRUD admin
-        Route::get('/verifikasi', [AdminController::class, 'verifikasi'])->name('verifikasi');
+    // 2. Fitur Admin (Hanya untuk yang sudah login)
+    Route::middleware('auth')->group(function () {
+        
+        // Default: Akses /admin langsung ke Kelola E-Book
+        Route::get('/', [AdminController::class, 'ebooks'])->name('dashboard');
+        
+        // Route spesifik (Otomatis jadi URL: /admin/ebooks, Nama: admin.ebooks)
         Route::get('/ebooks', [AdminController::class, 'ebooks'])->name('ebooks');
-
-        // Fitur tambahan
         Route::get('/membership', [AdminController::class, 'membership'])->name('membership');
         Route::get('/users', [AdminController::class, 'users'])->name('users');
         Route::get('/transaksi', [AdminController::class, 'transaksi'])->name('transaksi');
+        Route::get('/verifikasi', [AdminController::class, 'verifikasi'])->name('verifikasi');
+        
+        // Logout admin
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
     });
 });

@@ -47,5 +47,4 @@ class TransactionSeeder extends Seeder
         }
 
         $this->command->info('✅ 20 transaksi dummy ter-seed!');
-    }
-}
+    }}

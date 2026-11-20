@@ -12,8 +12,9 @@ class AdminAuthController extends Controller
 {
     public function showLoginForm(): View|RedirectResponse
     {
+        // Kalau sudah login sebagai admin, lempar ke Kelola E-Book
         if (Auth::user()?->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.ebooks'); // ✅ nama ini kini SUDAH terdaftar
         }
 
         return view('admin.login');
@@ -31,21 +32,37 @@ class AdminAuthController extends Controller
             ->orWhere('name', $credentials['username'])
             ->first();
 
-        if ($user?->role !== 'admin' || ! Auth::attempt(
-            ['email' => $user->email, 'password' => $credentials['password']],
-            $request->boolean('remember')
-        )) {
+        // ✅ Pisahkan cek role dari cek password → pesan error lebih jujur
+        if (!$user) {
             return back()
                 ->withInput($request->only('username'))
-                ->withErrors(['username' => 'Nama pengguna atau kata sandi salah.']);
+                ->withErrors(['username' => 'Nama pengguna tidak ditemukan.']);
+        }
+
+        if ($user->role !== 'admin') {
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors(['username' => 'Akun ini bukan administrator.']);
+        }
+
+        $ok = Auth::attempt([
+            'email'    => $user->email,
+            'password' => $credentials['password'],
+        ], $request->boolean('remember'));
+
+        if (!$ok) {
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors(['username' => 'Kata sandi salah.']);
         }
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('admin.dashboard'));
+        // ✅ Samakan dengan showLoginForm → admin.ebooks
+        return redirect()->intended(route('admin.ebooks'));
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         Auth::logout();
         $request->session()->invalidate();
