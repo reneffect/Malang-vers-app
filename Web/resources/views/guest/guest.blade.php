@@ -2,25 +2,35 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="translate-url" content="{{ route('translate') }}">
     <title>{{ $title }} - MalangVerse</title>
 
     @vite(['resources/css/guest.css', 'resources/js/guest.js'])
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-slate-50">
     <x-guest.navbar />
 
     <main class="flex-1">
+
+        {{-- Hero --}}
         <section class="hero">
             <div class="hero-content">
-                <span class="hero-badge"><i class="fa-solid fa-seedling"></i> Preservasi Dialek Malangan &amp; Kearifan Asli</span>
+                <span class="hero-badge">
+                    <i class="fa-solid fa-seedling"></i>
+                    Preservasi Dialek Malangan &amp; Kearifan Asli
+                </span>
                 <h1 class="hero-title">{{ $title }}</h1>
                 <p class="hero-subtitle">{{ $description }}</p>
             </div>
         </section>
 
         @php
-            $kataPopuler = ['Sam', 'Mbc', 'Ayuo', 'Tuga', 'Ukah', 'Budget', 'Nawak', 'Mbuk', 'Lanbuk', 'Kaan', 'Gieta', 'Banget'];
+            $kataPopuler = [
+                'Sam', 'Mbc', 'Ayuo', 'Tuga', 'Ukah', 'Budget',
+                'Nawak', 'Mbuk', 'Lanbuk', 'Kaan', 'Gieta', 'Banget',
+            ];
 
             $edukasi = [
                 [
@@ -50,65 +60,82 @@
             ];
         @endphp
 
-        <section class="bg-slate-50 py-12 px-4">
-            <div class="max-w-5xl mx-auto space-y-14">
+        {{-- Penerjemah --}}
+        <section class="relative z-10 -mt-24 px-4">
+            <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 p-5 md:p-6">
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-stretch">
 
-                {{-- Penerjemah --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-stretch">
+                    {{-- Input --}}
+                    <div class="rounded-xl border border-slate-200 p-4 flex flex-col">
+                        <span class="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">
+                            Boso Walikan
+                        </span>
 
-                        {{-- Input --}}
-                        <div class="rounded-xl border border-slate-200 p-4 flex flex-col">
-                            <span class="text-xs font-semibold text-blue-600 mb-2">Boso Walikan</span>
-                            <textarea id="sumber-teks" rows="4"
-                                class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400"
-                                placeholder="Ketik kata Boso Walikan di sini..."></textarea>
-                            <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
-                                <button type="button" id="btn-terjemah"
-                                    class="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700">
-                                    Terjemahkan
-                                </button>
-                                <span id="jumlah-karakter">0 / 500</span>
-                            </div>
-                        </div>
+                        <textarea
+                            id="sumber-teks"
+                            rows="5"
+                            class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400 bg-transparent"
+                            placeholder="Ketik kata Boso Walikan di sini..."
+                        ></textarea>
 
-                        {{-- Tombol tukar --}}
-                        <div class="flex items-center justify-center">
-                            <button type="button" id="btn-tukar"
-                                class="w-9 h-9 rounded-full border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300"
-                                aria-label="Tukar bahasa">
-                                <i class="fa-solid fa-right-left"></i>
-                            </button>
-                        </div>
-
-                        {{-- Output --}}
-                        <div class="rounded-xl border border-slate-200 p-4 flex flex-col bg-slate-50/60">
-                            <span class="text-xs font-semibold text-slate-500 mb-2">Bahasa Indonesia</span>
-                            <div id="hasil-teks" class="flex-1 text-slate-800 min-h-[6rem]">
-                                <span class="text-slate-400">Hasil terjemahan akan muncul di sini.</span>
-                            </div>
-                            <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
-                                <button type="button" id="btn-salin" class="hover:text-blue-600">
-                                    <i class="fa-regular fa-copy"></i> Salin
-                                </button>
-                                <span id="status-terjemah"></span>
-                            </div>
+                        <div class="flex justify-end text-xs text-slate-400 mt-2">
+                            <span id="jumlah-karakter">0 / 500</span>
                         </div>
                     </div>
 
-                    <p class="text-center text-[11px] text-slate-400 mt-4">
-                        Dibantu pengguna dan kontributor komunitas MalangVerse
-                    </p>
+                    {{-- Tombol tukar --}}
+                    <div class="flex items-center justify-center">
+                        <button
+                            type="button"
+                            id="btn-tukar"
+                            class="w-10 h-10 rounded-full bg-blue-600 text-white shadow hover:bg-blue-700 flex items-center justify-center"
+                            aria-label="Tukar bahasa"
+                        >
+                            <i class="fa-solid fa-right-left"></i>
+                        </button>
+                    </div>
+
+                    {{-- Output --}}
+                    <div class="rounded-xl border border-slate-200 p-4 flex flex-col bg-slate-50/60">
+                        <span class="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mb-3">
+                            Bahasa Indonesia
+                        </span>
+
+                        <div id="hasil-teks" class="flex-1 text-slate-800 min-h-[8rem]">
+                            <span class="text-slate-400">Hasil terjemahan akan muncul di sini.</span>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
+                            <button type="button" id="btn-salin" class="hover:text-blue-600">
+                                <i class="fa-regular fa-copy"></i> Salin
+                            </button>
+                            <span id="status-terjemah"></span>
+                        </div>
+                    </div>
                 </div>
 
+                <p class="text-center text-[11px] text-slate-400 mt-5 pt-4 border-t border-slate-100">
+                    Dibantu pengguna dan kontributor komunitas MalangVerse
+                </p>
+            </div>
+        </section>
+
+        <section class="py-12 px-4">
+            <div class="max-w-5xl mx-auto space-y-14">
+
                 {{-- Kata Populer --}}
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-800 mb-4">Kata Populer</h2>
-                    <div class="flex flex-wrap gap-2">
+                <div class="text-center">
+                    <p class="text-[11px] font-semibold tracking-widest text-blue-600 uppercase">
+                        Kosakata Populer Arema
+                    </p>
+
+                    <div class="flex flex-wrap justify-center gap-2 mt-4">
                         @foreach ($kataPopuler as $kata)
-                            <button type="button"
+                            <button
+                                type="button"
                                 class="btn-kata px-3 py-1.5 rounded-full bg-blue-100 text-blue-600 text-sm font-medium hover:bg-blue-200"
-                                data-kata="{{ $kata }}">
+                                data-kata="{{ $kata }}"
+                            >
                                 {{ $kata }}
                             </button>
                         @endforeach
@@ -118,9 +145,15 @@
                 {{-- Edukasi --}}
                 <div>
                     <div class="text-center mb-10">
-                        <p class="text-[11px] font-semibold tracking-widest text-blue-600 uppercase">Warisan Budaya</p>
-                        <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mt-1">Edukasi &amp; Trivia Sejarah Boso Walikan</h2>
-                        <p class="text-sm text-slate-500 mt-2">Mengapa Boso Walikan dibalik? Pelajari latar belakang taktik perjuangan kemerdekaan.</p>
+                        <p class="text-[11px] font-semibold tracking-widest text-blue-600 uppercase">
+                            Warisan Budaya
+                        </p>
+                        <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mt-1">
+                            Edukasi &amp; Trivia Sejarah Boso Walikan
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-2">
+                            Mengapa Boso Walikan dibalik? Pelajari latar belakang taktik perjuangan kemerdekaan.
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -132,6 +165,7 @@
                                     </div>
                                     <span class="text-[11px] font-semibold text-blue-600">{{ $item['badge'] }}</span>
                                 </div>
+
                                 <h3 class="text-base font-bold text-slate-900">{{ $item['judul'] }}</h3>
                                 <p class="text-sm text-slate-600 mt-2 leading-relaxed flex-1">{{ $item['isi'] }}</p>
                                 <p class="text-xs text-slate-500 mt-4 pt-4 border-t border-slate-100">{!! $item['footer'] !!}</p>
@@ -156,12 +190,16 @@
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-center gap-4 shrink-0">
-                            <a href="{{ route('register') }}"
-                                class="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-semibold text-center hover:bg-blue-700">
+                            <a
+                                href="{{ route('register') }}"
+                                class="px-6 py-2.5 rounded-full bg-blue-600 text-white text-sm font-semibold text-center hover:bg-blue-700"
+                            >
                                 Daftar Sekarang (Gratis)
                             </a>
-                            <a href="{{ route('pricing') }}"
-                                class="text-sm font-medium text-slate-700 hover:text-blue-600">
+                            <a
+                                href="{{ route('pricing') }}"
+                                class="text-sm font-medium text-slate-700 hover:text-blue-600"
+                            >
                                 Pelajari Keuntungan Member →
                             </a>
                         </div>
@@ -174,6 +212,5 @@
 
     <x-guest.beranda-footer />
 
-    
 </body>
 </html>

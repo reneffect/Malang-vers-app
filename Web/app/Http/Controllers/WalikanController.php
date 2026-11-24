@@ -8,22 +8,19 @@ use App\Models\SavedPhrase;
 use App\Models\TranslationHistory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class WalikanController extends Controller
 {
-    /** Batas pencarian gratis per hari (guest / user tanpa langganan aktif) */
     private const FREE_DAILY_LIMIT = 10;
 
     public function index(): View
     {
-        // Riwayat 10 terjemahan terakhir (per user, atau per IP untuk guest)
+        $token = $this->guestToken(request());
+
         $recentTranslations = $this->historyQuery()->limit(10)->get();
-
-        // Frasa populer dari dictionary_entries
         $popularPhrases = DictionaryEntry::popular()->limit(6)->get();
-
-        // Info sisa kuota (buat tampilin di UI kalau perlu)
-        $remainingQuota = $this->remainingQuota();
+        $remainingQuota = $this->remainingQuota($token);
 
         return view('walikan.index', compact(
             'recentTranslations',
@@ -39,8 +36,22 @@ class WalikanController extends Controller
             'direction' => 'nullable|in:id_to_walikan,walikan_to_id',
         ]);
 
-        // 🔒 Cek limit harian untuk guest / user gratis
-        if (! $this->userHasActiveSubscription() && GuestUsage::todayCount($request->ip()) >= self::FREE_DAILY_LIMIT) {
+        $token = $this->guestToken($request);
+        $direction = $request->input('direction', 'walikan_to_id');
+        $text = $request->input('text');
+
+        // 🔒 Blokir keras (kalau admin set is_blocked)
+        if (GuestUsage::isBlocked($token)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akun sementara kamu diblokir.',
+                'code' => 'BLOCKED',
+            ], 403);
+        }
+
+        // 🔒 Cek kuota harian (guest / user tanpa langganan)
+        if (! $this->userHasActiveSubscription()
+            && GuestUsage::todayCount($token) >= self::FREE_DAILY_LIMIT) {
             return response()->json([
                 'success' => false,
                 'message' => 'Kuota gratis harian habis. Upgrade ke Paket Standar/Premium untuk akses tanpa batas!',
@@ -48,12 +59,8 @@ class WalikanController extends Controller
             ], 429);
         }
 
-        $text = $request->input('text');
-        $direction = $request->input('direction', 'id_to_walikan');
+        $translated = $this->convertWalikan($text, $direction);
 
-        $translated = $this->convertWalikan($text);
-
-        // 💾 Simpan riwayat
         TranslationHistory::create([
             'original_text' => $text,
             'translated_text' => $translated,
@@ -62,46 +69,43 @@ class WalikanController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
-        // 📈 Catat pemakaian (kalau guest / user gratis)
         if (! $this->userHasActiveSubscription()) {
-            GuestUsage::incrementToday($request->ip());
+            GuestUsage::incrementToday($token);
         }
 
         return response()->json([
             'success' => true,
             'translated' => $translated,
             'original' => $text,
-            'remaining' => $this->remainingQuota(),
-        ]);
+            'remaining' => $this->remainingQuota($token),
+        ])->cookie('walikan_guest_token', $token, 60 * 24 * 30, '/', null, false, true);
     }
 
-    /** Frasa populer via AJAX (opsional, buat refresh tanpa reload) */
     public function popularPhrases()
     {
         $phrases = DictionaryEntry::popular()->limit(6)->get()
             ->map(fn ($p) => [
-                'id' => $p->indonesian,
-                'walikan' => $p->walikan,
+                'indonesian' => $p->indonesian_word,
+                'walikan' => $p->walikan_word,
             ]);
 
         return response()->json($phrases);
     }
 
-    /** Simpan frasa ke 'saved_phrases' (buat member) */
     public function savePhrase(Request $request)
     {
         $request->validate([
-            'indonesian' => 'required|string',
-            'walikan' => 'required|string',
+            'indonesian_word' => 'required|string',
+            'walikan_word' => 'required|string',
         ]);
 
         SavedPhrase::updateOrCreate(
             [
                 'user_id' => auth()->id(),
-                'indonesian' => $request->indonesian,
+                'indonesian_word' => $request->indonesian_word,
             ],
             [
-                'walikan' => $request->walikan,
+                'walikan_word' => $request->walikan_word,
             ]
         );
 
@@ -109,42 +113,45 @@ class WalikanController extends Controller
     }
 
     // ============================================================
-    //  LOGIKA KONVERSI WALIKAN (SUDAH DI-FIX)
+    //  LOGIKA KONVERSI WALIKAN (MULTIBYTE SAFE & KAMUS LOKAL)
     // ============================================================
 
-    /**
-     * Boso Walikan Malang = balik URUTAN HURUF tiap kata,
-     * tapi tanda baca (, . ! ?) TETAP di posisi awalnya.
-     *
-     * Contoh: "Halo, apa kabar?" → "Olah, apu rabak?"
-     */
-    private function convertWalikan(string $text): string
+    private function convertWalikan(string $text, string $direction = 'id_to_walikan'): string
     {
+        $toWalikan = $direction === 'id_to_walikan';
+
         return collect(preg_split('/(\s+)/', $text, -1, PREG_SPLIT_DELIM_CAPTURE))
-            ->map(function ($token) {
-                // Spasi / whitespace → biarkan apa adanya
+            ->map(function ($token) use ($toWalikan) {
                 if (trim($token) === '') {
                     return $token;
                 }
 
-                // Pisahkan: tanda baca di depan, kata inti, tanda baca di belakang
-                if (preg_match('/^([^\p{L}\p{N}]*)(.*?)([^\p{L}\p{N}]*)$/u', $token, $m)) {
-                    $leading = $m[1];   // misal: " ("
-                    $core = $m[2];   // misal: "Halo"
-                    $trailing = $m[3];   // misal: ","
-
-                    // Balik HURUF kata intinya saja, lalu kapitalisasi huruf pertama
-                    $reversed = $this->capitalizeFirst(strrev($core));
-
-                    return $leading.$reversed.$trailing;
+                if (! preg_match('/^([^\p{L}\p{N}]*)(.*?)([^\p{L}\p{N}]*)$/u', $token, $m)) {
+                    return $token;
                 }
 
-                return $token;
+                [, $leading, $core, $trailing] = $m;
+                if ($core === '') {
+                    return $token;
+                }
+
+                $lower = mb_strtolower($core);
+
+                // 1. Cek Kamus Lokal (PAKAI NAMA KOLOM ASLI)
+                $entry = $toWalikan
+                    ? DictionaryEntry::where('indonesian_word', $lower)->first()
+                    : DictionaryEntry::where('walikan_word', $lower)->first();
+
+                // 2. Fallback: Balik huruf (Multibyte safe)
+                $out = $entry
+                    ? ($toWalikan ? $entry->walikan_word : $entry->indonesian_word)
+                    : implode('', array_reverse(mb_str_split($lower)));
+
+                return $leading.$this->capitalizeFirst($out).$trailing;
             })
             ->implode('');
     }
 
-    /** Kapitalisasi huruf pertama saja (sisa huruf kecil) */
     private function capitalizeFirst(string $word): string
     {
         if ($word === '') {
@@ -155,10 +162,16 @@ class WalikanController extends Controller
     }
 
     // ============================================================
-    //  HELPER QUERY & AUTH
+    //  HELPER
     // ============================================================
 
-    /** Riwayat: per-user kalau login, per-IP kalau guest */
+    private function guestToken(Request $request): string
+    {
+        $token = $request->cookie('walikan_guest_token');
+
+        return $token ?: (string) Str::uuid();
+    }
+
     private function historyQuery()
     {
         $query = TranslationHistory::query();
@@ -172,21 +185,18 @@ class WalikanController extends Controller
         return $query->latest();
     }
 
-    /** Cek apakah user punya langganan aktif (nanti nyambung ke tabel memberships) */
     private function userHasActiveSubscription(): bool
     {
-        // TODO: kaitkan ke model Membership kalau sudah siap
-        // return optional(auth()->user()->activeMembership)->expires_at?->isFuture();
-        return false; // sementara: semua dianggap guest
+        // TODO: Nanti disambung ke model Membership
+        return false;
     }
 
-    /** Sisa kuota hari ini */
-    private function remainingQuota(): ?int
+    private function remainingQuota(?string $token): ?int
     {
         if ($this->userHasActiveSubscription()) {
-            return null; // unlimited
+            return null;
         }
 
-        return max(0, self::FREE_DAILY_LIMIT - GuestUsage::todayCount(request()->ip()));
+        return max(0, self::FREE_DAILY_LIMIT - GuestUsage::todayCount($token));
     }
 }

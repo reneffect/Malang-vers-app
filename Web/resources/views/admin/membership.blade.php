@@ -27,8 +27,8 @@
                     <h1 class="text-2xl font-bold text-gray-900">Kelola Paket Langganan</h1>
                     <p class="text-sm text-gray-500 mt-1">Atur skema tier keanggotaan, penentuan harga Rupiah, dan kuota fitur pengguna</p>
                 </div>
-                <button class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all">
-                    <i class="fas fa-plus"></i> Tambah Kamus Baru
+                <button type="button" onclick="toggleModal('modalPaket')" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-600/25 flex items-center gap-2 transition-all">
+                    <i class="fas fa-plus"></i> Tambah Paket
                 </button>
             </div>
 
@@ -138,7 +138,7 @@
                             @forelse ($tiers as $index => $tier)
                                 @php
                                     $kodeId = 'TIER-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT);
-                                    $features = is_array($tier->features) ? $tier->features : json_decode($tier->features, true) ?? [];
+                                    $features = is_array($tier->benefits) ? $tier->benefits : json_decode($tier->benefits ?? '[]', true) ?? [];
                                     $quotaText = $tier->translation_quota ? $tier->translation_quota . ' / hari' : 'Tanpa Batas';
                                     $quotaColor = $tier->translation_quota ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700';
                                 @endphp
@@ -229,6 +229,8 @@
 
         </main>
     </div>
+
+    @include('admin.crud.membership')
 
 </body>
 </html>

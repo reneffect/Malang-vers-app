@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MembershipTier extends Model
 {
@@ -11,33 +12,45 @@ class MembershipTier extends Model
     protected $primaryKey = 'id_membership_tier';
 
     protected $fillable = [
-        'name', 'description', 'duration_days', 'price', 'benefits',
-        'monthly_price', 'yearly_price', 'badge', 'is_recommended',
-        'is_active', 'order',
+        'name',
+        'tagline',
+        'description',
+        'duration_days',
+        'price',
+        'benefits',
+        'monthly_price',
+        'yearly_price',
+        'translation_quota',
+        'ebook_access',
+        'features',
+        'is_active',
+        'is_featured',
+        'sort_order',
+        'order',
     ];
 
     protected $casts = [
-        'duration_days' => 'integer',
-        'price' => 'decimal:2',
         'benefits' => 'array',
-        'monthly_price' => 'integer',
-        'yearly_price' => 'integer',
-        'is_recommended' => 'boolean',
+        'features' => 'array',
+        'monthly_price' => 'decimal:2',
+        'yearly_price' => 'decimal:2',
+        'price' => 'decimal:2',
+        'translation_quota' => 'integer',
         'is_active' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
-    public function features()
+    // Relasi ke memberships (user yang berlangganan tier ini)
+    public function memberships(): HasMany
     {
-        return $this->hasMany(MembershipTierFeature::class)->orderBy('order');
+        return $this->hasMany(Membership::class, 'membership_tier_id', 'id_membership_tier');
     }
 
-    public function memberships()
+    // Helper: jumlah pelanggan aktif
+    public function getActiveMembersCountAttribute()
     {
-        return $this->hasMany(Membership::class);
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true)->orderBy('order');
+        return $this->memberships()
+            ->where('status', 'active')
+            ->count();
     }
 }

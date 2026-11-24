@@ -38,6 +38,9 @@ class AdminMembershipTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Paket Langganan')
+            ->assertSee('onclick="toggleModal(\'modalPaket\')"', false)
+            ->assertSee('id="modalPaket"', false)
+            ->assertSee('function toggleModal(id)', false)
             ->assertSeeInOrder(['Paket Bulanan', 'Paket Tahunan'])
             ->assertSee('Rp 20.000')
             ->assertSee('Rp 200.000');

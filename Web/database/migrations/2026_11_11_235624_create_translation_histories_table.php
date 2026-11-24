@@ -10,13 +10,12 @@ return new class extends Migration
     {
         Schema::create('translation_histories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->enum('source_language', ['id', 'jv', 'en']); // ⚠️ kode_bahasa
-            $table->enum('target_language', ['id', 'jv', 'en']); // ⚠️
-            $table->text('input_text');
+            $table->text('original_text');
             $table->text('translated_text');
-            $table->integer('word_count')->default(0);
-            $table->integer('credit_used')->default(0);
+            $table->string('direction')->nullable();
+            $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->string('ip_address')->nullable();
+            $table->timestamps();
         });
     }
 

@@ -7,34 +7,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Membership extends Model
 {
+    protected $table = 'memberships';
+
     protected $fillable = [
         'user_id',
-        'membership_tier_id',
-        'transaction_item_id',
-        'started_at',
-        'ends_at',
+        'tier_id',
+        'start_date',
+        'end_date',
         'status',
+        'billing_cycle', // 'monthly' atau 'yearly'
     ];
 
-    protected function casts(): array
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
+    public function user(): BelongsTo
     {
-        return [
-            'started_at' => 'datetime',
-            'ends_at' => 'datetime',
-        ];
+        return $this->belongsTo(User::class);
     }
 
     public function tier(): BelongsTo
     {
-        return $this->belongsTo(
-            MembershipTier::class,
-            'membership_tier_id',
-            'id_membership_tier',
-        );
+        return $this->belongsTo(MembershipTier::class, 'membership_tier_id', 'id_membership_tier');
     }
 
-    public function getExpiresAtAttribute()
+    public function isActive()
     {
-        return $this->ends_at;
+        return $this->status === 'active' && $this->end_date >= now();
     }
 }
