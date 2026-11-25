@@ -64,6 +64,15 @@
                 </div>
             </div>
 
+            {{-- Sampul --}}
+            <div class="space-y-1.5">
+                <label for="inputCover" class="text-xs font-semibold text-gray-700">Gambar Sampul (JPG, PNG, atau WebP, maks. 2 MB)</label>
+                <input type="file" id="inputCover" name="cover_image" accept="image/jpeg,image/png,image/webp"
+                       class="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-blue-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-blue-700">
+                <p class="text-[11px] text-gray-400">Kosongkan saat edit jika sampul tidak ingin diganti.</p>
+                @error('cover_image') <p class="text-[11px] text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
             {{-- Deskripsi --}}
             <div class="space-y-1.5">
                 <label class="text-xs font-semibold text-gray-700">Deskripsi Ringkas <span class="text-red-500">*</span></label>
@@ -202,6 +211,7 @@
         document.getElementById('f_kategori').value = '';
         document.getElementById('f_deskripsi').value = '';
         document.getElementById('f_harga').value = '';
+        document.getElementById('inputCover').value = '';
         document.getElementById('inputPdf').required = true;
         document.getElementById('reqFile').style.display = '';
         clearPdf();
@@ -219,6 +229,7 @@
         document.getElementById('f_kategori').value = e.kategori || '';
         document.getElementById('f_deskripsi').value = e.deskripsi || '';
         document.getElementById('f_harga').value = e.harga || 0;
+        document.getElementById('inputCover').value = '';
         document.getElementById('inputPdf').required = false;
         document.getElementById('reqFile').style.display = 'none';
         clearPdf();

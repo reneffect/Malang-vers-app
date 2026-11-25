@@ -68,17 +68,19 @@
                     {{-- Input --}}
                     <div class="rounded-xl border border-slate-200 p-4 flex flex-col">
                         <span class="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full mb-3">
-                            Boso Walikan
+                            <span id="source-language-label">Boso Walikan</span>
                         </span>
 
                         <textarea
                             id="sumber-teks"
                             rows="5"
+                            maxlength="500"
                             class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400 bg-transparent"
                             placeholder="Ketik kata Boso Walikan di sini..."
                         ></textarea>
 
-                        <div class="flex justify-end text-xs text-slate-400 mt-2">
+                        <div class="flex justify-between text-xs text-slate-400 mt-2">
+                            <span>Terjemahan otomatis setelah berhenti mengetik</span>
                             <span id="jumlah-karakter">0 / 500</span>
                         </div>
                     </div>
@@ -98,17 +100,22 @@
                     {{-- Output --}}
                     <div class="rounded-xl border border-slate-200 p-4 flex flex-col bg-slate-50/60">
                         <span class="inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mb-3">
-                            Bahasa Indonesia
+                            <span id="target-language-label">Bahasa Indonesia</span>
                         </span>
 
-                        <div id="hasil-teks" class="flex-1 text-slate-800 min-h-[8rem]">
-                            <span class="text-slate-400">Hasil terjemahan akan muncul di sini.</span>
-                        </div>
+                        <textarea
+                            id="hasil-teks"
+                            rows="5"
+                            readonly
+                            class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400 bg-transparent min-h-[8rem]"
+                            placeholder="Hasil terjemahan Bahasa Indonesia akan muncul di sini."
+                        ></textarea>
 
                         <div class="flex items-center justify-between text-xs text-slate-400 mt-2">
                             <button type="button" id="btn-salin" class="hover:text-blue-600">
                                 <i class="fa-regular fa-copy"></i> Salin
                             </button>
+                            <span id="jumlah-hasil">0</span>
                             <span id="status-terjemah"></span>
                         </div>
                     </div>

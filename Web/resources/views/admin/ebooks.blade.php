@@ -176,6 +176,7 @@ function openCreateModal() {
     document.getElementById('f_kategori').value = '';
     document.getElementById('f_deskripsi').value = '';
     document.getElementById('f_harga').value = '';
+    document.getElementById('inputCover').value = '';
     document.getElementById('inputPdf').required = true;
     const rf = document.getElementById('reqFile');
     if (rf) rf.style.display = '';
@@ -198,6 +199,7 @@ function openEditModal(e) {
     document.getElementById('f_kategori').value = e.kategori || '';
     document.getElementById('f_deskripsi').value = e.deskripsi || '';
     document.getElementById('f_harga').value = e.harga || 0;
+    document.getElementById('inputCover').value = '';
     document.getElementById('inputPdf').required = false;
     const rf = document.getElementById('reqFile');
     if (rf) rf.style.display = 'none';

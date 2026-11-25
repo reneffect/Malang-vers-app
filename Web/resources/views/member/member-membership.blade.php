@@ -15,6 +15,7 @@
         'resources/css/guest.css',
         'resources/css/user/member/membership.css',
         'resources/js/guest.js',
+        'resources/js/user/member/membership.js',
     ])
 </head>
 
@@ -40,11 +41,11 @@
 
             {{-- Toggle Bulanan / Tahunan --}}
             <div class="mt-7 inline-flex items-center gap-3 bg-white/15 backdrop-blur-md border border-white/20 rounded-full p-1.5">
-                <button id="btnMonthly" onclick="setBilling('monthly')"
+                <button id="btnMonthly" type="button" data-billing="monthly"
                         class="billing-btn px-5 py-2 rounded-full text-sm font-semibold bg-white text-blue-700 transition-all">
                     Tagihan Bulanan
                 </button>
-                <button id="btnYearly" onclick="setBilling('yearly')"
+                <button id="btnYearly" type="button" data-billing="yearly"
                         class="billing-btn px-5 py-2 rounded-full text-sm font-semibold text-white hover:bg-white/10 transition-all flex items-center gap-2">
                     Tagihan Tahunan
                     <span class="bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-full">HEMAT 50%</span>
@@ -59,6 +60,9 @@
             @foreach ($plans as $plan)
                 @php
                     $isRecommended = $plan->is_recommended;
+                    $yearlyPrice = (float) $plan->yearly_price > 0
+                        ? $plan->yearly_price
+                        : $plan->monthly_price * 12;
                 @endphp
                 <div class="relative {{ $isRecommended ? 'md:-mt-4 md:mb-4' : '' }}">
                     {{-- Badge Rekomendasi --}}
@@ -86,14 +90,14 @@
                                 <span class="text-sm text-gray-500">Rp</span>
                                 <span class="text-4xl font-extrabold text-gray-900 price-value"
                                       data-monthly="{{ $plan->monthly_price }}"
-                                      data-yearly="{{ $plan->yearly_price ?? ($plan->monthly_price * 12) }}">
+                                      data-yearly="{{ $yearlyPrice }}">
                                     {{ number_format($plan->monthly_price, 0, ',', '.') }}
                                 </span>
                                 <span class="text-sm text-gray-500 billing-period">/bulan</span>
                             </div>
-                            @if ($plan->yearly_price)
+                            @if ($yearlyPrice)
                                 <p class="text-xs text-gray-400 mt-1 yearly-info hidden">
-                                    Rp {{ number_format($plan->yearly_price, 0, ',', '.') }}/tahun
+                                    Rp {{ number_format($yearlyPrice, 0, ',', '.') }}/tahun
                                 </p>
                             @endif
                         </div>
@@ -124,16 +128,18 @@
 
                         {{-- CTA Button --}}
                         <div class="p-6 pt-0">
-                            <button onclick="selectPlan('{{ $plan->name }}', {{ $plan->monthly_price }})"
-                                    class="w-full py-3 rounded-xl font-bold text-sm transition-all duration-300
-                                           {{ $isRecommended
-                                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                            <a href="{{ route('payment.checkout', ['tier_id' => $plan->getKey(), 'billing' => 'monthly']) }}"
+                               data-checkout-monthly="{{ route('payment.checkout', ['tier_id' => $plan->getKey(), 'billing' => 'monthly']) }}"
+                               data-checkout-yearly="{{ route('payment.checkout', ['tier_id' => $plan->getKey(), 'billing' => 'yearly']) }}"
+                               class="block w-full rounded-xl py-3 text-center text-sm font-bold transition-all duration-300
+                                      {{ $isRecommended
+                                           ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-blue-600/30 hover:-translate-y-0.5'
+                                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                                 {{ $plan->monthly_price === 0 ? 'Pakai Gratis' : 'Pilih ' . $plan->name }}
                                 @if ($isRecommended)
                                     <span class="block text-xs font-normal mt-0.5 opacity-90">(Hemat 50%)</span>
                                 @endif
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -150,7 +156,7 @@
             <div class="space-y-3">
                 @foreach ($faqs as $faq)
                     <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                        <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors">
+                        <button type="button" class="faq-question w-full flex items-center justify-between p-5 text-left hover:bg-gray-50 transition-colors">
                             <span class="font-semibold text-gray-900 pr-4">{{ $faq->question }}</span>
                             <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300 faq-icon"></i>
                         </button>

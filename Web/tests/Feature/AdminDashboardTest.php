@@ -23,6 +23,7 @@ class AdminDashboardTest extends TestCase
             ->assertSee('Kelola Kamus Boso Walikan')
             ->assertSee('id="adminProfileTrigger"', false)
             ->assertSee('id="adminProfilePanel"', false)
+            ->assertSee('right-0 left-auto', false)
             ->assertSee('Detail Profil Admin')
             ->assertSee($admin->email)
             ->assertSee('action="'.route('admin.logout').'"', false)

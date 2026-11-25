@@ -3,10 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class NavbarTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_guest_sees_login_and_registration_links(): void
     {
         $response = $this->get('/beranda');
@@ -23,7 +26,7 @@ class NavbarTest extends TestCase
             'role' => 'member',
         ]);
 
-        $response = $this->actingAs($user)->get('/beranda');
+        $response = $this->actingAs($user)->get('/member-home');
 
         $response->assertOk()
             ->assertSee('Nama Member')
@@ -37,7 +40,7 @@ class NavbarTest extends TestCase
             ->assertDontSee('href="'.route('login').'"', false);
     }
 
-    public function test_authenticated_admin_sees_their_name_linked_to_admin_dashboard(): void
+    public function test_authenticated_admin_visiting_beranda_is_redirected_to_admin_dashboard(): void
     {
         $user = (new User)->forceFill([
             'name' => 'Nama Admin',
@@ -46,12 +49,6 @@ class NavbarTest extends TestCase
 
         $response = $this->actingAs($user)->get('/beranda');
 
-        $response->assertOk()
-            ->assertSee('Nama Admin')
-            ->assertSee('ADMIN')
-            ->assertSee('<details class="profile-dropdown">', false)
-            ->assertSee('href="'.route('admin.dashboard').'"', false)
-            ->assertSee('action="'.route('admin.logout').'"', false)
-            ->assertDontSee('href="'.route('login').'"', false);
+        $response->assertRedirect(route('admin.dashboard'));
     }
 }

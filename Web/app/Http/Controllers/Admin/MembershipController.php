@@ -52,7 +52,8 @@ class MembershipController extends Controller
     {
         $data = $this->validateData($r);
 
-        // Simpan features sebagai JSON array dari checkboxes
+        $data['duration_days'] = 30;
+        $data['price'] = $data['monthly_price'];
         $data['features'] = $r->input('privileges', []);
 
         MembershipTier::create($data);
@@ -63,6 +64,8 @@ class MembershipController extends Controller
     public function update(Request $r, MembershipTier $membershipTier)
     {
         $data = $this->validateData($r);
+        $data['duration_days'] = 30;
+        $data['price'] = $data['monthly_price'];
         $data['features'] = $r->input('privileges', []);
 
         $membershipTier->update($data);

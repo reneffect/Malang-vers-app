@@ -49,11 +49,26 @@ class AdminController extends Controller
             'kategori' => 'required|string|max:100',
             'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'file_pdf' => 'required|file|mimes:pdf|max:102400',
+            'file_pdf' => 'required|file|mimes:pdf|max:153600',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        $data['status'] = 'published';
-        $data['file_pdf'] = $request->file('file_pdf')->store('ebooks/files', 'public');
+        $baseKodeUrl = Str::slug($data['judul']);
+        $kodeUrl = $baseKodeUrl;
+        $suffix = 2;
+
+        while (Ebook::where('kode_url', $kodeUrl)->exists()) {
+            $kodeUrl = $baseKodeUrl.'-'.$suffix;
+            $suffix++;
+        }
+
+        $data['kode_url'] = $kodeUrl;
+        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'public');
+        if ($request->hasFile('cover_image')) {
+            $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
+        }
+        $data['sudah_diterbitkan'] = true;
+        unset($data['deskripsi'], $data['file_pdf'], $data['cover_image']);
 
         Ebook::create($data);
 
@@ -68,19 +83,39 @@ class AdminController extends Controller
             'kategori' => 'required|string|max:100',
             'deskripsi' => 'required|string',
             'harga' => 'required|numeric|min:0',
-            'file_pdf' => 'nullable|file|mimes:pdf|max:102400',
+            'file_pdf' => 'nullable|file|mimes:pdf|max:153600',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // ✅ FIX 2: Perbaiki logika if/else dan kurung kurawal yang berantakan
         if ($request->hasFile('file_pdf')) {
-            if ($ebook->file_pdf) {
-                Storage::disk('public')->delete($ebook->file_pdf);
+            if ($ebook->lokasi_berkas) {
+                Storage::disk('public')->delete($ebook->lokasi_berkas);
             }
-            $data['file_pdf'] = $request->file('file_pdf')->store('ebooks/files', 'public');
-        } else {
-            unset($data['file_pdf']);
+            $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'public');
         }
 
+        if ($request->hasFile('cover_image')) {
+            $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
+
+            if ($ebook->lokasi_sampul) {
+                Storage::disk('public')->delete($ebook->lokasi_sampul);
+            }
+        }
+
+        if ($ebook->judul !== $data['judul']) {
+            $baseKodeUrl = Str::slug($data['judul']);
+            $kodeUrl = $baseKodeUrl;
+            $suffix = 2;
+
+            while (Ebook::where('kode_url', $kodeUrl)->whereKeyNot($ebook->getKey())->exists()) {
+                $kodeUrl = $baseKodeUrl.'-'.$suffix;
+                $suffix++;
+            }
+
+            $data['kode_url'] = $kodeUrl;
+        }
+
+        unset($data['deskripsi'], $data['file_pdf'], $data['cover_image']);
         $ebook->update($data);
 
         return redirect()->route('admin.ebooks')->with('success', 'E-Book berhasil diperbarui.');
@@ -88,8 +123,11 @@ class AdminController extends Controller
 
     public function deleteEbook(Ebook $ebook)
     {
-        if ($ebook->file_pdf) {
-            Storage::disk('public')->delete($ebook->file_pdf);
+        if ($ebook->lokasi_berkas) {
+            Storage::disk('public')->delete($ebook->lokasi_berkas);
+        }
+        if ($ebook->lokasi_sampul) {
+            Storage::disk('public')->delete($ebook->lokasi_sampul);
         }
         $ebook->delete();
 
@@ -218,7 +256,19 @@ class AdminController extends Controller
             });
         }
 
-        $users = $query->orderBy('id', 'desc')->paginate(15);
+        $users = $query
+            ->with('activeMembership.tier')
+            ->orderBy('id', 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        $selectedUserId = $request->validate([
+            'user' => ['nullable', 'integer', 'exists:users,id'],
+        ])['user'] ?? null;
+
+        $selectedUser = $selectedUserId
+            ? User::with('activeMembership.tier')->findOrFail($selectedUserId)
+            : $users->first();
 
         $totalMember = User::where('role', 'member')->count();
         $totalAdmin = User::where('role', 'admin')->count();
@@ -232,7 +282,7 @@ class AdminController extends Controller
 
         return view('admin.users', compact(
             'users', 'totalMember', 'totalAdmin', 'baruMingguIni',
-            'pendingVerif', 'premiumAktif', 'ditangguhan', 'tab'
+            'pendingVerif', 'premiumAktif', 'ditangguhan', 'tab', 'selectedUser'
         ));
     }
 

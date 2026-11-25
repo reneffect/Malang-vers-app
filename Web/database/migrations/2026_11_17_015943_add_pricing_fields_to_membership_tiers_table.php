@@ -12,11 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('membership_tiers', function (Blueprint $table) {
-            $table->decimal('monthly_price', 12, 2)->default(0);
-            $table->decimal('yearly_price', 12, 2)->default(0);
-            $table->string('badge', 50)->nullable();
-            $table->boolean('is_recommended')->default(false);
-            $table->unsignedInteger('order')->default(0);
+            if (! Schema::hasColumn('membership_tiers', 'monthly_price')) {
+                $table->decimal('monthly_price', 12, 2)->default(0);
+            }
+            if (! Schema::hasColumn('membership_tiers', 'yearly_price')) {
+                $table->decimal('yearly_price', 12, 2)->default(0);
+            }
+            if (! Schema::hasColumn('membership_tiers', 'badge')) {
+                $table->string('badge', 50)->nullable();
+            }
+            if (! Schema::hasColumn('membership_tiers', 'is_recommended')) {
+                $table->boolean('is_recommended')->default(false);
+            }
+            if (! Schema::hasColumn('membership_tiers', 'order')) {
+                $table->unsignedInteger('order')->default(0);
+            }
         });
     }
 

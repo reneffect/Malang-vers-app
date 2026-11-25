@@ -37,4 +37,23 @@ class MembershipTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_membership_url_does_not_render_inactive_membership_plans(): void
+    {
+        MembershipTier::create([
+            'name' => 'Paket Tidak Aktif',
+            'description' => 'Paket yang tidak dijual',
+            'duration_days' => 30,
+            'price' => 25000,
+            'monthly_price' => 25000,
+            'yearly_price' => 250000,
+            'is_active' => false,
+            'order' => 1,
+        ]);
+
+        $response = $this->get('/membership');
+
+        $response->assertOk()
+            ->assertDontSee('Paket Tidak Aktif');
+    }
 }

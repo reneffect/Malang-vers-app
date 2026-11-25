@@ -11,6 +11,35 @@ class AdminMembershipTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_can_create_membership_tier_with_extended_fields(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('admin.membership.store'), [
+            'name' => 'Paket Reiner',
+            'tagline' => 'Akses hemat',
+            'monthly_price' => 25000,
+            'yearly_price' => 1000000,
+            'translation_quota' => 250,
+            'ebook_access' => 'saku',
+            'privileges' => ['badge_komunitas', 'bebas_iklan'],
+        ]);
+
+        $response->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('membership_tiers', [
+            'name' => 'Paket Reiner',
+            'tagline' => 'Akses hemat',
+            'duration_days' => 30,
+            'price' => 25000,
+            'monthly_price' => 25000,
+            'yearly_price' => 1000000,
+            'translation_quota' => 250,
+            'ebook_access' => 'saku',
+        ]);
+    }
+
     public function test_admin_membership_page_lists_tiers_in_configured_order(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);

@@ -91,7 +91,7 @@
                 <div id="dropzone" class="border-2 border-dashed border-blue-200 bg-blue-50/40 hover:bg-blue-50 rounded-xl p-6 text-center cursor-pointer transition-all">
                     <i class="fas fa-cloud-upload-alt text-3xl text-blue-500 mb-2"></i>
                     <p class="text-sm text-gray-700">Tarik & Lepas Dokumen PDF Kamus di Sini atau <span class="text-blue-600 font-semibold underline underline-offset-2">Jelajahi File</span></p>
-                    <p class="text-[11px] text-gray-400 mt-1">Mendukung PDF hingga 100MB</p>
+                    <p class="text-[11px] text-gray-400 mt-1">Mendukung PDF hingga 150MB</p>
                     <input type="file" id="inputPdf" name="file_pdf" accept="application/pdf" class="hidden" {{ !$isEdit ? 'required' : '' }}>
                     @error('file_pdf') <p class="text-[11px] text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>

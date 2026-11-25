@@ -8,6 +8,8 @@ class MemberController extends Controller
 {
     public function index(): View
     {
+        $membership = auth()->user()->activeMembership()->with('tier')->first();
+
         $recentTranslations = [
             [
                 'original' => 'Halo, apa kabar? Semoga sehat selalu!',
@@ -35,6 +37,6 @@ class MemberController extends Controller
             ['id' => 'Sampai jumpa', 'walikan' => 'Apmias apmuj'],
         ];
 
-        return view('member.member-home', compact('recentTranslations', 'popularPhrases'));
+        return view('member.member-home', compact('membership', 'recentTranslations', 'popularPhrases'));
     }
 }

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Penerjemah Boso Walikan Member Pro - MulangVerse</title>
+    <meta name="translate-url" content="{{ route('translate') }}">
+    <title>Penerjemah Boso Walikan{{ $membership?->tier ? ' '.$membership->tier->name : '' }} - MulangVerse</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,11 +27,13 @@
     {{-- ============ HERO ============ --}}
     <section class="hero">
         <div class="hero-content">
-            <div class="hero-badge">
-                <i class="fas fa-crown text-amber-400"></i> Member Pro
-            </div>
+            @if ($membership?->tier)
+                <div class="hero-badge">
+                    <i class="fas fa-crown text-amber-400"></i> {{ $membership->tier->name }}
+                </div>
+            @endif
             <h1 class="hero-title">
-                Penerjemah Boso Walikan Member Pro
+                Penerjemah Boso Walikan{{ $membership?->tier ? ' '.$membership->tier->name : '' }}
             </h1>
             <p class="hero-subtitle">
                 Terjemahkan teks dan frasa bahasa Indonesia ke Boso Walikan (bahasa terbalik khas Malang) secara instan.
@@ -54,14 +57,15 @@
                 <div class="flex flex-col">
                     <div class="flex items-center gap-2 mb-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-primary-600"></div>
-                        <h3 class="font-bold text-gray-900">Boso Walikan</h3>
-                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">Bahasa Terbalik</span>
+                        <h3 id="source-language-label" class="font-bold text-gray-900">Boso Walikan</h3>
+                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">Bahasa sumber</span>
                     </div>
                     <textarea id="walikanText"
+                        maxlength="1000"
                         class="w-full min-h-[140px] border-2 border-gray-200 rounded-xl p-4 text-sm text-gray-700 placeholder-gray-400 resize-y focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all leading-relaxed"
                         placeholder="Tulis teks Boso Walikan di sini... contoh: akuj anayk"></textarea>
                     <div class="flex items-center justify-between mt-3">
-                        <span class="text-xs text-gray-400"><span id="walikanCount">0</span> karakter</span>
+                        <span class="text-xs text-gray-400"><span id="sourceCount">0</span> karakter</span>
                         <button onclick="copyText('walikanText')" class="btn-ghost"><i class="far fa-copy"></i> Salin</button>
                     </div>
                 </div>
@@ -80,14 +84,16 @@
                 <div class="flex flex-col">
                     <div class="flex items-center gap-2 mb-3">
                         <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                        <h3 class="font-bold text-gray-900">Bahasa Indonesia</h3>
-                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-600 rounded-full">Bahasa Asli</span>
+                        <h3 id="target-language-label" class="font-bold text-gray-900">Bahasa Indonesia</h3>
+                        <span class="text-xs font-semibold px-2.5 py-0.5 bg-green-50 text-green-600 rounded-full">Hasil terjemahan</span>
                     </div>
                     <textarea id="indoText"
+                        maxlength="1000"
+                        readonly
                         class="w-full min-h-[140px] border-2 border-gray-200 rounded-xl p-4 text-sm text-gray-700 placeholder-gray-400 resize-y focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all leading-relaxed"
-                        placeholder="Tulis teks Bahasa Indonesia di sini... contoh: saya cantik"></textarea>
+                        placeholder="Hasil terjemahan Bahasa Indonesia akan muncul di sini."></textarea>
                     <div class="flex items-center justify-between mt-3">
-                        <span class="text-xs text-gray-400"><span id="indoCount">0</span> karakter</span>
+                        <span class="text-xs text-gray-400"><span id="targetCount">0</span> karakter</span>
                         <button onclick="copyText('indoText')" class="btn-ghost"><i class="far fa-copy"></i> Salin</button>
                     </div>
                 </div>
@@ -102,6 +108,7 @@
                         <div class="w-4 h-4 border-2 border-primary-200 border-t-primary-600 rounded-full animate-spin-slow"></div>
                         Menerjemahkan...
                     </div>
+                    <span id="translationStatus" class="text-xs text-gray-500" aria-live="polite"></span>
                 </div>
                 <button onclick="translateText()" class="btn-primary"><i class="fas fa-bolt"></i> Terjemahkan Sekarang</button>
             </div>

@@ -64,34 +64,56 @@
         </div>
 
         {{-- Grid Buku --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-5">
             @forelse ($books as $book)
-                <article class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                    <div class="aspect-[3/4] bg-gradient-to-br from-blue-100 to-indigo-200">
+                <article class="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                    <div class="aspect-[3/4] overflow-hidden bg-gradient-to-br from-slate-100 to-indigo-100">
                         @if ($book->lokasi_sampul)
-                            <img src="{{ asset($book->lokasi_sampul) }}" alt="Sampul {{ $book->judul }}"
+                            <img src="{{ Storage::disk('public')->url($book->lokasi_sampul) }}" alt="Sampul {{ $book->judul }}"
                                  class="h-full w-full object-cover" loading="lazy">
                         @else
-                            <div class="flex h-full flex-col items-center justify-center gap-3 text-blue-700">
-                                <i class="fas fa-book-open text-5xl"></i>
-                                <span class="px-4 text-center font-semibold">{{ $book->judul }}</span>
+                            <div class="flex h-full items-center justify-center p-5">
+                                <div class="flex h-full w-[82%] flex-col justify-between rounded-r-xl border-l-[6px] border-blue-950 bg-gradient-to-br from-blue-700 to-indigo-950 p-5 text-white shadow-xl">
+                                    <span class="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-100">Kamus Boso Walikan Malang</span>
+                                    <div class="space-y-3">
+                                        <i class="fas fa-book-open text-3xl text-amber-300"></i>
+                                        <p class="line-clamp-4 text-lg font-extrabold leading-tight">{{ $book->judul }}</p>
+                                    </div>
+                                    <span class="text-[10px] font-medium text-blue-100">{{ $book->penulis }}</span>
+                                </div>
                             </div>
                         @endif
                     </div>
-                    <div class="space-y-3 p-5">
-                        <span class="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold capitalize text-blue-700">
-                            {{ $book->kategori }}
-                        </span>
-                        <h3 class="font-bold text-gray-900">{{ $book->judul }}</h3>
-                        @if ($book->penulis)
-                            <p class="text-sm text-gray-500">{{ $book->penulis }}</p>
-                        @endif
-                        @if ($book->jumlah_halaman)
-                            <p class="text-sm text-gray-500">{{ $book->jumlah_halaman }} halaman</p>
-                        @endif
-                        <p class="text-lg font-extrabold text-blue-600">
-                            Rp {{ number_format((float) $book->harga, 0, ',', '.') }}
-                        </p>
+                    <div class="flex flex-1 flex-col p-4">
+                        <h3 class="line-clamp-2 min-h-12 text-base font-bold leading-6 text-slate-900" title="{{ $book->judul }}">
+                            {{ $book->judul }}
+                        </h3>
+                        <p class="mt-1 truncate text-sm text-slate-600">Oleh: <span class="font-medium text-slate-800">{{ $book->penulis ?: 'Tim MalangVerse' }}</span></p>
+
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            @if ($book->jumlah_halaman)
+                                <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                    <i class="far fa-copy"></i> {{ number_format($book->jumlah_halaman) }} Halaman
+                                </span>
+                            @endif
+                            <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                <i class="far fa-file-pdf"></i> PDF HD
+                            </span>
+                        </div>
+
+                        <div class="mt-auto flex items-end justify-between gap-2 border-t border-slate-100 pt-4 mt-5">
+                            <div>
+                                <p class="text-[11px] text-slate-500">Harga Lisensi</p>
+                                <p class="text-xl font-extrabold leading-tight text-blue-700">
+                                    Rp {{ number_format((float) $book->harga, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            <a href="{{ Storage::disk('public')->url($book->lokasi_pratinjau ?: $book->lokasi_berkas) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="inline-flex shrink-0 items-center gap-2 rounded-full bg-blue-700 px-4 py-3 text-xs font-bold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                                Beli / Baca <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
                     </div>
                 </article>
             @empty

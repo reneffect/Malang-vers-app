@@ -1,61 +1,53 @@
-let currentBilling = 'monthly';
+function setBilling(type) {
+    document.querySelectorAll('[data-billing]').forEach((button) => {
+        const isSelected = button.dataset.billing === type;
+        button.classList.toggle('bg-white', isSelected);
+        button.classList.toggle('text-blue-700', isSelected);
+        button.classList.toggle('text-white', !isSelected);
+        button.classList.toggle('hover:bg-white/10', !isSelected);
+    });
 
-        function setBilling(type) {
-            currentBilling = type;
-            const btnMonthly = document.getElementById('btnMonthly');
-            const btnYearly  = document.getElementById('btnYearly');
+    document.querySelectorAll('.price-value').forEach((element) => {
+        const monthly = Number(element.dataset.monthly);
+        const yearly = Number(element.dataset.yearly);
+        const price = type === 'monthly' ? monthly : Math.round(yearly / 12);
 
-            if (type === 'monthly') {
-                btnMonthly.classList.add('bg-white', 'text-blue-700');
-                btnMonthly.classList.remove('text-white', 'hover:bg-white/10');
-                btnYearly.classList.remove('bg-white', 'text-blue-700');
-                btnYearly.classList.add('text-white', 'hover:bg-white/10');
-            } else {
-                btnYearly.classList.add('bg-white', 'text-blue-700');
-                btnYearly.classList.remove('text-white', 'hover:bg-white/10');
-                btnMonthly.classList.remove('bg-white', 'text-blue-700');
-                btnMonthly.classList.add('text-white', 'hover:bg-white/10');
-            }
+        element.textContent = price.toLocaleString('id-ID');
+    });
 
-            // Update harga
-            document.querySelectorAll('.price-value').forEach(el => {
-                const monthly = parseInt(el.dataset.monthly);
-                const yearly  = parseInt(el.dataset.yearly);
-                const price   = type === 'monthly' ? monthly : Math.round(yearly / 12);
-                el.textContent = price.toLocaleString('id-ID');
-            });
+    document.querySelectorAll('.billing-period').forEach((element) => {
+        element.textContent = type === 'monthly' ? '/bulan' : '/bulan (tagih tahunan)';
+    });
 
-            // Update periode
-            document.querySelectorAll('.billing-period').forEach(el => {
-                el.textContent = type === 'monthly' ? '/bulan' : '/bulan (tagih tahunan)';
-            });
+    document.querySelectorAll('.yearly-info').forEach((element) => {
+        element.classList.toggle('hidden', type !== 'yearly');
+    });
 
-            // Tampilkan info tahunan
-            document.querySelectorAll('.yearly-info').forEach(el => {
-                el.classList.toggle('hidden', type !== 'yearly');
-            });
+    document.querySelectorAll('[data-checkout-monthly]').forEach((link) => {
+        link.href = type === 'monthly'
+            ? link.dataset.checkoutMonthly
+            : link.dataset.checkoutYearly;
+    });
+}
+
+document.querySelectorAll('[data-billing]').forEach((button) => {
+    button.addEventListener('click', () => setBilling(button.dataset.billing));
+});
+
+document.querySelectorAll('.faq-question').forEach((button) => {
+    button.addEventListener('click', () => {
+        const answer = button.nextElementSibling;
+        const icon = button.querySelector('.faq-icon');
+        const isOpen = !answer.classList.contains('hidden');
+
+        document.querySelectorAll('.faq-answer').forEach((item) => item.classList.add('hidden'));
+        document.querySelectorAll('.faq-icon').forEach((item) => {
+            item.style.transform = 'rotate(0deg)';
+        });
+
+        if (!isOpen) {
+            answer.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
         }
-
-        function toggleFaq(btn) {
-            const answer = btn.nextElementSibling;
-            const icon   = btn.querySelector('.faq-icon');
-            const isOpen = !answer.classList.contains('hidden');
-
-            // Tutup semua
-            document.querySelectorAll('.faq-answer').forEach(a => a.classList.add('hidden'));
-            document.querySelectorAll('.faq-icon').forEach(i => i.style.transform = 'rotate(0deg)');
-
-            // Buka yang diklik
-            if (!isOpen) {
-                answer.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            }
-        }
-
-        function selectPlan(name, price) {
-            if (price === 0) {
-                window.showToast('✅ Anda memilih Paket Gratis!');
-            } else {
-                window.showToast(`🎉 Anda memilih ${name} - Rp ${price.toLocaleString('id-ID')}/bulan`);
-            }
-        }
+    });
+});

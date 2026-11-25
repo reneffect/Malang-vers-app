@@ -39,7 +39,7 @@
 
 <dialog id="adminProfilePanel"
         aria-labelledby="adminProfileTitle"
-        class="fixed inset-y-0 right-0 m-0 h-full max-h-full w-full max-w-md border-0 bg-white p-0 shadow-2xl backdrop:bg-slate-950/40">
+        class="fixed inset-y-0 right-0 left-auto m-0 h-full max-h-full w-full max-w-md border-0 bg-white p-0 shadow-2xl backdrop:bg-slate-950/40">
     <div class="flex h-full flex-col">
         <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5">
             <h2 id="adminProfileTitle" class="text-base font-bold text-gray-900">
