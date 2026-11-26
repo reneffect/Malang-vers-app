@@ -1,0 +1,77 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\MembershipTier;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AdminMembershipTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_can_create_membership_tier_with_extended_fields(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('admin.membership.store'), [
+            'name' => 'Paket Reiner',
+            'tagline' => 'Akses hemat',
+            'monthly_price' => 25000,
+            'yearly_price' => 1000000,
+            'translation_quota' => 250,
+            'ebook_access' => 'saku',
+            'privileges' => ['badge_komunitas', 'bebas_iklan'],
+        ]);
+
+        $response->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('membership_tiers', [
+            'name' => 'Paket Reiner',
+            'tagline' => 'Akses hemat',
+            'duration_days' => 30,
+            'price' => 25000,
+            'monthly_price' => 25000,
+            'yearly_price' => 1000000,
+            'translation_quota' => 250,
+            'ebook_access' => 'saku',
+        ]);
+    }
+
+    public function test_admin_membership_page_lists_tiers_in_configured_order(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        MembershipTier::create([
+            'name' => 'Paket Tahunan',
+            'duration_days' => 365,
+            'price' => 200000,
+            'monthly_price' => 0,
+            'yearly_price' => 200000,
+            'is_active' => true,
+            'order' => 2,
+        ]);
+        MembershipTier::create([
+            'name' => 'Paket Bulanan',
+            'duration_days' => 30,
+            'price' => 20000,
+            'monthly_price' => 20000,
+            'yearly_price' => 0,
+            'is_active' => true,
+            'order' => 1,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.membership'));
+
+        $response->assertOk()
+            ->assertSee('Paket Langganan')
+            ->assertSee('onclick="toggleModal(\'modalPaket\')"', false)
+            ->assertSee('id="modalPaket"', false)
+            ->assertSee('function toggleModal(id)', false)
+            ->assertSeeInOrder(['Paket Bulanan', 'Paket Tahunan'])
+            ->assertSee('Rp 20.000')
+            ->assertSee('Rp 200.000');
+    }
+}
