@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/user/admin/dashboard.css', 'resources/css/components/navbar.css'])
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="admin-reference-theme bg-gray-100 font-sans antialiased">
 
     {{-- Sidebar --}}
     <x-admin.sidebar active="membership" />

@@ -6,6 +6,7 @@ use App\Models\Membership;
 use App\Models\MembershipTier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
 class AdminUsersTest extends TestCase
@@ -14,7 +15,10 @@ class AdminUsersTest extends TestCase
 
     public function test_admin_user_directory_shows_the_default_profile_on_the_right(): void
     {
-        $admin = User::factory()->create(['role' => 'admin']);
+        $admin = User::factory()->create([
+            'name' => 'Super Admin',
+            'role' => 'admin',
+        ]);
         $user = User::factory()->create([
             'name' => 'Profil Default',
             'email' => 'profil-default@example.com',
@@ -27,12 +31,26 @@ class AdminUsersTest extends TestCase
         $response->assertOk()
             ->assertViewIs('admin.users')
             ->assertViewHas('selectedUser', fn (User $selectedUser): bool => $selectedUser->is($user))
+            ->assertViewHas('users', fn (LengthAwarePaginator $users): bool => ! $users->getCollection()->contains($admin))
             ->assertSee('id="profile-detail"', false)
             ->assertSee('Detail Informasi Pengguna')
             ->assertSee('Profil Default')
             ->assertSee('081234567890')
             ->assertSee('Malang')
             ->assertSee('Belum memiliki membership aktif.');
+    }
+
+    public function test_admin_user_directory_does_not_allow_selecting_an_admin_profile(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+        $anotherAdmin = User::factory()->create([
+            'name' => 'Super Admin',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.users', ['user' => $anotherAdmin->id]));
+
+        $response->assertNotFound();
     }
 
     public function test_admin_can_select_a_user_profile_and_see_their_active_membership(): void

@@ -247,7 +247,7 @@ class AdminController extends Controller
     public function users(Request $request): View
     {
         $tab = $request->get('tab', 'all');
-        $query = User::query(); // Hapus where('role', 'member') biar admin juga kelihatan, atau sesuaikan
+        $query = User::where('role', 'member');
 
         if ($request->filled('search')) {
             $q = $request->search;
@@ -267,7 +267,7 @@ class AdminController extends Controller
         ])['user'] ?? null;
 
         $selectedUser = $selectedUserId
-            ? User::with('activeMembership.tier')->findOrFail($selectedUserId)
+            ? User::where('role', 'member')->with('activeMembership.tier')->findOrFail($selectedUserId)
             : $users->first();
 
         $totalMember = User::where('role', 'member')->count();

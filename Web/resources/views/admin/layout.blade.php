@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/user/admin/dashboard.css', 'resources/js/guest.js'])
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="admin-reference-theme bg-gray-100 font-sans antialiased">
     <x-admin.sidebar active="ebooks" />
 
     <div class="ml-64 min-h-screen flex flex-col">

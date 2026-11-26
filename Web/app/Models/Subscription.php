@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Membership extends Model
+class Subscription extends Model
 {
-    protected $table = 'memberships';
+    protected $table = 'subscriptions';
 
     protected $fillable = [
         'user_id',
