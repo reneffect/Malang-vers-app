@@ -29,21 +29,30 @@ class AdminAuthTest extends TestCase
             'role' => 'admin',
         ]);
 
-        $response = $this->actingAs($member)->post(route('admin.login.attempt'), [
-            'username' => 'admin@example.com',
-            'password' => 'admin-password',
-        ]);
+        $response = $this->withSession(['url.intended' => route('login')])
+            ->actingAs($member)
+            ->post(route('admin.login.attempt'), [
+                'username' => 'admin@example.com',
+                'password' => 'admin-password',
+            ]);
 
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect(route('admin.ebooks'));
         $this->assertAuthenticatedAs($admin);
     }
 
-    public function test_authenticated_admin_is_redirected_from_login_page_to_dashboard(): void
+    public function test_guest_requesting_admin_page_is_redirected_to_admin_login(): void
+    {
+        $response = $this->get(route('admin.ebooks'));
+
+        $response->assertRedirect(route('admin.login'));
+    }
+
+    public function test_authenticated_admin_is_redirected_from_login_page_to_manage_ebooks(): void
     {
         $admin = User::factory()->create(['role' => 'admin']);
 
         $response = $this->actingAs($admin)->get(route('admin.login'));
 
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertRedirect(route('admin.ebooks'));
     }
 }

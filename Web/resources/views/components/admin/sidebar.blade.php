@@ -6,7 +6,20 @@
     <div class="px-6 py-5 border-b border-slate-800">
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-600/30">
-                <i class="fas fa-book-open text-lg"></i>
+                @if ($active === 'ebooks')
+                    <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 7.2c-2.3-1.5-5.5-1.8-8.5-.8v12.2c3-.9 6.2-.6 8.5.9m0-12.3c2.3-1.5 5.5-1.8 8.5-.8v12.2c-3-.9-6.2-.6-8.5.9m0-12.3v12.3" />
+                        <path d="M6.5 9.5h2.8m-2.8 3h2.8m6-3h2.8m-2.8 3h2.8" />
+                    </svg>
+                @elseif ($active === 'membership')
+                    <i class="fas fa-crown text-lg" aria-hidden="true"></i>
+                @elseif ($active === 'users')
+                    <i class="fas fa-language text-lg" aria-hidden="true"></i>
+                @elseif ($active === 'transaksi')
+                    <i class="fas fa-qrcode text-lg" aria-hidden="true"></i>
+                @else
+                    <span class="text-sm font-bold" aria-hidden="true">MV</span>
+                @endif
             </div>
             <div class="leading-tight">
                 <p class="font-bold text-white text-base">MalangVerse</p>

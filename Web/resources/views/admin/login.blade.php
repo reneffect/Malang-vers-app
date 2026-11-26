@@ -11,32 +11,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    @vite(['resources/css/login/admin/login.css', 'resources/js/login/admin/login.js'])
+    @vite(['resources/css/login/admin/login.css', 'resources/js/admin/login.js'])
 </head>
 
-<body class="font-sans antialiased text-gray-900 flex min-h-screen items-center justify-center bg-[#f2f3ff] px-0 py-2">
+<body class="font-sans antialiased text-gray-900 min-h-screen flex items-center justify-center
+             bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 relative overflow-hidden px-4">
 
-    <main class="flex min-h-[min(682px,calc(100svh-24px))] w-[93vw] max-w-[1240px] items-center justify-center bg-[#e9ebff] px-4 py-4">
-        <div class="w-full max-w-[min(504px,calc(100vw-48px))] border border-gray-100 bg-white px-10 py-14 shadow-[0_12px_30px_rgba(30,41,59,0.14)]">
+    {{-- ============ BLOK GRADIEN HALUS (sesuai foto) ============ --}}
+    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div class="absolute -top-24 -left-24 w-[420px] h-[420px] bg-indigo-200/50 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-24 -right-24 w-[420px] h-[420px] bg-purple-200/40 rounded-full blur-3xl"></div>
+    </div>
+
+    {{-- ============ LOGIN CARD ============ --}}
+    <main class="relative z-10 w-full max-w-sm">
+        <div class="bg-white rounded-2xl shadow-xl shadow-indigo-500/10 border border-white p-8">
 
             {{-- Error --}}
             @if ($errors->any())
-                <div class="mb-8 flex items-start gap-4 border border-red-200 bg-red-50 px-6 py-4 text-[20px] text-red-700">
-                    <i class="fas fa-exclamation-circle mt-1"></i>
+                <div class="mb-5 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-start gap-2">
+                    <i class="fas fa-exclamation-circle mt-0.5"></i>
                     <span>{{ $errors->first() }}</span>
                 </div>
             @endif
 
             {{-- Logo MV --}}
-            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-[#252b43] shadow-sm">
-                <span class="text-[26px] font-extrabold leading-none tracking-tight">
-                    <span class="text-white">M</span><span class="text-blue-500">V</span>
+            <div class="w-14 h-14 mx-auto mb-5 rounded-2xl bg-white shadow-md shadow-indigo-500/15
+                        border border-gray-100 flex items-center justify-center">
+                <span class="text-2xl font-extrabold tracking-tight">
+                    <span class="text-blue-600">M</span><span class="text-purple-600">V</span>
                 </span>
             </div>
 
             {{-- Judul --}}
-            <h1 class="text-center text-[32px] font-bold text-gray-900">MalangVerse Admin</h1>
-            <p class="mt-2 mb-6 text-center text-[16px] leading-tight text-gray-500">
+            <h1 class="text-xl font-extrabold text-gray-900 text-center">MalangVerse Admin</h1>
+            <p class="text-sm text-gray-500 text-center mt-1.5 mb-7 leading-relaxed">
                 Silakan masuk sebagai<br>administrator terdaftar.
             </p>
 
@@ -46,49 +55,76 @@
 
                 {{-- Nama Pengguna / Email --}}
                 <div>
-                    <label for="username" class="mb-2 block text-[16px] font-semibold text-gray-800">
+                    <label for="username" class="block text-sm font-semibold text-gray-700 mb-1.5">
                         Nama Pengguna atau Email <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-gray-400">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                             <i class="fas fa-user"></i>
                         </span>
                         <input type="text" name="username" id="username"
                                value="{{ old('username') }}" required autofocus
                                placeholder="admin@malangverse.com"
-                               class="w-full border border-transparent bg-[#f1f2ff] py-3 pl-12 pr-6 text-[14px] text-gray-800 placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/10 sm:text-[18px]">
+                               class="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-transparent
+                                      rounded-lg text-sm text-gray-800
+                                      placeholder:text-gray-400
+                                      focus:outline-none focus:bg-white focus:border-blue-500
+                                      focus:ring-4 focus:ring-blue-500/10 transition-all">
                     </div>
                 </div>
 
                 {{-- Kata Sandi --}}
                 <div>
-                    <label for="password" class="mb-2 block text-[16px] font-semibold text-gray-800">
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">
                         Kata Sandi <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[16px] text-gray-400">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                             <i class="fas fa-lock"></i>
                         </span>
                         <input type="password" name="password" id="password" required
                                placeholder="••••••••••••"
-                               class="w-full border border-transparent bg-[#f1f2ff] py-3 pl-12 pr-12 text-[14px] text-gray-800 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/10 sm:text-[18px]">
-                        <button type="button" id="togglePassword"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-[16px] text-gray-400 transition-colors hover:text-blue-600"
-                                aria-label="Tampilkan atau sembunyikan kata sandi">
-                            <i id="eyeIcon" class="fas fa-eye" aria-hidden="true"></i>
+                               class="w-full pl-10 pr-11 py-2.5 bg-gray-100 border border-transparent
+                                      rounded-lg text-sm text-gray-800
+                                      focus:outline-none focus:bg-white focus:border-blue-500
+                                      focus:ring-4 focus:ring-blue-500/10 transition-all">
+                        <button type="button" onclick="togglePassword()"
+                                class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400
+                                       hover:text-blue-600 transition-colors">
+                            <i id="eyeIcon" class="fas fa-eye"></i>
                         </button>
                     </div>
                 </div>
 
                 {{-- Tombol --}}
                 <button type="submit"
-                        class="flex w-full items-center justify-center gap-3 rounded-full bg-[#405cff] py-3 text-[18px] font-semibold text-white shadow-md shadow-blue-500/25 transition-colors hover:bg-[#304be8]">
-                    Masuk
-                    <i class="fas fa-arrow-right text-[16px]" aria-hidden="true"></i>
+                        class="w-full py-3 rounded-full bg-blue-600 hover:bg-blue-700
+                               text-white text-sm font-semibold
+                               shadow-lg shadow-blue-600/30
+                               hover:-translate-y-0.5 active:translate-y-0
+                               transition-all flex items-center justify-center gap-2">
+                    Masuk ke Dasbor
+                    <i class="fas fa-arrow-right text-xs"></i>
                 </button>
             </form>
         </div>
     </main>
 
+    {{-- ============ SCRIPT ============ --}}
+    <script>
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            const eye = document.getElementById('eyeIcon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                eye.classList.remove('fa-eye');
+                eye.classList.add('fa-eye-slash');
+            } else {
+                pwd.type = 'password';
+                eye.classList.remove('fa-eye-slash');
+                eye.classList.add('fa-eye');
+            }
+        }
+    </script>
 </body>
 </html>

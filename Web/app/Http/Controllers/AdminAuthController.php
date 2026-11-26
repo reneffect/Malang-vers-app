@@ -14,7 +14,7 @@ class AdminAuthController extends Controller
     {
         // Kalau sudah login sebagai admin, lempar ke Kelola E-Book
         if (Auth::user()?->role === 'admin') {
-            return redirect()->route('admin.ebooks'); // ✅ nama ini kini SUDAH terdaftar
+            return redirect()->route('admin.ebooks');
         }
 
         return view('admin.login');
@@ -33,7 +33,7 @@ class AdminAuthController extends Controller
             ->first();
 
         // ✅ Pisahkan cek role dari cek password → pesan error lebih jujur
-        if (!$user) {
+        if (! $user) {
             return back()
                 ->withInput($request->only('username'))
                 ->withErrors(['username' => 'Nama pengguna tidak ditemukan.']);
@@ -46,11 +46,11 @@ class AdminAuthController extends Controller
         }
 
         $ok = Auth::attempt([
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => $credentials['password'],
         ], $request->boolean('remember'));
 
-        if (!$ok) {
+        if (! $ok) {
             return back()
                 ->withInput($request->only('username'))
                 ->withErrors(['username' => 'Kata sandi salah.']);
@@ -58,8 +58,7 @@ class AdminAuthController extends Controller
 
         $request->session()->regenerate();
 
-        // ✅ Samakan dengan showLoginForm → admin.ebooks
-        return redirect()->intended(route('admin.ebooks'));
+        return redirect()->route('admin.ebooks');
     }
 
     public function logout(Request $request): RedirectResponse

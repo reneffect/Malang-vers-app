@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola Pengguna - MalangVerse Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/guest.css', 'resources/css/user/admin/dashboard.css', 'resources/js/guest.js'])
+    @vite(['resources/css/guest.css', 'resources/js/guest.js'])
 </head>
-<body class="admin-reference-theme bg-gray-100 font-sans antialiased">
+<body class="bg-gray-100 font-sans antialiased">
 
     <x-admin.sidebar active="users" />
 
