@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\CheckEbookAccess;
+use App\Http\Middleware\CheckSubscriptionExpiry;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\EnsureUserIsMember;
 use Illuminate\Foundation\Application;
@@ -13,10 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Daftarkan middleware kita dengan nama pendek
+        // Daftarkan middleware alias
         $middleware->alias([
-            'admin' => EnsureUserIsAdmin::class,
-            'member' => EnsureUserIsMember::class,
+            'admin'              => EnsureUserIsAdmin::class,
+            'member'             => EnsureUserIsMember::class,
+            'check.ebook'        => CheckEbookAccess::class,
+            'subscription.expiry' => CheckSubscriptionExpiry::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

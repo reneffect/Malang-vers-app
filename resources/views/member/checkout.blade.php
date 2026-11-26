@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Pembayaran Paket Langganan - MalangVerse</title>
+    <title>Pembayaran QRIS - MalangVerse</title>
 
     @vite(['resources/css/guest.css', 'resources/js/guest.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,11 +20,33 @@
     <x-guest.navbar />
 
     @php
-        $isStandar = str_contains(strtolower($tier->name), 'standar');
-        $packageName = $isStandar ? 'Paket Langganan Standar' : 'Paket Langganan Premium';
-        $packageBadge = $isStandar ? 'Paket Standar' : 'Paket Premium';
-        $packagePrice = (float)($price > 0 ? $price : ($isStandar ? 19000 : 49000));
         $user = auth()->user();
+        $item = isset($transaction) && $transaction->items ? $transaction->items->first() : null;
+        $isMembership = !isset($transaction) || ($item && $item->isMembership());
+        $isEbook = isset($item) && $item->isEbook();
+
+        if ($isMembership) {
+            $tierName = $tier?->name ?? $item?->item_name_snapshot ?? 'Paket Langganan';
+            $isStandar = str_contains(strtolower($tierName), 'standar');
+            $billingSuffix = isset($billing) && $billing === 'yearly' ? ' (Tahunan)' : (isset($billing) ? ' (Bulanan)' : '');
+            $packageName = ($isStandar ? ($tier?->name ?? 'Paket Standar') : ($tier?->name ?? 'Paket Premium')) . $billingSuffix;
+            $packageBadge = $isStandar ? 'Paket Standar' : 'Paket Premium';
+            $badgeIcon = $isStandar ? 'auto_stories' : 'hotel_class';
+        } else {
+            $packageName = $item ? $item->item_name_snapshot : 'Lisensi E-Book Malang';
+            $packageBadge = 'Lisensi E-Book';
+            $badgeIcon = 'menu_book';
+        }
+
+        $totalPrice = isset($transaction)
+            ? (float) $transaction->total_amount
+            : (float) ($price ?? ($isStandar ? 19000 : 49000));
+
+        $txCode = isset($transaction) ? $transaction->transaction_code : 'INV-PREVIEW';
+        $expiresAtTimestamp = isset($payment) && $payment?->expires_at
+            ? $payment->expires_at->timestamp
+            : (isset($transaction) && $transaction?->expires_at ? $transaction->expires_at->timestamp : now()->addMinutes(15)->timestamp);
+        $secondsRemaining = max(0, $expiresAtTimestamp - now()->timestamp);
     @endphp
 
     {{-- ============ HERO SECTION BACKGROUND ============ --}}
@@ -40,21 +62,22 @@
 
             {{-- Judul Hero --}}
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-3.5 leading-tight">
-                Paket Langganan Member Arema
+                Pembayaran Resmi MalangVerse
             </h1>
 
             {{-- Subtitle Hero --}}
             <p class="text-blue-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-7">
-                Nikmati akses tanpa batas kamus kiwalan terlengkap, penerjemah audio instan, dan modul sejarah eksklusif.
+                Selesaikan transaksi dengan mudah menggunakan QRIS Realtime standar Bank Indonesia.
             </p>
 
-            {{-- Pill Tagihan Bulanan --}}
-            <div class="inline-flex items-center bg-white text-[#2A54F5] px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-md select-none">
-                Tagihan Bulanan
+            {{-- Pill Mode Pembayaran --}}
+            <div class="inline-flex items-center gap-1.5 bg-white text-[#2A54F5] px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-md select-none">
+                <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+                <span>QRIS Instan Otomatis</span>
             </div>
         </div>
 
-        {{-- Smooth Curved Divider at the bottom sesuai referensi --}}
+        {{-- Smooth Curved Divider at the bottom --}}
         <div class="absolute bottom-0 left-0 right-0 overflow-hidden leading-none pointer-events-none">
             <svg class="relative block w-full h-12 sm:h-16 md:h-20 text-[#F8FAFC]" viewBox="0 0 1440 120" preserveAspectRatio="none">
                 <path d="M0,15 C120,40 220,32 380,36 C520,40 620,88 740,90 C860,92 1100,56 1440,42 L1440,120 L0,120 Z" fill="currentColor"></path>
@@ -62,7 +85,7 @@
         </div>
     </section>
 
-    {{-- ============ FLOATING TRANSACTION CARD (MODAL STYLE) ============ --}}
+    {{-- ============ FLOATING TRANSACTION CARD ============ --}}
     <main class="max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-24 sm:-mt-28 relative z-20 pb-20 flex-1">
         <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
 
@@ -74,16 +97,16 @@
                     </div>
                     <div>
                         <h2 class="text-base sm:text-lg font-extrabold text-slate-900 leading-tight">
-                            Pembayaran Paket Langganan
+                            Invoice: {{ $txCode }}
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Selesaikan transaksi dengan aman melalui QRIS resmi berstandar Bank Indonesia.
+                            Pembayaran resmi melalui gateway YoBasePay QRIS Realtime.
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('membership.public') }}"
+                <a href="{{ $isEbook ? route('kamus') : route('membership.public') }}"
                    class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition cursor-pointer"
-                   title="Tutup & Kembali">
+                   title="Kembali">
                     <span class="material-symbols-outlined text-lg">close</span>
                 </a>
             </div>
@@ -94,11 +117,11 @@
                 {{-- Kolom Kiri: Detail Paket & Rincian Biaya --}}
                 <div class="flex flex-col justify-between">
                     <div>
-                        {{-- Badge Paket --}}
+                        {{-- Badge Produk --}}
                         <div class="mb-3">
-                            <span class="inline-flex items-center gap-1.5 {{ $isStandar ? 'bg-[#2A54F5]' : 'bg-[#1341D1]' }} text-white text-[12px] font-bold px-3.5 py-1 rounded-full shadow-xs">
+                            <span class="inline-flex items-center gap-1.5 bg-[#1341D1] text-white text-[12px] font-bold px-3.5 py-1 rounded-full shadow-xs">
                                 <span class="material-symbols-outlined" style="color: #FFFFFF; font-size: 20px; font-variation-settings: 'FILL' 1; line-height: 1;">
-                                    {{ $isStandar ? 'auto_stories' : 'hotel_class' }}
+                                    {{ $badgeIcon }}
                                 </span>
                                 <span>{{ $packageBadge }}</span>
                             </span>
@@ -109,19 +132,23 @@
                             {{ $packageName }}
                         </h3>
                         <p class="text-xs text-slate-500 mt-1 font-medium">
-                            Akses 1 Bulan Penuh.
+                            @if ($isMembership)
+                                Akses 1 Bulan Penuh.
+                            @else
+                                Lisensi Akses Digital Permanen.
+                            @endif
                         </p>
 
-                        {{-- Manfaat Langganan --}}
+                        {{-- Manfaat / Detail Produk --}}
                         <div class="mt-6">
                             <h4 class="text-[11px] font-bold text-slate-400 tracking-wider uppercase mb-3">
-                                MANFAAT LANGGANAN:
+                                RINCIAN ITEM:
                             </h4>
                             <ul class="space-y-3 text-xs text-slate-700">
-                                @if ($isStandar)
+                                @if ($isMembership && isset($isStandar) && $isStandar)
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">100 terjemahan harian</span>
+                                        <span class="font-medium">500 kredit / 100 terjemahan harian</span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
@@ -129,20 +156,29 @@
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">Dukungan komunitas Arema</span>
+                                        <span class="font-medium">Bebas iklan & dukungan komunitas</span>
+                                    </li>
+                                @elseif ($isMembership)
+                                    <li class="flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        <span class="font-medium">Terjemahan TANPA BATAS (Unlimited)</span>
+                                    </li>
+                                    <li class="flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        <span class="font-medium">Akses penuh SEMUA E-Book Kamus Walikan</span>
+                                    </li>
+                                    <li class="flex items-center gap-2.5">
+                                        <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                        <span class="font-medium">Badge eksklusif PRO di profil & navbar</span>
                                     </li>
                                 @else
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">Terjemahan tanpa batas (Unlimited)</span>
+                                        <span class="font-medium">Akses baca penuh file PDF HD seumur hidup</span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">Akses penuh E-Book Kamus Walikan (PDF HD)</span>
-                                    </li>
-                                    <li class="flex items-center gap-2.5">
-                                        <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">Badge eksklusif Member Pro di profil</span>
+                                        <span class="font-medium">Bebas dibaca kapan saja langsung di akun Anda</span>
                                     </li>
                                 @endif
                             </ul>
@@ -152,16 +188,16 @@
                         <div class="mt-7 bg-[#F8FAFC] rounded-2xl p-4 sm:p-5 border border-slate-100">
                             <div class="space-y-2 text-xs">
                                 <div class="flex items-center justify-between text-slate-600">
-                                    <span>Harga Paket (1 Bulan)</span>
-                                    <span class="font-bold text-slate-800">Rp {{ number_format($packagePrice, 0, ',', '.') }}</span>
+                                    <span>Nominal Pembelian</span>
+                                    <span class="font-bold text-slate-800">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
                                     <span>Biaya Layanan QRIS</span>
                                     <span class="font-bold text-[#2A54F5]">Gratis (Rp 0)</span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
-                                    <span>Diskon Komunitas Pelajar</span>
-                                    <span class="font-bold text-slate-400">-Rp 0</span>
+                                    <span>Kode Invoice</span>
+                                    <span class="font-mono font-bold text-slate-700">{{ $txCode }}</span>
                                 </div>
                             </div>
 
@@ -171,7 +207,7 @@
                                     <span class="text-[10px] text-slate-400">Termasuk PPN 11%</span>
                                 </div>
                                 <div class="text-2xl sm:text-3xl font-black text-[#2A54F5]">
-                                    Rp {{ number_format($packagePrice, 0, ',', '.') }}
+                                    Rp {{ number_format($totalPrice, 0, ',', '.') }}
                                 </div>
                             </div>
                         </div>
@@ -181,7 +217,7 @@
                     <div class="mt-6 flex items-center gap-2 bg-[#F1F5F9] text-slate-600 text-[11px] sm:text-xs px-3.5 py-2.5 rounded-xl border border-slate-200/60 truncate">
                         <span class="material-symbols-outlined text-slate-400 text-base shrink-0">badge</span>
                         <span class="truncate">
-                            Akun: <strong class="text-slate-800 font-semibold">{{ $user->name ?? 'Ngalup Ker' }}</strong> ({{ $user->email ?? 'ngalup@ker.id' }}) • ID: #MV-MLG-{{ strtoupper(substr(md5($user->id ?? '1'), 0, 4)) }}
+                            Akun: <strong class="text-slate-800 font-semibold">{{ $user->name ?? 'Pelanggan' }}</strong> ({{ $user->email ?? '-' }})
                         </span>
                     </div>
                 </div>
@@ -190,13 +226,13 @@
                 <div class="bg-[#F1F5FB] rounded-3xl p-5 sm:p-6 border border-slate-100 flex flex-col justify-between">
                     <div>
                         {{-- Countdown Banner --}}
-                        <div class="flex items-center justify-between bg-[#FFEDD5] text-[#9A3412] px-4 py-2 rounded-full text-xs font-bold mb-4 shadow-xs">
+                        <div id="timerBanner" class="flex items-center justify-between bg-[#FFEDD5] text-[#9A3412] px-4 py-2 rounded-full text-xs font-bold mb-4 shadow-xs">
                             <div class="flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-base">timer</span>
-                                <span>Batas Waktu Transaksi</span>
+                                <span>Batas Waktu Pembayaran</span>
                             </div>
                             <span id="countdown" class="font-mono bg-white text-[#9A3412] px-3 py-0.5 rounded-full text-xs font-black shadow-xs">
-                                14:47
+                                --:--
                             </span>
                         </div>
 
@@ -221,59 +257,25 @@
                                 </p>
                             </div>
 
-                            {{-- QR Code Image Graphic --}}
+                            {{-- QR Code Image Graphic (Dynamic from YoBasePay) --}}
                             <div class="my-3 flex items-center justify-center">
-                                <div class="w-48 h-48 bg-white p-2 rounded-2xl border border-slate-100 flex items-center justify-center relative shadow-xs">
-                                    <svg viewBox="0 0 200 200" class="w-full h-full text-slate-900" fill="currentColor">
-                                        {{-- Top-Left Position Detection Pattern --}}
-                                        <rect x="15" y="15" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="23" y="23" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="30" y="30" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        {{-- Top-Right Position Detection Pattern --}}
-                                        <rect x="140" y="15" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="148" y="23" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="155" y="30" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        {{-- Bottom-Left Position Detection Pattern --}}
-                                        <rect x="15" y="140" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="23" y="148" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="30" y="155" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        {{-- Simulated Data Modules --}}
-                                        <rect x="68" y="18" width="10" height="10" rx="1.5"/>
-                                        <rect x="85" y="18" width="10" height="10" rx="1.5"/>
-                                        <rect x="105" y="18" width="18" height="10" rx="1.5"/>
-                                        <rect x="68" y="36" width="20" height="10" rx="1.5"/>
-                                        <rect x="100" y="36" width="10" height="18" rx="1.5"/>
-                                        <rect x="118" y="36" width="10" height="10" rx="1.5"/>
-
-                                        <rect x="18" y="68" width="10" height="18" rx="1.5"/>
-                                        <rect x="36" y="68" width="18" height="10" rx="1.5"/>
-                                        <rect x="18" y="95" width="18" height="10" rx="1.5"/>
-                                        <rect x="36" y="112" width="10" height="18" rx="1.5"/>
-
-                                        <rect x="140" y="68" width="18" height="10" rx="1.5"/>
-                                        <rect x="165" y="68" width="18" height="18" rx="1.5"/>
-                                        <rect x="140" y="85" width="10" height="25" rx="1.5"/>
-                                        <rect x="158" y="100" width="25" height="10" rx="1.5"/>
-
-                                        <rect x="68" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="95" y="140" width="10" height="20" rx="1.5"/>
-                                        <rect x="115" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="68" y="160" width="10" height="20" rx="1.5"/>
-                                        <rect x="88" y="168" width="25" height="10" rx="1.5"/>
-                                        <rect x="122" y="158" width="10" height="22" rx="1.5"/>
-                                        <rect x="140" y="140" width="18" height="18" rx="1.5"/>
-                                        <rect x="165" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="140" y="165" width="20" height="15" rx="1.5"/>
-                                        <rect x="168" y="158" width="15" height="22" rx="1.5"/>
-
-                                        {{-- Center MalangVerse Shield Badge --}}
-                                        <circle cx="100" cy="100" r="19" fill="#FFFFFF"/>
-                                        <circle cx="100" cy="100" r="16" fill="#1341D1"/>
-                                        <text x="100" y="104.5" fill="#FFFFFF" font-size="11" font-weight="900" text-anchor="middle" font-family="sans-serif">MV</text>
-                                    </svg>
+                                <div class="w-52 h-52 bg-white p-2.5 rounded-2xl border border-slate-100 flex items-center justify-center relative shadow-xs">
+                                    @if (!empty($payment?->qr_code_url))
+                                        <img src="{{ $payment->qr_code_url }}"
+                                             alt="QRIS Realtime YoBasePay"
+                                             class="w-full h-full object-contain rounded-lg"
+                                             loading="eager" />
+                                    @elseif (!empty($payment?->qr_string))
+                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($payment->qr_string) }}"
+                                             alt="QRIS Realtime YoBasePay"
+                                             class="w-full h-full object-contain rounded-lg" />
+                                    @else
+                                        {{-- Fallback SVG Placeholder --}}
+                                        <div class="text-center p-4">
+                                            <span class="material-symbols-outlined text-4xl text-slate-400 animate-spin">sync</span>
+                                            <p class="text-xs text-slate-500 mt-2 font-medium">Memuat QRIS...</p>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 
@@ -294,10 +296,10 @@
                         </div>
                     </div>
 
-                    {{-- Pulsing Waiting Status Pill --}}
-                    <div class="mt-4 flex items-center justify-center gap-2 bg-[#E0E7FF] text-[#1E40AF] px-4 py-2 rounded-full text-[11px] font-medium text-center">
-                        <span class="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse shrink-0"></span>
-                        <span class="truncate">Menunggu pembayaran via gateway Bank Indonesia...</span>
+                    {{-- Live Polling Status Pill --}}
+                    <div id="statusPill" class="mt-4 flex items-center justify-center gap-2 bg-[#E0E7FF] text-[#1E40AF] px-4 py-2.5 rounded-full text-[11px] font-medium text-center transition-all">
+                        <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-pulse shrink-0"></span>
+                        <span id="statusMessage" class="truncate font-semibold">Menunggu pembayaran via QRIS Bank Indonesia...</span>
                     </div>
                 </div>
 
@@ -305,15 +307,18 @@
 
             {{-- Footer Modal --}}
             <div class="px-6 sm:px-8 py-4 bg-[#F8FAFC] border-t border-slate-100 flex items-center justify-between flex-wrap gap-4">
-                <a href="{{ route('membership.public') }}"
-                   class="text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-800 transition">
+                <button type="button"
+                        id="btnCancel"
+                        onclick="cancelTransaction()"
+                        class="text-xs sm:text-sm font-semibold text-slate-500 hover:text-rose-600 transition cursor-pointer">
                     Batalkan Transaksi
-                </a>
-                <button id="btnConfirmPayment"
+                </button>
+                <button id="btnCheckManual"
                         type="button"
+                        onclick="checkPaymentStatusNow()"
                         class="inline-flex items-center gap-2 bg-[#1341D1] hover:bg-blue-700 text-white px-5 sm:px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition cursor-pointer">
-                    <span class="material-symbols-outlined text-base">sync</span>
-                    <span>Konfirmasi Pembayaran →</span>
+                    <span id="btnIcon" class="material-symbols-outlined text-base">sync</span>
+                    <span>Cek Status Pembayaran</span>
                 </button>
             </div>
 
@@ -323,49 +328,167 @@
     {{-- Footer Component --}}
     <x-guest.beranda-footer />
 
-    {{-- Script Timer Countdown & Konfirmasi --}}
+    {{-- Script Realtime Polling & Timer --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Timer 14 menit 47 detik
-            let timeLeft = 14 * 60 + 47;
+            const txCode = "{{ $txCode }}";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            let timeLeft = {{ $secondsRemaining }};
             const countdownEl = document.getElementById('countdown');
+            let pollInterval = null;
+            let isPaid = {{ isset($transaction) && $transaction->isPaid() ? 'true' : 'false' }};
 
-            const timer = setInterval(() => {
+            // 1. Timer Countdown
+            function updateCountdownDisplay() {
+                if (timeLeft <= 0) {
+                    if (countdownEl) countdownEl.textContent = '00:00';
+                    handleExpiredUI();
+                    return;
+                }
                 const minutes = Math.floor(timeLeft / 60);
                 const seconds = timeLeft % 60;
                 if (countdownEl) {
                     countdownEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    if (countdownEl) {
-                        countdownEl.textContent = '00:00';
-                    }
-                }
                 timeLeft--;
-            }, 1000);
-
-            // Tombol Konfirmasi Pembayaran
-            const btnConfirm = document.getElementById('btnConfirmPayment');
-            if (btnConfirm) {
-                btnConfirm.addEventListener('click', function () {
-                    btnConfirm.disabled = true;
-                    btnConfirm.classList.add('opacity-80', 'cursor-not-allowed');
-                    btnConfirm.innerHTML = `
-                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Memproses Verifikasi...</span>
-                    `;
-
-                    setTimeout(() => {
-                        alert('Pembayaran berhasil diverifikasi! Paket {{ $packageName }} Anda kini aktif.');
-                        window.location.href = "{{ route('membership.public') }}";
-                    }, 1400);
-                });
             }
+
+            updateCountdownDisplay();
+            const countdownInterval = setInterval(updateCountdownDisplay, 1000);
+
+            // 2. Polling Status Otomatis setiap 3 detik
+            function pollPaymentStatus() {
+                if (isPaid) return;
+
+                fetch(`/api/payment/status/${txCode}`, {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
+                        handleSuccessUI();
+                    } else if (data.status === 'expired') {
+                        handleExpiredUI();
+                    } else if (data.status === 'cancelled') {
+                        handleCancelledUI();
+                    }
+                })
+                .catch(() => {});
+            }
+
+            if (!isPaid && timeLeft > 0) {
+                pollInterval = setInterval(pollPaymentStatus, 3000);
+            } else if (isPaid) {
+                handleSuccessUI();
+            }
+
+            // 3. Handle UI saat Pembayaran Sukses
+            function handleSuccessUI() {
+                isPaid = true;
+                clearInterval(pollInterval);
+                clearInterval(countdownInterval);
+
+                const statusPill = document.getElementById('statusPill');
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusMessage = document.getElementById('statusMessage');
+                const btnCheck = document.getElementById('btnCheckManual');
+                const btnCancel = document.getElementById('btnCancel');
+
+                if (statusPill) {
+                    statusPill.className = 'mt-4 flex items-center justify-center gap-2 bg-emerald-100 text-emerald-800 px-4 py-2.5 rounded-full text-xs font-bold text-center';
+                }
+                if (statusIndicator) {
+                    statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0';
+                }
+                if (statusMessage) {
+                    statusMessage.textContent = '✓ Pembayaran Berhasil Diverifikasi! Mengalihkan...';
+                }
+                if (btnCancel) btnCancel.style.display = 'none';
+                if (btnCheck) {
+                    btnCheck.disabled = true;
+                    btnCheck.className = 'inline-flex items-center gap-2 bg-emerald-600 text-white px-6 py-2.5 rounded-full text-xs font-bold cursor-default';
+                    btnCheck.innerHTML = '<span>Lunas & Aktif</span>';
+                }
+
+                setTimeout(() => {
+                    @if ($isEbook)
+                        window.location.href = "{{ route('kamus') }}";
+                    @else
+                        window.location.href = "{{ route('profile.index') }}";
+                    @endif
+                }, 1600);
+            }
+
+            // 4. Handle UI saat Expired
+            function handleExpiredUI() {
+                clearInterval(pollInterval);
+                const statusPill = document.getElementById('statusPill');
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusMessage = document.getElementById('statusMessage');
+
+                if (statusPill) {
+                    statusPill.className = 'mt-4 flex items-center justify-center gap-2 bg-rose-100 text-rose-800 px-4 py-2.5 rounded-full text-xs font-bold text-center';
+                }
+                if (statusIndicator) {
+                    statusIndicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-600 shrink-0';
+                }
+                if (statusMessage) {
+                    statusMessage.textContent = 'Waktu pembayaran telah habis (Kedaluwarsa).';
+                }
+            }
+
+            function handleCancelledUI() {
+                clearInterval(pollInterval);
+                alert('Transaksi telah dibatalkan.');
+                window.location.href = "{{ route('membership.public') }}";
+            }
+
+            // Global check button handler
+            window.checkPaymentStatusNow = function () {
+                const btn = document.getElementById('btnCheckManual');
+                const icon = document.getElementById('btnIcon');
+                if (btn) btn.disabled = true;
+                if (icon) icon.classList.add('animate-spin');
+
+                fetch(`/api/payment/status/${txCode}`, {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
+                        handleSuccessUI();
+                    } else {
+                        alert('Status saat ini: ' + data.status.toUpperCase() + '. Belum ada pembayaran masuk dari gateway.');
+                    }
+                })
+                .finally(() => {
+                    if (btn && !isPaid) btn.disabled = false;
+                    if (icon) icon.classList.remove('animate-spin');
+                });
+            };
+
+            // Global cancel transaction handler
+            window.cancelTransaction = function () {
+                if (!confirm('Apakah Anda yakin ingin membatalkan transaksi ini?')) return;
+
+                fetch(`/api/payment/cancel/${txCode}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        window.location.href = "{{ route('membership.public') }}";
+                    } else {
+                        alert(data.message || 'Gagal membatalkan transaksi.');
+                    }
+                });
+            };
         });
     </script>
 

@@ -12,9 +12,9 @@ class AdminAuthController extends Controller
 {
     public function showLoginForm(): View|RedirectResponse
     {
-        // Kalau sudah login sebagai admin, lempar ke Kelola E-Book
+        // Kalau sudah login sebagai admin, lempar ke dashboard admin
         if (Auth::user()?->role === 'admin') {
-            return redirect()->route('admin.ebooks'); // ✅ nama ini kini SUDAH terdaftar
+            return redirect()->route('admin.dashboard');
         }
 
         return view('admin.login');
@@ -58,8 +58,8 @@ class AdminAuthController extends Controller
 
         $request->session()->regenerate();
 
-        // ✅ Samakan dengan showLoginForm → admin.ebooks
-        return redirect()->intended(route('admin.ebooks'));
+        // ✅ Samakan dengan showLoginForm → admin.dashboard
+        return redirect()->intended(route('admin.dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse

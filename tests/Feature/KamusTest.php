@@ -43,4 +43,14 @@ class KamusTest extends TestCase
             ->assertSee('Kamus Boso Walikan')
             ->assertDontSee('Kelola Kamus Boso Walikan');
     }
+
+    public function test_guest_can_open_public_kamus_page_when_no_ebooks_in_database(): void
+    {
+        $response = $this->get('/kamus');
+
+        $response->assertOk()
+            ->assertSee('Kamus Akbar Boso Walikan Malang')
+            ->assertSee('Harga Lisensi')
+            ->assertSee('50.000');
+    }
 }

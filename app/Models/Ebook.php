@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ebook extends Model
 {
@@ -12,6 +14,7 @@ class Ebook extends Model
         'judul',
         'kode_url',
         'penulis',
+        'deskripsi',
         'kategori',
         'lokasi_sampul',
         'lokasi_pratinjau',
@@ -19,30 +22,53 @@ class Ebook extends Model
         'jumlah_halaman',
         'terjual',
         'harga',
+        'harga_lisensi',
+        'can_be_claimed',
         'sudah_diterbitkan',
         'is_bundle',
     ];
 
     protected $casts = [
-        'harga' => 'decimal:2',
-        'terjual' => 'integer',
-        'jumlah_halaman' => 'integer',
-        'is_bundle' => 'boolean',
+        'harga'             => 'decimal:2',
+        'harga_lisensi'     => 'decimal:2',
+        'terjual'           => 'integer',
+        'jumlah_halaman'    => 'integer',
+        'is_bundle'         => 'boolean',
+        'can_be_claimed'    => 'boolean',
         'sudah_diterbitkan' => 'boolean',
     ];
 
-    public function scopeRegular($query)
+    // ============================================================
+    //  SCOPES
+    // ============================================================
+
+    public function scopeRegular(Builder $query): Builder
     {
         return $query->where('is_bundle', false)->where('sudah_diterbitkan', true);
     }
 
-    public function scopeBundle($query)
+    public function scopeBundle(Builder $query): Builder
     {
         return $query->where('is_bundle', true)->where('sudah_diterbitkan', true);
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('sudah_diterbitkan', true);
+    }
+
+    public function scopeClaimable(Builder $query): Builder
+    {
+        return $query->where('can_be_claimed', true)->where('sudah_diterbitkan', true);
+    }
+
+    // ============================================================
+    //  RELASI
+    // ============================================================
+
+    /** Semua kepemilikan ebook ini oleh user. */
+    public function owners(): HasMany
+    {
+        return $this->hasMany(UserEbook::class, 'ebook_id');
     }
 }

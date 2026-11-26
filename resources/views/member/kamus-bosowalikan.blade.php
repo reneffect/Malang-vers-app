@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>E-Book Kamus Boso Walikan - MalangVerse</title>
     @vite(['resources/css/guest.css', 'resources/js/guest.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -79,10 +80,12 @@
                     'penulis' => 'Tim Budayawan Arema',
                     'jumlah_halaman' => 480,
                     'harga' => 50000,
+                    'harga_lisensi' => 50000,
                     'lokasi_sampul' => null,
                     'lokasi_berkas' => '#',
                     'lokasi_pratinjau' => '#',
                     'cover_type' => 'akbar',
+                    'can_be_claimed' => false,
                 ],
                 (object)[
                     'id' => 2,
@@ -90,10 +93,12 @@
                     'penulis' => 'Sam Kaji & Nawak Ngalam',
                     'jumlah_halaman' => 180,
                     'harga' => 35000,
+                    'harga_lisensi' => 35000,
                     'lokasi_sampul' => null,
                     'lokasi_berkas' => '#',
                     'lokasi_pratinjau' => '#',
                     'cover_type' => 'saku',
+                    'can_be_claimed' => true,
                 ],
                 (object)[
                     'id' => 3,
@@ -101,10 +106,12 @@
                     'penulis' => 'Sejarah Arema',
                     'jumlah_halaman' => 620,
                     'harga' => 75000,
+                    'harga_lisensi' => 75000,
                     'lokasi_sampul' => null,
                     'lokasi_berkas' => '#',
                     'lokasi_pratinjau' => '#',
                     'cover_type' => 'ensiklopedia',
+                    'can_be_claimed' => false,
                 ],
                 (object)[
                     'id' => 4,
@@ -112,10 +119,12 @@
                     'penulis' => 'Komunitas Osob Ngalam',
                     'jumlah_halaman' => 210,
                     'harga' => 40000,
+                    'harga_lisensi' => 40000,
                     'lokasi_sampul' => null,
                     'lokasi_berkas' => '#',
                     'lokasi_pratinjau' => '#',
                     'cover_type' => 'percakapan',
+                    'can_be_claimed' => false,
                 ],
             ]);
         @endphp
@@ -229,7 +238,7 @@
 
                             {{-- Penulis --}}
                             <p class="text-xs text-slate-500 mt-1 truncate">
-                                Oleh: <span class="text-slate-700 font-medium">{{ $book->penulis ?: 'Tim Budayawan Arema' }}</span>
+                                Oleh: <span class="font-medium text-slate-800">{{ $book->penulis ?: 'Tim Budayawan Arema' }}</span>
                             </p>
 
                             {{-- Badge Halaman & PDF --}}
@@ -262,19 +271,47 @@
                         <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between gap-2">
                             <div>
                                 <p class="text-[10px] text-slate-400 font-medium">Harga Lisensi</p>
+                                @php
+                                    $bookPrice = (float) (!empty($book->harga_lisensi) ? $book->harga_lisensi : ($book->harga ?? 0));
+                                @endphp
                                 <p class="text-base sm:text-lg font-extrabold text-[#1E40AF]">
-                                    Rp {{ number_format((float) $book->harga, 0, ',', '.') }}
+                                    Rp {{ number_format($bookPrice, 0, ',', '.') }}
                                 </p>
                             </div>
-                            <a href="{{ !empty($book->lokasi_pratinjau) || !empty($book->lokasi_berkas) ? Storage::disk('public')->url($book->lokasi_pratinjau ?: $book->lokasi_berkas) : '#' }}"
-                               target="_blank" rel="noopener noreferrer"
-                               class="inline-flex items-center gap-1.5 bg-[#1E40AF] hover:bg-blue-800 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-xs">
-                                <span>Beli / Baca</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    <polyline points="12 5 19 12 12 19"></polyline>
-                                </svg>
-                            </a>
+
+                            @php
+                                $user = auth()->user();
+                                $canReadFull = $user && isset($book->id) && $user->canAccessEbook($book->id);
+                                $canClaimStandar = $user && $user->isStandar() && ($user->ownedEbooks()->where('acquisition_type', 'claimed')->count() < 1) && ($book->can_be_claimed ?? true);
+                            @endphp
+
+                            @if ($canReadFull)
+                                <a href="{{ route('ebook.read', $book->id) }}"
+                                   target="_blank"
+                                   class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs">
+                                    <span class="material-symbols-outlined text-sm">menu_book</span>
+                                    <span>Baca Penuh</span>
+                                </a>
+                            @elseif ($canClaimStandar)
+                                <button type="button"
+                                        onclick="claimEbook({{ $book->id }}, '{{ addslashes($book->judul) }}')"
+                                        class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs">
+                                    <span class="material-symbols-outlined text-sm">stars</span>
+                                    <span>Klaim Gratis</span>
+                                </button>
+                            @else
+                                <form action="{{ route('ebook.purchase', $book->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-1.5 bg-[#1E40AF] hover:bg-blue-800 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-xs">
+                                        <span>Beli / Baca</span>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            <polyline points="12 5 19 12 12 19"></polyline>
+                                        </svg>
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </article>
@@ -285,6 +322,35 @@
 
     {{-- Footer Component --}}
     <x-guest.beranda-footer />
+
+    <script>
+        function claimEbook(ebookId, bookTitle) {
+            if (!confirm(`Klaim 1 buku gratis pilihan dari Paket Standar: "${bookTitle}"?`)) return;
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch(`/ebook/${ebookId}/claim`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': token
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal mengklaim ebook.');
+                }
+            })
+            .catch(() => {
+                alert('Terjadi kesalahan jaringan.');
+            });
+        }
+    </script>
 
 </body>
 </html>

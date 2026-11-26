@@ -12,6 +12,11 @@ class MemberController extends Controller
 
         $recentTranslations = [
             [
+                'original' => 'Halo, apa kabar? Semoga sehat selalu!',
+                'translated' => 'Olah, apu rabak? agomeh tahes ulalas!',
+                'date' => 'Baru saja',
+            ],
+            [
                 'original' => 'Ojo lali nribun nak Kanjuruhan, Sam!',
                 'translated' => 'Jangan lupa nonton di tribun Stadion Kanjuruhan, Mas!',
                 'date' => '2 menit yang lalu',
@@ -29,6 +34,7 @@ class MemberController extends Controller
         ];
 
         $popularPhrases = [
+            ['id' => 'Halo apa kabar', 'walikan' => 'Olah apu rabak'],
             ['id' => 'Saya', 'walikan' => 'Ayas'],
             ['id' => 'Kamu', 'walikan' => 'Umak'],
             ['id' => 'Uang', 'walikan' => 'Ojir'],

@@ -35,9 +35,11 @@ class ProfileController extends Controller
             'tanggal_lahir' => ['nullable', 'date'],
             'kota' => ['nullable', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:500'],
+            'alias_osob' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $user->update($validated);
+        $safeData = collect($validated)->only(['name', 'email', 'phone', 'tanggal_lahir', 'kota', 'bio'])->all();
+        $user->update($safeData);
 
         return redirect()
             ->route('profile.index')

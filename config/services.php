@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'yobasepay' => [
+        'base_url' => env('YOBASEPAY_BASE_URL', 'https://yobasepay.net/api_pay'),
+        'api_key' => env('YOBASEPAY_API_KEY'),
+        'webhook_secret' => env('YOBASEPAY_WEBHOOK_SECRET'),
+        'channel' => env('YOBASEPAY_CHANNEL', 'SQ'), // QRIS Realtime
+        'fee_payer' => env('YOBASEPAY_FEE_PAYER', 'merchant'),
+        'timeout' => (int) env('YOBASEPAY_TIMEOUT', 15),
+    ],
+
 ];

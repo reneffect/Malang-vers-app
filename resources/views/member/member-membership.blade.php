@@ -141,7 +141,7 @@
                     </div>
 
                     {{-- Judul & Deskripsi --}}
-                    <h3 class="text-xl font-extrabold text-slate-900 mt-5">Paket Standar</h3>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-5">{{ $standarPlan ? $standarPlan->name : 'Paket Standar' }}</h3>
                     <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
                         Sangat cocok untuk belajar bahasa kiwalan sehari-hari.
                     </p>
@@ -184,7 +184,7 @@
                     <button type="button"
                             onclick="openCheckout('standar')"
                             class="w-full py-2.5 px-4 rounded-full border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs font-bold transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
-                        <span>Pilih Paket Standar</span>
+                        <span>Pilih {{ $standarPlan ? $standarPlan->name : 'Paket Standar' }}</span>
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </button>
                 </div>
@@ -450,59 +450,18 @@
                                 <h4 class="font-black text-xs text-slate-800 tracking-wider uppercase">
                                     MALANGVERSE DIGITAL NUSANTARA
                                 </h4>
-                                <p class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                <p id="modalInvoiceText" class="text-[10px] text-slate-400 font-mono mt-0.5">
                                     NMID : ID102039201923 • A01
                                 </p>
                             </div>
 
-                            {{-- QR Code Image Graphic --}}
+                            {{-- QR Code Image Graphic (Dynamic) --}}
                             <div class="my-3 flex items-center justify-center">
-                                <div class="w-48 h-48 bg-white p-2 rounded-2xl border border-slate-100 flex items-center justify-center relative shadow-xs">
-                                    <svg viewBox="0 0 200 200" class="w-full h-full text-slate-900" fill="currentColor">
-                                        <rect x="15" y="15" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="23" y="23" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="30" y="30" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        <rect x="140" y="15" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="148" y="23" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="155" y="30" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        <rect x="15" y="140" width="45" height="45" rx="6" fill="#1E293B"/>
-                                        <rect x="23" y="148" width="29" height="29" rx="3" fill="#FFFFFF"/>
-                                        <rect x="30" y="155" width="15" height="15" rx="2" fill="#1E293B"/>
-
-                                        <rect x="68" y="18" width="10" height="10" rx="1.5"/>
-                                        <rect x="85" y="18" width="10" height="10" rx="1.5"/>
-                                        <rect x="105" y="18" width="18" height="10" rx="1.5"/>
-                                        <rect x="68" y="36" width="20" height="10" rx="1.5"/>
-                                        <rect x="100" y="36" width="10" height="18" rx="1.5"/>
-                                        <rect x="118" y="36" width="10" height="10" rx="1.5"/>
-
-                                        <rect x="18" y="68" width="10" height="18" rx="1.5"/>
-                                        <rect x="36" y="68" width="18" height="10" rx="1.5"/>
-                                        <rect x="18" y="95" width="18" height="10" rx="1.5"/>
-                                        <rect x="36" y="112" width="10" height="18" rx="1.5"/>
-
-                                        <rect x="140" y="68" width="18" height="10" rx="1.5"/>
-                                        <rect x="165" y="68" width="18" height="18" rx="1.5"/>
-                                        <rect x="140" y="85" width="10" height="25" rx="1.5"/>
-                                        <rect x="158" y="100" width="25" height="10" rx="1.5"/>
-
-                                        <rect x="68" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="95" y="140" width="10" height="20" rx="1.5"/>
-                                        <rect x="115" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="68" y="160" width="10" height="20" rx="1.5"/>
-                                        <rect x="88" y="168" width="25" height="10" rx="1.5"/>
-                                        <rect x="122" y="158" width="10" height="22" rx="1.5"/>
-                                        <rect x="140" y="140" width="18" height="18" rx="1.5"/>
-                                        <rect x="165" y="140" width="18" height="10" rx="1.5"/>
-                                        <rect x="140" y="165" width="20" height="15" rx="1.5"/>
-                                        <rect x="168" y="158" width="15" height="22" rx="1.5"/>
-
-                                        <circle cx="100" cy="100" r="19" fill="#FFFFFF"/>
-                                        <circle cx="100" cy="100" r="16" fill="#1341D1"/>
-                                        <text x="100" y="104.5" fill="#FFFFFF" font-size="11" font-weight="900" text-anchor="middle" font-family="sans-serif">MV</text>
-                                    </svg>
+                                <div id="modalQrBox" class="w-48 h-48 bg-white p-2 rounded-2xl border border-slate-100 flex items-center justify-center relative shadow-xs">
+                                    <div class="text-center p-3 text-slate-400">
+                                        <span class="material-symbols-outlined text-3xl animate-spin">sync</span>
+                                        <p class="text-[11px] mt-1 font-medium">Memuat QRIS...</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -551,30 +510,42 @@
     {{-- Script Modal Checkout Interaktif --}}
     <script>
         let countdownTimer = null;
+        let pollTimer = null;
+        let activeTransactionCode = null;
+        const standarTierId = {{ $standarId }};
+        const premiumTierId = {{ $premiumId }};
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-        function startCheckoutTimer() {
+        function startCheckoutTimer(seconds = 900) {
             if (countdownTimer) clearInterval(countdownTimer);
-            let timeLeft = 14 * 60 + 47;
+            let timeLeft = seconds;
             const el = document.getElementById('countdownModal');
 
             countdownTimer = setInterval(() => {
                 const minutes = Math.floor(timeLeft / 60);
-                const seconds = timeLeft % 60;
+                const s = timeLeft % 60;
                 if (el) {
-                    el.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    el.textContent = `${minutes.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 }
                 if (timeLeft <= 0) {
                     clearInterval(countdownTimer);
+                    handleModalExpired();
                 }
                 timeLeft--;
             }, 1000);
         }
 
         function openCheckout(type) {
+            @guest
+                window.location.href = "{{ route('login') }}";
+                return;
+            @endguest
+
             const modal = document.getElementById('checkoutModal');
             if (!modal) return;
 
             const isStandar = type === 'standar';
+            const tierId = isStandar ? standarTierId : premiumTierId;
 
             // Update Badge
             const badgeEl = document.getElementById('modalPackageBadge');
@@ -608,10 +579,88 @@
             const priceText = isStandar ? 'Rp 19.000' : 'Rp 49.000';
             document.querySelectorAll('.modal-price-val').forEach(el => el.textContent = priceText);
 
+            // Set loading in QR box
+            const qrBox = document.getElementById('modalQrBox');
+            if (qrBox) {
+                qrBox.innerHTML = `
+                    <div class="text-center p-3 text-slate-400">
+                        <span class="material-symbols-outlined text-3xl animate-spin text-[#2A54F5]">sync</span>
+                        <p class="text-[11px] text-slate-600 mt-2 font-semibold">Memuat QRIS YoBasePay...</p>
+                    </div>
+                `;
+            }
+
             // Show Modal
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
-            startCheckoutTimer();
+
+            // Request YoBasePay V4 QRIS
+            fetch('{{ route("subscription.create-qris") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    tier_id: tierId,
+                    billing: 'monthly'
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && !data.is_free) {
+                    activeTransactionCode = data.transaction_code;
+
+                    if (qrBox) {
+                        qrBox.innerHTML = `
+                            <img src="${data.qr_image}"
+                                 alt="QRIS Realtime YoBasePay"
+                                 class="w-full h-full object-contain rounded-lg shadow-xs" />
+                        `;
+                    }
+
+                    const invoiceText = document.getElementById('modalInvoiceText');
+                    if (invoiceText) {
+                        invoiceText.textContent = `NMID : ID102039201923 • INV: ${data.transaction_code}`;
+                    }
+
+                    startCheckoutTimer(900);
+                    startPolling(data.transaction_code);
+                } else if (data.is_free) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal memuat QRIS.');
+                    closeCheckout();
+                }
+            })
+            .catch(err => {
+                alert('Terjadi kendala koneksi ke gateway pembayaran.');
+                closeCheckout();
+            });
+        }
+
+        function startPolling(txCode) {
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(() => {
+                if (!activeTransactionCode) return;
+
+                fetch(`/api/payment/status/${txCode}`, {
+                    headers: { 'Accept': 'application/json' }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
+                        clearInterval(pollTimer);
+                        if (countdownTimer) clearInterval(countdownTimer);
+                        alert('Pembayaran QRIS berhasil diverifikasi! Paket Anda kini aktif.');
+                        closeCheckout();
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {});
+            }, 3000);
         }
 
         function closeCheckout() {
@@ -621,6 +670,14 @@
                 document.body.classList.remove('overflow-hidden');
             }
             if (countdownTimer) clearInterval(countdownTimer);
+            if (pollTimer) clearInterval(pollTimer);
+            activeTransactionCode = null;
+        }
+
+        function handleModalExpired() {
+            if (pollTimer) clearInterval(pollTimer);
+            alert('Waktu pembayaran QRIS telah kedaluwarsa. Silakan ulangi transaksi.');
+            closeCheckout();
         }
 
         // Close modal on Escape
@@ -628,26 +685,30 @@
             if (e.key === 'Escape') closeCheckout();
         });
 
-        // Tombol Konfirmasi Pembayaran Modal
+        // Tombol Konfirmasi Manual Pembayaran Modal
         document.addEventListener('DOMContentLoaded', function () {
             const btnConfirm = document.getElementById('btnModalConfirm');
             if (btnConfirm) {
                 btnConfirm.addEventListener('click', function () {
+                    if (!activeTransactionCode) return;
                     btnConfirm.disabled = true;
-                    btnConfirm.classList.add('opacity-80', 'cursor-not-allowed');
-                    btnConfirm.innerHTML = `
-                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Memproses Verifikasi...</span>
-                    `;
 
-                    setTimeout(() => {
-                        alert('Pembayaran QRIS berhasil diverifikasi! Paket Anda kini aktif.');
-                        closeCheckout();
-                        window.location.reload();
-                    }, 1400);
+                    fetch(`/api/payment/status/${activeTransactionCode}`, {
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
+                            alert('Pembayaran QRIS berhasil diverifikasi! Paket Anda kini aktif.');
+                            closeCheckout();
+                            window.location.reload();
+                        } else {
+                            alert('Status: ' + data.status.toUpperCase() + '. Pembayaran belum diterima dari gateway.');
+                        }
+                    })
+                    .finally(() => {
+                        btnConfirm.disabled = false;
+                    });
                 });
             }
         });

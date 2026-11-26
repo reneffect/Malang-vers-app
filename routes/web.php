@@ -5,12 +5,15 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\EbookController;
+use App\Http\Controllers\EbookPurchaseController;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\WalikanController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\YoBasePayWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -22,7 +25,7 @@ Route::get('/', [GuestController::class, 'index'])->name('home');
 Route::get('/beranda', [GuestController::class, 'index'])->name('beranda');
 Route::get('/kamus', [EbookController::class, 'index'])->name('kamus');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
-Route::get('/membership', [PricingController::class, 'index'])->name('membership.public'); // Rename biar nggak bentrok
+Route::get('/membership', [SubscriptionController::class, 'index'])->name('membership.public');
 
 /*
 |--------------------------------------------------------------------------
@@ -56,7 +59,7 @@ Route::post('/auth/firebase-callback', [LoginController::class, 'handleFirebaseC
 | Member (Terautentikasi & WAJIB Role Member)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'member'])->group(function () {
+Route::middleware(['auth', 'member', 'subscription.expiry'])->group(function () {
     Route::get('/member-home', [MemberController::class, 'index'])->name('member.member-home');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -64,15 +67,42 @@ Route::middleware(['auth', 'member'])->group(function () {
     Route::put('/pengaturan-profil', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/ubah-kata-sandi', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/avatar', [ProfileController::class, 'uploadAvatar'])->name('profile.avatar');
+
+    // ── Subscription (Membership) ─────────────────────────────
+    Route::get('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+    Route::post('/subscription/activate', [SubscriptionController::class, 'activate'])->name('subscription.activate');
+    Route::post('/api/subscription/create-qris', [SubscriptionController::class, 'createQris'])->name('subscription.create-qris');
+
+    // ── E-Book: Beli satuan & klaim Standar ───────────────────
+    Route::post('/ebook/{ebook}/purchase', [EbookPurchaseController::class, 'purchase'])->name('ebook.purchase');
+    Route::post('/ebook/{ebook}/claim', [EbookPurchaseController::class, 'claim'])->name('ebook.claim');
+    Route::get('/ebook/{ebook}/preview', [EbookPurchaseController::class, 'preview'])->name('ebook.preview');
+
+    // ── E-Book: Baca PDF penuh (hanya jika punya akses) ───────
+    Route::get('/ebook/{ebook}/read', [EbookPurchaseController::class, 'read'])
+        ->middleware('check.ebook')
+        ->name('ebook.read');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Pembayaran (Public / Member) - DIPISAH dari blok Admin!
+| Pembayaran & YoBasePay V4 (QRIS Only)
 |--------------------------------------------------------------------------
 */
 Route::get('/pembayaran', [PaymentController::class, 'index'])->name('payment.index');
 Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
+Route::get('/pembayaran/{code}', [PaymentController::class, 'show'])->name('payment.show');
+Route::get('/api/payment/status/{code}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+Route::post('/api/payment/cancel/{code}', [PaymentController::class, 'cancel'])->name('payment.cancel');
+
+// YoBasePay V4 Webhook Callback (Non-CSRF)
+Route::post('/payment/yobasepay/webhook', [YoBasePayWebhookController::class, 'handle'])
+    ->name('payment.yobasepay.webhook')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+
+Route::post('/payment/qris/callback', [YoBasePayWebhookController::class, 'handle'])
+    ->name('payment.qris.callback')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
 
 /*
 |--------------------------------------------------------------------------

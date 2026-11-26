@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Membership extends Model
 {
@@ -11,30 +13,78 @@ class Membership extends Model
 
     protected $fillable = [
         'user_id',
-        'tier_id',
-        'start_date',
-        'end_date',
+        'membership_tier_id',
+        'started_at',
+        'ends_at',
         'status',
-        'billing_cycle', // 'monthly' atau 'yearly'
+        'billing_cycle',
+        'payment_reference',
+        'auto_renew',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
-        'end_date' => 'date',
+        'started_at' => 'datetime',
+        'ends_at'    => 'datetime',
+        'auto_renew' => 'boolean',
     ];
+
+    // ============================================================
+    //  RELASI
+    // ============================================================
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Relasi ke MembershipTier.
+     * FK di memberships: membership_tier_id → PK di membership_tiers: id_membership_tier
+     */
     public function tier(): BelongsTo
     {
         return $this->belongsTo(MembershipTier::class, 'membership_tier_id', 'id_membership_tier');
     }
 
-    public function isActive()
+    /** Ebook yang diklaim dari membership Standar ini. */
+    public function claimedEbooks(): HasMany
     {
-        return $this->status === 'active' && $this->end_date >= now();
+        return $this->hasMany(UserEbook::class, 'membership_id');
+    }
+
+    // ============================================================
+    //  SCOPES
+    // ============================================================
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active')
+            ->where('ends_at', '>', now());
+    }
+
+    public function scopeExpired(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q): void {
+            $q->where('status', 'expired')
+              ->orWhere('ends_at', '<=', now());
+        });
+    }
+
+    // ============================================================
+    //  HELPERS
+    // ============================================================
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active'
+            && $this->ends_at !== null
+            && $this->ends_at->isFuture();
+    }
+
+    /** Tandai membership sebagai expired. */
+    public function markAsExpired(): void
+    {
+        $this->status = 'expired';
+        $this->save();
     }
 }

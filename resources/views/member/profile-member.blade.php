@@ -4,263 +4,440 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Pengaturan Profil Member - MulangVerse</title>
+    <title>Pengaturan Profil Member - MalangVerse</title>
 
+    @vite(['resources/css/guest.css', 'resources/js/guest.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    @vite([
-        'resources/css/guest.css',
-        'resources/css/user/member/profile.css',
-        'resources/js/user/member/profile.js',
-    ])
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 
-<body class="bg-gray-50 font-sans antialiased text-gray-900">
+<body class="bg-[#F8FAFC] font-sans antialiased text-slate-800 min-h-screen flex flex-col">
 
+    {{-- Navbar Component --}}
     <x-guest.navbar />
 
-    {{-- ============ HERO ============ --}}
-    <section class="relative bg-gradient-to-br from-blue-700 via-indigo-700 to-purple-800 text-white overflow-hidden">
-        <div class="absolute inset-0 opacity-20">
-            <div class="absolute top-0 right-1/4 w-96 h-96 bg-white/20 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl"></div>
-        </div>
+    @php
+        $user = auth()->user() ?? $user;
+        $membership = $membership ?? (isset($user) ? $user->activeMembership()->with('tier')->first() : null);
+        $userAvatar = $user && $user->avatar
+            ? asset('storage/' . $user->avatar)
+            : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80';
+        $userIdSuffix = strtoupper(substr(md5($user->id ?? '1'), 0, 4));
+    @endphp
 
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-14">
-            <nav class="flex items-center gap-2 text-sm text-blue-200 mb-4">
-                <a href="{{ route('beranda') }}" class="hover:text-white transition-colors">Beranda</a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-white font-medium">Pengaturan Profil</span>
-            </nav>
+    {{-- ============ HERO SECTION ============ --}}
+    <section class="bg-[#2A54F5] text-white pt-8 pb-24 sm:pb-28 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                {{-- Badge Terverifikasi --}}
+                <div class="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 text-white px-3.5 py-1 rounded-full text-xs font-semibold mb-3 shadow-xs select-none">
+                    <span class="material-symbols-outlined text-[15px] text-white">verified_user</span>
+                    <span>Akun Arek Malang Terverifikasi</span>
+                </div>
 
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-2">Pengaturan Profil Member</h1>
-            <p class="text-blue-100 text-sm md:text-base max-w-2xl">
-                Kelola informasi pribadi, preferensi akun, dan status langganan Anda di MulangVerse.
-            </p>
+                {{-- Judul Hero --}}
+                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white tracking-tight mb-2 leading-tight">
+                    Pengaturan Profil Member
+                </h1>
+
+                {{-- Subtitle Hero --}}
+                <p class="text-blue-100 text-xs sm:text-sm max-w-xl leading-relaxed">
+                    Kelola data pribadi, identitas Osob Walikan, dan preferensi langganan eksklusif Anda.
+                </p>
+            </div>
+
+            {{-- MalangVerse ID on the right --}}
+            <div class="flex items-center gap-2 self-start md:self-end text-xs text-blue-100 font-medium">
+                <span>MalangVerse ID:</span>
+                <span class="bg-white/15 border border-white/25 text-white font-mono text-xs font-bold px-3 py-1 rounded-full shadow-xs">
+                    #MV-MLG-{{ $userIdSuffix }}
+                </span>
+            </div>
         </div>
     </section>
 
-    {{-- ============ MAIN CONTENT ============ --}}
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    {{-- ============ MAIN CONTENT CONTAINER ============ --}}
+    <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 -mt-14 sm:-mt-16 relative z-10 pb-16 flex-1">
 
         @if (session('success'))
-            <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-5 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
-                <i class="fas fa-check-circle"></i>
-                {{ session('success') }}
+            <div class="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3 rounded-2xl text-xs sm:text-sm font-semibold flex items-center gap-2.5 shadow-xs">
+                <span class="material-symbols-outlined text-emerald-600 text-lg">check_circle</span>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
 
-            {{-- ============ SIDEBAR ============ --}}
+            {{-- ============ LEFT COLUMN: SIDEBAR ============ --}}
             <aside class="space-y-5">
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 text-center">
-                    <div class="relative inline-block mb-3">
-                        <div data-avatar-container class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto overflow-hidden ring-4 ring-white">
-                            @if ($user->avatar)
-                                <img src="{{ asset('storage/' . $user->avatar) }}" alt="Avatar" class="avatar-img w-full h-full object-cover">
-                            @else
-                                <span class="avatar-initial">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                            @endif
-                        </div>
-                        <span class="absolute bottom-0 right-0 w-5 h-5 bg-green-500 border-2 border-white rounded-full"></span>
-                    </div>
-                    <h3 class="font-bold text-gray-900">{{ $user->name }}</h3>
-                    <p class="text-xs text-gray-500 mb-4">{{ $user->email }}</p>
+                {{-- User Profile Card --}}
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/90 text-center relative overflow-hidden">
+                    {{-- Soft Blue Top Banner --}}
+                    <div class="h-16 bg-[#EFF6FF] -mx-6 -mt-6"></div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div class="bg-primary-50 rounded-xl p-3">
-                            <div class="text-2xl font-extrabold text-primary-600">{{ $user->xp ?? 0 }}</div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wide">XP</div>
+                    {{-- Avatar Circle with Verified Check --}}
+                    <div class="relative inline-block -mt-10 mb-3">
+                        <div class="w-22 h-22 rounded-full ring-4 ring-white shadow-md mx-auto overflow-hidden bg-slate-200">
+                            <img id="sidebarAvatarImg" src="{{ $userAvatar }}" alt="Foto Profil" class="w-full h-full object-cover">
                         </div>
-                        <div class="bg-amber-50 rounded-xl p-3">
-                            <div class="text-2xl font-extrabold text-amber-600">Lv. {{ $user->level ?? 1 }}</div>
-                            <div class="text-[10px] text-gray-500 uppercase tracking-wide">Level</div>
+                        <div class="absolute bottom-0.5 right-0.5 w-6 h-6 rounded-full bg-[#2A54F5] text-white flex items-center justify-center ring-2 ring-white shadow-xs">
+                            <span class="material-symbols-outlined text-sm font-bold">check</span>
                         </div>
                     </div>
 
-                    <div class="text-left">
-                        <div class="flex justify-between text-[11px] text-gray-500 mb-1">
-                            <span>Progress Level</span>
-                            <span>{{ round($user->level_progress ?? 0) }}%</span>
-                        </div>
-                        <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div class="bg-gradient-to-r from-primary-500 to-purple-600 h-1.5 rounded-full transition-all duration-500"
-                                 style="width: {{ $user->level_progress ?? 0 }}%"></div>
-                        </div>
+                    {{-- Nama & Email --}}
+                    <h3 class="text-lg font-extrabold text-slate-900 leading-tight">
+                        {{ $user->name ?? 'Ngalup Ker' }}
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-0.5 font-medium">
+                        {{ $user->email ?? 'ngalup@ker.id' }}
+                    </p>
+
+                    {{-- Membership Pill Badge --}}
+                    <div class="mt-4">
+                        <span class="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-[#2A54F5] text-[11px] font-semibold px-3 py-1.5 rounded-full border border-blue-100/80">
+                            <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">hotel_class</span>
+                            <span>Member Premium (Aktif s/d {{ isset($membership) && $membership->expires_at ? $membership->expires_at->format('d M Y') : '18 Nov 2026' }})</span>
+                        </span>
                     </div>
                 </div>
 
-                <nav class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-3 space-y-1">
-                        <a href="{{ route('profile.index') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-50 text-primary-700 font-semibold text-sm">
-                            <i class="fas fa-user-circle w-5"></i> Profil Saya
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                            <i class="fas fa-lock w-5"></i> Ubah Kata Sandi
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                            <i class="fas fa-history w-5"></i> Riwayat Transaksi
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                            <i class="fas fa-bookmark w-5"></i> Frasa Tersimpan
-                        </a>
-                    </div>
-                    <div class="border-t border-gray-100 p-3">
+                {{-- Sidebar Navigation Links --}}
+                <div class="bg-white rounded-3xl p-2.5 shadow-sm border border-slate-100/90 space-y-1">
+                    {{-- Profil Saya (Active) --}}
+                    <a href="{{ route('profile.index') }}"
+                       class="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#EEF2FF] text-[#2A54F5] font-bold text-xs sm:text-sm">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-lg">person</span>
+                            <span>Profil Saya</span>
+                        </div>
+                        <span class="material-symbols-outlined text-base">chevron_right</span>
+                    </a>
+
+                    {{-- Koleksi Kamus Digital --}}
+                    <a href="{{ route('kamus') }}"
+                       class="flex items-center justify-between px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-lg text-slate-500">auto_stories</span>
+                            <span>Koleksi Kamus Digital</span>
+                        </div>
+                        <span class="w-5 h-5 rounded-full bg-[#2A54F5] text-white text-[10px] font-bold flex items-center justify-center">
+                            3
+                        </span>
+                    </a>
+
+                    {{-- Keluar dari Sesi --}}
+                    <div class="pt-2 mt-2 border-t border-slate-100">
                         <form action="{{ route('logout') }}" method="POST">
                             @csrf
-                            <button type="submit" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 text-sm transition-colors text-left">
-                                <i class="fas fa-sign-out-alt w-5"></i> Keluar
+                            <button type="submit"
+                                    class="w-full flex items-center gap-2.5 px-4 py-3 rounded-2xl text-rose-600 hover:bg-rose-50 font-semibold text-xs sm:text-sm transition cursor-pointer text-left">
+                                <span class="material-symbols-outlined text-lg text-rose-500">logout</span>
+                                <span>Keluar dari Sesi</span>
                             </button>
                         </form>
                     </div>
-                </nav>
+                </div>
             </aside>
 
-            {{-- ============ KONTEN UTAMA ============ --}}
-            <div class="space-y-6">
+            {{-- ============ RIGHT COLUMN: FORM & STATUS LANGGANAN ============ --}}
+            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-slate-100/90">
 
-                {{-- Form Profil --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">Informasi Profil Member</h2>
-                            <p class="text-sm text-gray-500 mt-0.5">Perbarui data pribadi Anda.</p>
+                {{-- Header Section --}}
+                <div class="flex items-start justify-between pb-6 border-b border-slate-100 flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900">Informasi Profil Member</h2>
+                        <p class="text-xs text-slate-400 mt-1">Perbarui identitas visual dan informasi publik Anda di ekosistem MalangVerse.</p>
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 bg-[#F1F5F9] text-slate-600 text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200/60 select-none">
+                        <span class="material-symbols-outlined text-[15px] text-slate-500">public</span>
+                        <span>Profil Publik</span>
+                    </div>
+                </div>
+
+                {{-- Foto Tampilan Utama Upload Box --}}
+                <div class="mt-6 p-4 sm:p-5 bg-[#F8FAFC] rounded-2xl border border-slate-100 flex flex-col sm:flex-row items-center gap-5">
+                    <div class="relative shrink-0">
+                        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-full ring-4 ring-white shadow-sm overflow-hidden bg-slate-200">
+                            <img id="mainAvatarPreviewImg" src="{{ $userAvatar }}" alt="Foto Tampilan Utama" class="w-full h-full object-cover">
                         </div>
                     </div>
 
-                    <form id="profileForm" action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
-                        @csrf
-                        @method('PUT')
+                    <div class="flex-1 text-center sm:text-left">
+                        <h4 class="text-xs sm:text-sm font-bold text-slate-800">Foto Tampilan Utama</h4>
+                        <p class="text-[11px] text-slate-400 mt-0.5 mb-3">Format file JPG, PNG, atau WEBP. Ukuran maksimal 2MB.</p>
 
-                        {{-- Avatar Upload Section --}}
-                        <div class="flex items-center gap-5 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                            <div class="relative shrink-0">
-                                <div id="avatarPreview" data-avatar-container class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold overflow-hidden ring-4 ring-white shadow-md">
-                                    @if ($user->avatar)
-                                        <img src="{{ asset('storage/' . $user->avatar) }}" class="avatar-img w-full h-full object-cover">
-                                    @else
-                                        <span class="avatar-initial">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
-                                    @endif
-                                </div>
-                                <label for="avatarInput" title="Pilih foto" class="absolute -bottom-1 -right-1 w-7 h-7 bg-primary-600 text-white rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-700 hover:scale-110 transition-all shadow-md border-2 border-white">
-                                    <i class="fas fa-camera text-xs"></i>
-                                </label>
-                                <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" class="hidden">
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-gray-800">Foto Profil</p>
-                                <p class="text-xs text-gray-400 mb-3">JPG, PNG, atau WEBP. Maksimal 2MB.</p>
-
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <button type="button" onclick="document.getElementById('avatarInput').click()" class="px-4 py-2 border border-gray-200 text-gray-600 rounded-lg hover:border-primary-600 hover:text-primary-600 transition-all text-sm font-semibold flex items-center gap-2">
-                                        <i class="fas fa-folder-open"></i> Pilih Foto
-                                    </button>
-
-                                    <button type="button"
-                                            id="btnUploadAvatar"
-                                            data-url="{{ route('profile.avatar') }}"
-                                            disabled
-                                            class="px-4 py-2 bg-primary-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary-700 active:scale-95 transition-all flex items-center gap-2">
-                                        <i class="fas fa-upload"></i> Unggah
-                                    </button>
-                                </div>
-
-                                <p id="avatarStatus" class="text-xs mt-2 hidden"></p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nama Lengkap <span class="text-red-500">*</span></label>
-                                <input type="text" name="name" value="{{ old('name', $user->name) }}" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Alamat Email <span class="text-red-500">*</span></label>
-                                <input type="email" name="email" value="{{ old('email', $user->email) }}" required class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nomor Telepon</label>
-                                <input type="tel" name="phone" value="{{ old('phone', $user->phone) }}" placeholder="08xxxxxxxxxx" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1.5">Tanggal Lahir</label>
-                                <input type="date" name="tanggal_lahir" value="{{ old('tanggal_lahir', $user->tanggal_lahir?->format('Y-m-d')) }}" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Kota Domisili</label>
-                            <input type="text" name="kota" value="{{ old('kota', $user->kota) }}" placeholder="Contoh: Malang, Surabaya" class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Bio Singkat</label>
-                            <textarea name="bio" rows="3" maxlength="500" placeholder="Ceritakan sedikit tentang diri Anda..." class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary-600 focus:ring-4 focus:ring-primary-600/10 transition-all resize-none">{{ old('bio', $user->bio) }}</textarea>
-                            <p class="text-xs text-gray-400 mt-1">Maksimal 500 karakter.</p>
-                        </div>
-
-                        <div class="-mx-6 -mb-6 mt-6 px-6 py-4 border-t border-gray-100 bg-white flex flex-nowrap items-center justify-end gap-3">
-                            <a href="{{ route('profile.index') }}" class="shrink-0 px-5 py-2.5 border border-gray-200 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors">
-                                Batal
-                            </a>
-                            <button type="submit" class="shrink-0 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors flex items-center justify-center gap-2">
-                                <i class="fas fa-save"></i> Simpan Perubahan
+                        <div class="flex items-center justify-center sm:justify-start gap-2.5">
+                            <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp" class="hidden">
+                            <button type="button"
+                                    onclick="document.getElementById('avatarFileInput').click()"
+                                    class="px-4 py-2 bg-[#2A54F5] hover:bg-blue-700 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer">
+                                Unggah Foto Baru
+                            </button>
+                            <button type="button"
+                                    id="btnDeletePhoto"
+                                    class="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-full transition cursor-pointer">
+                                Hapus Foto
                             </button>
                         </div>
-                    </form>
+                        <p id="avatarUploadFeedback" class="text-xs mt-2 hidden"></p>
+                    </div>
                 </div>
 
-                {{-- Status Langganan --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="px-6 py-5 border-b border-gray-100">
-                        <h2 class="text-lg font-bold text-gray-900">Status Langganan Aktif</h2>
+                {{-- Form Inputs --}}
+                <form id="profileUpdateForm" action="{{ route('profile.update') }}" method="POST" class="mt-6 space-y-5">
+                    @csrf
+                    @method('PUT')
+
+                    {{-- Row 1: Nama Lengkap & Nama Panggilan / Alias Osob --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {{-- Nama Lengkap --}}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Lengkap</label>
+                            <div class="relative">
+                                <input type="text" name="name" value="{{ old('name', $user->name ?? 'Ngalup Ker') }}" required
+                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">id_card</span>
+                            </div>
+                        </div>
+
+                        {{-- Nama Panggilan / Alias Osob --}}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Panggilan / Alias Osob</label>
+                            <div class="relative">
+                                <input type="text" name="alias_osob" value="{{ old('alias_osob', $user->alias_osob ?? 'Sam Kera Ngalam') }}"
+                                       placeholder="Contoh: Sam Kera Ngalam"
+                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">tag</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-6">
-                        @if (isset($membership) && $membership && $membership->tier)
-                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-5 p-5 bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-100 rounded-xl">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-600 to-purple-600 flex items-center justify-center text-white text-xl shadow-lg">
-                                        <i class="fas fa-crown"></i>
-                                    </div>
-                                    <div>
-                                        <div class="flex items-center gap-2 mb-0.5">
-                                            <h3 class="font-bold text-gray-900">{{ $membership->tier->name }}</h3>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 uppercase">Aktif</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500">Berlaku sampai {{ $membership->expires_at->format('d M Y') }}</p>
-                                    </div>
+
+                    {{-- Row 2: Alamat Email & Nomor WhatsApp --}}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {{-- Alamat Email --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label class="text-xs font-bold text-slate-700">Alamat Email</label>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 select-none">
+                                    <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                                    <span>Terverifikasi</span>
+                                </span>
+                            </div>
+                            <div class="relative">
+                                <input type="email" name="email" value="{{ old('email', $user->email ?? 'ngalup@ker.id') }}" required
+                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">mail</span>
+                            </div>
+                        </div>
+
+                        {{-- Nomor WhatsApp --}}
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp</label>
+                            <div class="relative">
+                                <input type="text" name="phone" value="{{ old('phone', $user->phone ?? '0812-3456-7890') }}"
+                                       placeholder="08xxxxxxxxxx"
+                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">chat</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Row 3: Domisili --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Domisili</label>
+                        <div class="relative">
+                            <input type="text" name="kota" value="{{ old('kota', $user->kota ?? 'Kota Malang, Jawa Timur') }}"
+                                   placeholder="Contoh: Kota Malang, Jawa Timur"
+                                   class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                            <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">location_on</span>
+                        </div>
+                    </div>
+
+                    {{-- Row 4: Bio Singkat --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-xs font-bold text-slate-700">Bio Singkat</label>
+                            <span id="bioCharCounter" class="text-[11px] text-slate-400 font-medium">72 / 160 Karakter</span>
+                        </div>
+                        <textarea name="bio" id="bioInput" rows="3" maxlength="160"
+                                  class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition resize-none leading-relaxed"
+                                  placeholder="Ceritakan sedikit tentang diri Anda...">{{ old('bio', $user->bio ?? 'Pegiat kebudayaan Arema dan penutur aktif Boso Walikan sejak kecil.') }}</textarea>
+                    </div>
+
+                    {{-- Status Langganan Aktif Card --}}
+                    <div class="mt-10 pt-4">
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Status Langganan Aktif</h3>
+                        <p class="text-xs text-slate-400 mt-0.5 mb-4">Rincian hak akses kamus komprehensif, fitur penerjemah instan, dan lisensi budaya.</p>
+
+                        <div class="bg-gradient-to-r from-[#EFF6FF] via-[#F4F7FF] to-[#EEF2FF] border border-blue-100/90 rounded-3xl p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-[#1341D1] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
+                                    <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">hotel_class</span>
                                 </div>
-                                <a href="{{ route('pricing') }}" class="px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors shadow-md text-center">
+                                <div>
+                                    @if(isset($membership) && $membership->tier)
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-base font-extrabold text-slate-900">{{ $membership->tier->name }}</h4>
+                                            <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Aktif</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Akses penuh ke 3.500+ entri osob, dan fitur penerjemah tanpa batas.
+                                        </p>
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-3 text-[11px] text-slate-500">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[15px] text-slate-400">qr_code_2</span>
+                                                <span>Metode Pembayaran: <strong class="text-slate-800 font-semibold">QRIS Otomatis</strong></span>
+                                            </div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                                                <span>Masa Langganan: <strong class="text-slate-800 font-semibold">{{ $membership->expires_at ? $membership->expires_at->format('d M Y') : '-' }}</strong></span>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-base font-extrabold text-slate-900">Member Gratis</h4>
+                                            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Gratis</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                                            Informasi langganan belum tersedia atau belum berlangganan paket berbayar.
+                                        </p>
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-3 text-[11px] text-slate-500">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[15px] text-slate-400">info</span>
+                                                <span>Upgrade ke Standar atau Premium untuk akses tanpa batas.</span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="shrink-0 text-center md:text-right">
+                                <a href="{{ route('membership.public') }}"
+                                   class="inline-block px-5 py-2.5 bg-white border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs sm:text-sm font-bold rounded-full transition shadow-xs">
                                     Kelola Langganan
                                 </a>
+                                <span class="block text-[10px] text-slate-400 mt-1.5">Faktur otomatis dikirim via email</span>
                             </div>
-                        @else
-                            <div class="text-center py-8">
-                                <p class="font-semibold text-gray-700 mb-1">Informasi langganan belum tersedia</p>
-                                <a href="{{ route('pricing') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors mt-2">
-                                    Lihat Paket Langganan <i class="fas fa-arrow-right text-xs"></i>
-                                </a>
-                            </div>
-                        @endif
+                        </div>
                     </div>
-                </div>
 
+                    {{-- Bottom Action Buttons --}}
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <a href="{{ route('profile.index') }}"
+                           class="px-6 py-2.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs sm:text-sm font-bold rounded-full transition">
+                            Batal
+                        </a>
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-[#2A54F5] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold rounded-full shadow-md shadow-blue-500/20 transition flex items-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-base">save</span>
+                            <span>Simpan Perubahan</span>
+                        </button>
+                    </div>
+
+                </form>
             </div>
+
         </div>
     </main>
 
+    {{-- Footer Component --}}
     <x-guest.beranda-footer />
 
-    {{-- Toast global --}}
-    <div id="toast" class="fixed bottom-8 right-8 z-50 pointer-events-none bg-gray-900 text-white px-6 py-3.5 rounded-xl shadow-2xl text-sm font-medium translate-y-32 opacity-0 transition-all duration-300"></div>
+    {{-- Script Interaktif Profil --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Karakter counter bio
+            const bioInput = document.getElementById('bioInput');
+            const bioCounter = document.getElementById('bioCharCounter');
+
+            if (bioInput && bioCounter) {
+                const updateCounter = () => {
+                    bioCounter.textContent = `${bioInput.value.length} / 160 Karakter`;
+                };
+                bioInput.addEventListener('input', updateCounter);
+                updateCounter();
+            }
+
+            // AJAX Upload Avatar
+            const avatarInput = document.getElementById('avatarFileInput');
+            const mainImg = document.getElementById('mainAvatarPreviewImg');
+            const sidebarImg = document.getElementById('sidebarAvatarImg');
+            const feedback = document.getElementById('avatarUploadFeedback');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            if (avatarInput) {
+                avatarInput.addEventListener('change', function () {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    // Preview langsung di UI
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        if (mainImg) mainImg.src = e.target.result;
+                        if (sidebarImg) sidebarImg.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+
+                    // Upload otomatis ke server
+                    const formData = new FormData();
+                    formData.append('avatar', file);
+
+                    if (feedback) {
+                        feedback.classList.remove('hidden', 'text-emerald-600', 'text-rose-600');
+                        feedback.classList.add('text-blue-600');
+                        feedback.textContent = 'Mengunggah foto...';
+                    }
+
+                    fetch("{{ route('profile.avatar') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (mainImg) mainImg.src = data.url;
+                            if (sidebarImg) sidebarImg.src = data.url;
+                            if (feedback) {
+                                feedback.classList.remove('text-blue-600');
+                                feedback.classList.add('text-emerald-600');
+                                feedback.textContent = 'Foto profil berhasil diperbarui!';
+                                setTimeout(() => feedback.classList.add('hidden'), 3000);
+                            }
+                        } else {
+                            throw new Error(data.message || 'Gagal mengunggah foto.');
+                        }
+                    })
+                    .catch(err => {
+                        if (feedback) {
+                            feedback.classList.remove('text-blue-600');
+                            feedback.classList.add('text-rose-600');
+                            feedback.textContent = err.message || 'Gagal mengunggah foto.';
+                        }
+                    });
+                });
+            }
+
+            // Hapus Foto button
+            const btnDeletePhoto = document.getElementById('btnDeletePhoto');
+            if (btnDeletePhoto) {
+                btnDeletePhoto.addEventListener('click', function () {
+                    if (confirm('Apakah Anda yakin ingin menggunakan foto avatar default?')) {
+                        const defaultUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80';
+                        if (mainImg) mainImg.src = defaultUrl;
+                        if (sidebarImg) sidebarImg.src = defaultUrl;
+                    }
+                });
+            }
+        });
+    </script>
 
 </body>
 </html>

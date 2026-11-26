@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DictionaryEntry;
 use App\Models\TranslationHistory;
-use App\Services\TranslateQuotaService;
+use App\Services\TranslateLimitService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 class WalikanController extends Controller
 {
     public function __construct(
-        private readonly TranslateQuotaService $quota,
+        private readonly TranslateLimitService $quota,
     ) {}
 
     public function index(): View
@@ -57,7 +57,7 @@ class WalikanController extends Controller
                         'type'    => 'member',
                         'balance' => $check['balance'],
                         'cost'    => $check['cost'],
-                        'max'     => TranslateQuotaService::memberMaxCredits(),
+                        'max'     => TranslateLimitService::memberMaxCredits(),
                     ],
                 ], 429);
             }
@@ -88,12 +88,13 @@ class WalikanController extends Controller
                 'success'    => true,
                 'translated' => $translated,
                 'original'   => $text,
+                'remaining'  => $result['balance'],
                 'quota'      => [
                     'type'    => 'member',
                     'balance' => $result['balance'],
                     'cost'    => $result['cost'],
                     'words'   => $result['words'],
-                    'max'     => TranslateQuotaService::memberMaxCredits(),
+                    'max'     => TranslateLimitService::memberMaxCredits(),
                 ],
             ]);
         }
@@ -116,7 +117,7 @@ class WalikanController extends Controller
                 'quota'   => [
                     'type'      => 'guest',
                     'remaining' => 0,
-                    'max'       => TranslateQuotaService::guestMaxTokens(),
+                    'max'       => TranslateLimitService::guestMaxTokens(),
                 ],
             ], $code === 'BLOCKED' ? 403 : 429);
         }
@@ -139,10 +140,11 @@ class WalikanController extends Controller
             'success'    => true,
             'translated' => $translated,
             'original'   => $text,
+            'remaining'  => $remaining,
             'quota'      => [
                 'type'      => 'guest',
                 'remaining' => $remaining,
-                'max'       => TranslateQuotaService::guestMaxTokens(),
+                'max'       => TranslateLimitService::guestMaxTokens(),
             ],
         ]);
     }
@@ -165,7 +167,7 @@ class WalikanController extends Controller
         return response()->json([
             'type'      => 'guest',
             'remaining' => $this->quota->guestRemaining($request),
-            'max'       => TranslateQuotaService::guestMaxTokens(),
+            'max'       => TranslateLimitService::guestMaxTokens(),
         ]);
     }
 

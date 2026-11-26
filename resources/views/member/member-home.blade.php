@@ -36,19 +36,34 @@
         </div>
 
         <div class="relative max-w-4xl mx-auto text-center z-10">
-            {{-- Badge Unlimited Kuota Terjemahan --}}
-            <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs text-white backdrop-blur-xs shadow-sm">
-                <span class="text-white text-xs">⚡</span>
-                <span class="font-medium text-blue-50">Akses Tanpa Batas Kuota Terjemahan</span>
-                <span class="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#1341D1] uppercase tracking-wider">
-                    UNLIMITED
-                </span>
-            </div>
+            {{-- Badge Unlimited Kuota Terjemahan / Tier Status --}}
+            @if(isset($membership) && $membership->status === 'active' && $membership->tier)
+                <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs text-white backdrop-blur-xs shadow-sm">
+                    <span class="text-white text-xs"><i class="fas fa-crown text-amber-400"></i> {{ $membership->tier->name }}</span>
+                    <span class="font-medium text-blue-50">Akses Tanpa Batas Kuota Terjemahan</span>
+                    <span class="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#1341D1] uppercase tracking-wider">
+                        UNLIMITED
+                    </span>
+                </div>
 
-            {{-- Title --}}
-            <h1 class="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                Penerjemah Boso Walikan Member Pro
-            </h1>
+                {{-- Title --}}
+                <h1 class="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    Penerjemah Boso Walikan {{ $membership->tier->name }}
+                </h1>
+            @else
+                <div class="inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs text-white backdrop-blur-xs shadow-sm">
+                    <span class="text-white text-xs">⚡</span>
+                    <span class="font-medium text-blue-50">Akses Kuota Terjemahan</span>
+                    <span class="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-extrabold text-[#1341D1] uppercase tracking-wider">
+                        MEMBER
+                    </span>
+                </div>
+
+                {{-- Title --}}
+                <h1 class="mt-6 text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    Penerjemah Boso Walikan Member
+                </h1>
+            @endif
 
             {{-- Subtitle --}}
             <p class="mt-4 text-sm sm:text-base leading-relaxed text-blue-100/90 max-w-2xl mx-auto">

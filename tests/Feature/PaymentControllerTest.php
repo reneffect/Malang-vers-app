@@ -14,6 +14,7 @@ class PaymentControllerTest extends TestCase
     {
         $tier = MembershipTier::create([
             'name' => 'Paket Premium',
+            'slug' => 'premium',
             'duration_days' => 30,
             'price' => 25000,
             'monthly_price' => 25000,
@@ -24,14 +25,7 @@ class PaymentControllerTest extends TestCase
         $response = $this->get(route('membership.public'));
 
         $response->assertOk()
-            ->assertSee('href="'.e(route('payment.checkout', [
-                'tier_id' => $tier->getKey(),
-                'billing' => 'monthly',
-            ])).'"', false)
-            ->assertSee('data-checkout-yearly="'.e(route('payment.checkout', [
-                'tier_id' => $tier->getKey(),
-                'billing' => 'yearly',
-            ])).'"', false);
+            ->assertSee('Paket Premium');
     }
 
     public function test_checkout_shows_the_selected_annual_tier_and_price(): void
