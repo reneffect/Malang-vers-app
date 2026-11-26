@@ -17,10 +17,13 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
         $membership = $user->activeMembership()->with('tier')->first();
+        $currentPlan = $membership?->tier ?? $user->getCurrentPlan();
 
         return view('member.profile-member', [
             'user' => $user,
             'membership' => $membership,
+            'currentPlan' => $currentPlan,
+            'ebookCollectionCount' => $user->ownedEbooks()->count(),
         ]);
     }
 
@@ -34,11 +37,11 @@ class ProfileController extends Controller
             'phone' => ['nullable', 'string', 'max:30'],
             'tanggal_lahir' => ['nullable', 'date'],
             'kota' => ['nullable', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:500'],
+            'bio' => ['nullable', 'string', 'max:160'],
             'alias_osob' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $safeData = collect($validated)->only(['name', 'email', 'phone', 'tanggal_lahir', 'kota', 'bio'])->all();
+        $safeData = collect($validated)->only(['name', 'email', 'phone', 'tanggal_lahir', 'kota', 'bio', 'alias_osob'])->all();
         $user->update($safeData);
 
         return redirect()

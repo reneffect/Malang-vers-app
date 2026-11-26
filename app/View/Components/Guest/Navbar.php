@@ -36,12 +36,9 @@ class Navbar extends Component
             $dashboardFallback = $user->role === 'admin' ? '/admin/dashboard' : '/member-home';
             $logoutRoute = $user->role === 'admin' ? 'admin.logout' : 'logout';
 
-            $badge = 'PRO';
-            if ($user->role === 'admin') {
-                $badge = 'ADMIN';
-            } elseif ($user->activeMembership && $user->activeMembership->tier) {
-                $badge = strtoupper($user->activeMembership->tier->name);
-            }
+            $badge = $user->role === 'admin'
+                ? 'ADMIN'
+                : ($user->getCurrentPlan()?->badgeLabel() ?? 'GRATIS');
 
             $profile = [
                 'name' => $user->name,

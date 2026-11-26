@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola Paket Langganan - MalangVerse Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    @vite(['resources/css/user/admin/dashboard.css', 'resources/css/components/navbar.css'])
+    @vite(['resources/css/user/admin/dashboard.css', 'resources/css/component/navbar.css'])
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 

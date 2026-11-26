@@ -30,15 +30,17 @@ class YoBasePayWebhookController extends Controller
         $content = $request->getContent();
         $payload = json_decode($content, true);
 
-        Log::info('YoBasePay Webhook received', [
-            'headers' => $request->headers->all(),
-            'payload' => $payload,
-        ]);
-
         if (! is_array($payload)) {
             Log::warning('YoBasePay Webhook: Invalid JSON body');
+
             return response()->json(['status' => false, 'message' => 'Invalid JSON body'], 400);
         }
+
+        Log::info('YoBasePay Webhook received', [
+            'event' => $payload['event'] ?? null,
+            'trxid' => $payload['trxid'] ?? null,
+            'status' => $payload['status'] ?? null,
+        ]);
 
         // 1. Validasi Signature HMAC-SHA256
         $headerSig = $request->header('X-YoBasePay-Signature-V2')
@@ -49,18 +51,17 @@ class YoBasePayWebhookController extends Controller
 
         if (! $isValidSignature) {
             Log::warning('YoBasePay Webhook: Invalid Signature', [
-                'payload' => $payload,
-                'header_signature' => $headerSig,
+                'trxid' => $payload['trxid'] ?? null,
+                'has_header_signature' => filled($headerSig),
             ]);
 
             return response()->json(['status' => false, 'message' => 'Invalid Signature'], 403);
         }
 
         // 2. Ambil parameter transaksi
-        $trxid     = $payload['trxid'] ?? null;
-        $amount    = (float) ($payload['amount'] ?? 0);
-        $status    = strtoupper((string) ($payload['status'] ?? ''));
-        $refId     = $payload['ref_id'] ?? null;
+        $trxid = $payload['trxid'] ?? null;
+        $status = strtoupper((string) ($payload['status'] ?? ''));
+        $refId = $payload['ref_id'] ?? null;
 
         // Cari transaksi berdasarkan ref_id (kode transaksi MalangVerse) atau trxid (ID dari YoBasePay)
         $transaction = null;
@@ -76,28 +77,33 @@ class YoBasePayWebhookController extends Controller
 
         if (! $transaction) {
             Log::warning("YoBasePay Webhook: Transaksi tidak ditemukan untuk trxid {$trxid} / ref_id {$refId}");
+
             return response()->json(['status' => false, 'message' => 'Transaction not found'], 404);
         }
 
-        // 3. Validasi Nominal Pembayaran
-        if ($status === 'SUCCESS') {
-            $expectedAmount = (float) $transaction->total_amount;
-            if (abs($amount - $expectedAmount) > 1.0) {
-                Log::error("YoBasePay Webhook: Nominal tidak cocok! Diterima: {$amount}, Harapan: {$expectedAmount}");
-                return response()->json(['status' => false, 'message' => 'Amount mismatch'], 422);
-            }
+        // 3. Proses Transaksi secara Idempoten
+        $extraData = [
+            'trxid' => $trxid,
+            'ref_id' => $refId,
+            'amount' => $payload['amount'] ?? null,
+            'amount_request' => $payload['amount_request'] ?? null,
+            'amount_to_pay' => $payload['amount_to_pay'] ?? null,
+            'fee' => $payload['fee'] ?? null,
+            'net_amount' => $payload['net_amount'] ?? null,
+            'paid_at' => $payload['paid_at'] ?? now()->toDateTimeString(),
+        ];
+        $extraData = array_filter($extraData, static fn (mixed $value): bool => $value !== null);
+        $result = $this->paymentProcessor->processTransaction($transaction, $status, $extraData);
+
+        if (! $result['success']) {
+            return response()->json([
+                'status' => false,
+                'message' => $result['message'],
+            ], 422);
         }
 
-        // 4. Proses Transaksi secara Idempoten
-        $result = $this->paymentProcessor->processTransaction($transaction, $status, [
-            'trxid'      => $trxid,
-            'fee'        => (float) ($payload['fee'] ?? 0),
-            'net_amount' => (float) ($payload['net_amount'] ?? $amount),
-            'paid_at'    => $payload['paid_at'] ?? now()->toDateTimeString(),
-        ]);
-
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => $result['message'],
         ], 200);
     }

@@ -9,6 +9,7 @@ use App\Models\TransactionItem;
 use App\Models\User;
 use App\Models\UserEbook;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * EbookAccessService
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  *  - Premium aktif → akses SEMUA buku
  *  - Punya lisensi satuan (purchased) → akses buku itu
  *  - Punya klaim Standar (claimed) → akses buku itu
- *  - Pembelian lisensi satuan via QRIS YoBasePay V4
+ *  - Pembelian lisensi satuan via YoBasePay V4
  */
 class EbookAccessService
 {
@@ -34,40 +35,40 @@ class EbookAccessService
     {
         if (! $user) {
             return [
-                'can_read'      => false,
-                'reason'        => 'NOT_LOGGED_IN',
-                'preview_pages' => 5,
+                'can_read' => false,
+                'reason' => 'NOT_LOGGED_IN',
+                'preview_pages' => 4,
             ];
         }
 
         if ($user->isPremium()) {
             return [
-                'can_read'      => true,
-                'reason'        => 'PREMIUM',
+                'can_read' => true,
+                'reason' => 'PREMIUM',
                 'preview_pages' => 0,
             ];
         }
 
         if ($user->canAccessEbook($ebookId)) {
             return [
-                'can_read'      => true,
-                'reason'        => 'OWNED',
+                'can_read' => true,
+                'reason' => 'OWNED',
                 'preview_pages' => 0,
             ];
         }
 
-        $plan         = $user->getActivePlan();
-        $previewPages = $plan?->preview_pages ?? 5;
+        $plan = $user->getCurrentPlan();
+        $previewPages = $plan?->preview_pages ?? 4;
 
         return [
-            'can_read'      => false,
-            'reason'        => 'NO_ACCESS',
+            'can_read' => false,
+            'reason' => 'NO_ACCESS',
             'preview_pages' => $previewPages,
         ];
     }
 
     /**
-     * Proses pembuatan pesanan lisensi ebook satuan via QRIS YoBasePay.
+     * Proses pembuatan pesanan lisensi ebook satuan via YoBasePay.
      *
      * @throws \RuntimeException jika user sudah punya ebook ini
      */
@@ -78,7 +79,11 @@ class EbookAccessService
             throw new \RuntimeException('Kamu sudah memiliki lisensi atau akses ke ebook ini.');
         }
 
-        $price = (float) ($ebook->harga_lisensi > 0 ? $ebook->harga_lisensi : $ebook->harga);
+        if (! $ebook->lokasi_berkas || ! Storage::disk('local')->exists($ebook->lokasi_berkas)) {
+            throw new \RuntimeException('File PDF E-Book belum tersedia. Pembelian sementara tidak dapat diproses.');
+        }
+
+        $price = $ebook->licensePrice();
 
         if ($price < 10000) {
             // Standar minimal QRIS SQ adalah 10.000
@@ -88,31 +93,31 @@ class EbookAccessService
         return DB::transaction(function () use ($user, $ebook, $price) {
             // 1. Buat record transaksi utama
             $transaction = Transaction::create([
-                'user_id'          => $user->id,
+                'user_id' => $user->id,
                 'transaction_code' => Transaction::generateCode(),
-                'total_amount'     => $price,
-                'status'           => 'pending',
-                'expires_at'       => now()->addMinutes(15),
+                'total_amount' => $price,
+                'status' => 'pending',
+                'expires_at' => now()->addMinutes(15),
             ]);
 
             // 2. Buat snapshot item transaksi
             TransactionItem::create([
-                'transaction_id'     => $transaction->id,
-                'item_type'          => 'ebook',
-                'ebook_id'           => $ebook->id,
+                'transaction_id' => $transaction->id,
+                'item_type' => 'ebook',
+                'ebook_id' => $ebook->id,
                 'item_name_snapshot' => $ebook->judul,
-                'quantity'           => 1,
-                'unit_price'         => $price,
-                'subtotal'           => $price,
+                'quantity' => 1,
+                'unit_price' => $price,
+                'subtotal' => $price,
             ]);
 
-            // 3. Request QRIS ke YoBasePay V4 (Channel SQ)
-            $qrisData = $this->yoBasePayService->createQrisPayment($transaction, $user);
+            // 3. Request pembayaran ke YoBasePay V4
+            $gatewayData = $this->yoBasePayService->createPayment($transaction, $user);
 
             return [
                 'transaction' => $transaction->fresh(['payment', 'items']),
-                'ebook'       => $ebook,
-                'qris'        => $qrisData,
+                'ebook' => $ebook,
+                'gateway' => $gatewayData,
             ];
         });
     }
@@ -133,8 +138,8 @@ class EbookAccessService
                 throw new \RuntimeException('Kamu tidak memiliki Paket Standar aktif.');
             }
 
-            $tier         = $membership->tier;
-            $claimLimit   = $tier?->claimable_ebooks ?? 1;
+            $tier = $membership->tier;
+            $claimLimit = $tier?->claimable_ebooks ?? 1;
             $claimedCount = UserEbook::where('user_id', $user->id)
                 ->where('acquisition_type', 'claimed')
                 ->where('membership_id', $membership->id)
@@ -144,7 +149,11 @@ class EbookAccessService
                 throw new \RuntimeException("Kamu sudah menggunakan {$claimLimit} klaim ebook dari Paket Standar.");
             }
 
-            if (! $ebook->can_be_claimed) {
+            if (! $ebook->isClaimableByStandard()) {
+                if ($ebook->licensePrice() > Ebook::STANDARD_CLAIM_MAX_PRICE) {
+                    throw new \RuntimeException('E-Book dengan harga di atas Rp35.000 termasuk akses Paket Premium. Paket Standar dapat membeli lisensi satuan.');
+                }
+
                 throw new \RuntimeException('Ebook ini tidak tersedia untuk diklaim.');
             }
 
@@ -158,12 +167,12 @@ class EbookAccessService
             }
 
             return UserEbook::create([
-                'user_id'          => $user->id,
-                'ebook_id'         => $ebook->id,
+                'user_id' => $user->id,
+                'ebook_id' => $ebook->id,
                 'acquisition_type' => 'claimed',
-                'membership_id'    => $membership->id,
-                'price_paid'       => 0,
-                'acquired_at'      => now(),
+                'membership_id' => $membership->id,
+                'price_paid' => 0,
+                'acquired_at' => now(),
             ]);
         });
     }

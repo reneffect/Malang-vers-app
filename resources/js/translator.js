@@ -123,6 +123,13 @@ export function initializeTranslator({
             }
 
             targetInput.value = data.translated;
+            window.dispatchEvent(new CustomEvent('translation:completed', {
+                detail: {
+                    original: text,
+                    translated: data.translated,
+                    direction,
+                },
+            }));
 
             // Build status message based on quota type
             if (data.quota) {

@@ -73,6 +73,27 @@ class PaymentControllerTest extends TestCase
             ->assertSee('Rp 25.000');
     }
 
+    public function test_standard_checkout_shows_the_tier_credit_quota(): void
+    {
+        $tier = MembershipTier::create([
+            'name' => 'Paket Standar',
+            'slug' => 'standar',
+            'duration_days' => 30,
+            'price' => 19000,
+            'monthly_price' => 19000,
+            'yearly_price' => 190000,
+            'daily_credits' => 1000,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get(route('payment.checkout', [
+            'tier_id' => $tier->getKey(),
+        ]));
+
+        $response->assertOk()
+            ->assertSee('1.000 kredit harian');
+    }
+
     public function test_checkout_uses_twelve_months_when_the_annual_price_is_not_set(): void
     {
         $tier = MembershipTier::create([

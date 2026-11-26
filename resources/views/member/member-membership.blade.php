@@ -52,7 +52,7 @@
 
             {{-- Subtitle Hero --}}
             <p class="text-blue-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-7">
-                Nikmati akses tanpa batas kamus kiwalan terlengkap, penerjemah audio instan, dan modul sejarah eksklusif.
+                Nikmati akses tanpa batas kamus kiwalan terlengkap, penerjemah audio<br>instan, dan modul sejarah eksklusif.
             </p>
 
             {{-- Pill Tagihan Bulanan --}}
@@ -108,7 +108,7 @@
                     <ul class="space-y-3.5 text-xs text-slate-600">
                         <li class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0">check_circle</span>
-                            <span>10 terjemahan per hari</span>
+                            <span>{{ $gratisPlan?->effectiveDailyCredits() ?? 100 }} kredit per hari</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0">check_circle</span>
@@ -123,9 +123,15 @@
 
                 {{-- CTA Button --}}
                 <div class="mt-8 pt-4">
-                    <button type="button" disabled class="w-full py-2.5 px-4 rounded-full bg-[#EEF2F6] text-slate-400 text-xs font-bold cursor-default text-center">
-                        Paket Saat Ini
-                    </button>
+                    @if ($currentPlanSlug === 'gratis')
+                        <button type="button" disabled class="w-full py-2.5 px-4 rounded-full bg-[#EEF2F6] text-slate-400 text-xs font-bold cursor-default text-center">
+                            Paket Saat Ini
+                        </button>
+                    @else
+                        <button type="button" disabled class="w-full py-2.5 px-4 rounded-full border border-slate-200 text-slate-400 text-xs font-bold cursor-default text-center">
+                            Paket Gratis
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -155,7 +161,7 @@
                             <span class="text-xs text-slate-400 font-normal">/ Bulan</span>
                         </div>
                         <p class="text-[11px] text-[#2A54F5] font-medium mt-1">
-                            Pembayaran mudah via QRIS
+                            Pembayaran mudah melalui beberapa metode
                         </p>
                     </div>
 
@@ -166,7 +172,7 @@
                     <ul class="space-y-3.5 text-xs text-slate-600">
                         <li class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0">check_circle</span>
-                            <span>100 terjemahan harian</span>
+                            <span>{{ $standarPlan ? $standarPlan->effectiveDailyCredits().' kredit per hari' : 'Kuota sesuai paket' }}</span>
                         </li>
                         <li class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0">check_circle</span>
@@ -181,12 +187,18 @@
 
                 {{-- CTA Button --}}
                 <div class="mt-8 pt-4">
-                    <button type="button"
-                            onclick="openCheckout('standar')"
-                            class="w-full py-2.5 px-4 rounded-full border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs font-bold transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
-                        <span>Pilih {{ $standarPlan ? $standarPlan->name : 'Paket Standar' }}</span>
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
-                    </button>
+                    @if ($currentPlanSlug === 'standar')
+                        <button type="button" disabled class="w-full py-2.5 px-4 rounded-full bg-[#EEF2F6] text-slate-500 text-xs font-bold cursor-default text-center">
+                            Paket Saat Ini
+                        </button>
+                    @else
+                        <button type="button"
+                                onclick="openCheckout('standar')"
+                                class="w-full py-2.5 px-4 rounded-full border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs font-bold transition flex items-center justify-center gap-1.5 text-center cursor-pointer">
+                            <span>Pilih {{ $standarPlan ? $standarPlan->name : 'Paket Standar' }}</span>
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        </button>
+                    @endif
                 </div>
             </div>
 
@@ -249,12 +261,18 @@
 
                     {{-- CTA Button --}}
                     <div class="mt-8 pt-4">
-                        <button type="button"
-                                onclick="openCheckout('premium')"
-                                class="w-full py-3 px-4 rounded-xl sm:rounded-2xl bg-[#2A54F5] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
-                            <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
-                            <span>Pilih Paket Premium (QRIS)</span>
-                        </button>
+                        @if ($currentPlanSlug === 'premium')
+                            <button type="button" disabled class="w-full py-3 px-4 rounded-xl sm:rounded-2xl bg-[#EEF2F6] text-slate-500 text-xs sm:text-sm font-bold cursor-default text-center">
+                                Paket Saat Ini
+                            </button>
+                        @else
+                            <button type="button"
+                                    onclick="openCheckout('premium')"
+                                    class="w-full py-3 px-4 rounded-xl sm:rounded-2xl bg-[#2A54F5] hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+                                <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+                                <span>Pilih Paket Premium</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -265,15 +283,15 @@
         <div class="mt-14 max-w-5xl mx-auto bg-white rounded-3xl p-5 sm:p-6 border border-slate-100/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-5">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 rounded-2xl bg-[#EFF6FF] text-[#2A54F5] flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-2xl">qr_code_2</span>
+                    <span class="material-symbols-outlined text-2xl">payments</span>
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
                         <h4 class="text-sm font-bold text-slate-900">Pembayaran Instan & Aman</h4>
-                        <span class="bg-[#F1F5F9] text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">QRIS GPN</span>
+                        <span class="bg-[#F1F5F9] text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">YoBasePay V4</span>
                     </div>
                     <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-                        Semua pembayaran diproses instan melalui QRIS Bank Indonesia. Aktivasi otomatis dalam hitungan detik.
+                        Pilih metode pembayaran yang tersedia. Paket aktif otomatis setelah pembayaran terverifikasi.
                     </p>
                 </div>
             </div>
@@ -307,7 +325,7 @@
                             Pembayaran Paket Langganan
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Selesaikan transaksi dengan aman melalui QRIS resmi berstandar Bank Indonesia.
+                            Pilih metode pembayaran melalui halaman checkout YoBasePay.
                         </p>
                     </div>
                 </div>
@@ -351,7 +369,7 @@
                             <ul id="modalBenefitsStandar" class="space-y-3 text-xs text-slate-700 hidden">
                                 <li class="flex items-center gap-2.5">
                                     <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                    <span class="font-medium">100 terjemahan harian</span>
+                                    <span class="font-medium">{{ $standarPlan ? $standarPlan->effectiveDailyCredits().' kredit per hari' : 'Kuota sesuai paket' }}</span>
                                 </li>
                                 <li class="flex items-center gap-2.5">
                                     <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
@@ -387,8 +405,8 @@
                                     <span class="font-bold text-slate-800 modal-price-val">Rp 49.000</span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
-                                    <span>Biaya Layanan QRIS</span>
-                                    <span class="font-bold text-[#2A54F5]">Gratis (Rp 0)</span>
+                                    <span>Biaya Metode</span>
+                                    <span id="modalGatewayFee" class="font-bold text-[#2A54F5]">Mengikuti metode pilihan</span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
                                     <span>Diskon Komunitas Pelajar</span>
@@ -399,9 +417,9 @@
                             <div class="border-t border-slate-200/80 pt-3.5 mt-3.5 flex items-end justify-between">
                                 <div>
                                     <span class="text-xs font-bold text-slate-800 block">Total Tagihan</span>
-                                    <span class="text-[10px] text-slate-400">Termasuk PPN 11%</span>
+                                    <span class="text-[10px] text-slate-400">Biaya dapat berubah sesuai metode gateway.</span>
                                 </div>
-                                <div class="text-2xl sm:text-3xl font-black text-[#2A54F5] modal-price-val">
+                                <div id="modalTotalAmount" class="text-2xl sm:text-3xl font-black text-[#2A54F5]">
                                     Rp 49.000
                                 </div>
                             </div>
@@ -420,7 +438,7 @@
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: QRIS Card & Timer --}}
+                {{-- Kolom Kanan: Instruksi Pembayaran & Timer --}}
                 <div class="bg-[#F1F5FB] rounded-3xl p-5 sm:p-6 border border-slate-100 flex flex-col justify-between">
                     <div>
                         {{-- Countdown Banner --}}
@@ -434,24 +452,24 @@
                             </span>
                         </div>
 
-                        {{-- White QRIS Card --}}
+                        {{-- Payment Details Card --}}
                         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/60 text-center">
                             {{-- Top QR Card Header --}}
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 text-left">
                                 <div>
-                                    <span class="text-xs font-black text-rose-600 tracking-wider">QRIS</span>
-                                    <span class="text-[11px] text-slate-400 ml-1">| Standar Pembayaran Nasional</span>
+                                    <span id="modalPaymentChannelLabel" class="text-xs font-black text-rose-600 tracking-wider">YOBASEPAY</span>
+                                    <span class="text-[11px] text-slate-400 ml-1">| Metode Pembayaran Aman</span>
                                 </div>
-                                <span class="text-[11px] font-bold text-slate-700">GPN Indonesia</span>
+                                <span class="text-[11px] font-bold text-slate-700">V4</span>
                             </div>
 
                             {{-- Merchant Header --}}
                             <div class="my-3 text-center">
-                                <h4 class="font-black text-xs text-slate-800 tracking-wider uppercase">
-                                    MALANGVERSE DIGITAL NUSANTARA
+                                <h4 id="modalReceiverName" class="font-black text-xs text-slate-800 tracking-wider uppercase">
+                                    MalangVerse
                                 </h4>
                                 <p id="modalInvoiceText" class="text-[10px] text-slate-400 font-mono mt-0.5">
-                                    NMID : ID102039201923 • A01
+                                    Invoice akan muncul setelah transaksi dibuat.
                                 </p>
                             </div>
 
@@ -460,24 +478,22 @@
                                 <div id="modalQrBox" class="w-48 h-48 bg-white p-2 rounded-2xl border border-slate-100 flex items-center justify-center relative shadow-xs">
                                     <div class="text-center p-3 text-slate-400">
                                         <span class="material-symbols-outlined text-3xl animate-spin">sync</span>
-                                        <p class="text-[11px] mt-1 font-medium">Memuat QRIS...</p>
+                                        <p class="text-[11px] mt-1 font-medium">Membuat tagihan...</p>
                                     </div>
                                 </div>
                             </div>
 
                             {{-- QR Instructions --}}
                             <p class="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed mt-2">
-                                Scan QRIS menggunakan <strong>M-Banking</strong> (BCA, Mandiri, BRI, BNI) atau <strong>E-Wallet</strong> (GoPay, OVO, ShopeePay, DANA) pilihan Anda.
+                                Pilih metode pembayaran di halaman YoBasePay, lalu selesaikan transaksi sebelum waktu habis.
                             </p>
 
                             {{-- Payment Provider Pills --}}
                             <div class="flex items-center justify-center gap-1.5 flex-wrap mt-3 pt-3 border-t border-slate-100 text-[10px]">
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">BCA mobile</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Livin' Mandiri</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">GoPay</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">OVO</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">ShopeePay</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">DANA</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Virtual Account</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">QRIS</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">E-Wallet</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Retail</span>
                             </div>
                         </div>
                     </div>
@@ -485,7 +501,7 @@
                     {{-- Pulsing Waiting Status Pill --}}
                     <div class="mt-4 flex items-center justify-center gap-2 bg-[#E0E7FF] text-[#1E40AF] px-4 py-2 rounded-full text-[11px] font-medium text-center">
                         <span class="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse shrink-0"></span>
-                        <span class="truncate">Menunggu pembayaran via gateway Bank Indonesia...</span>
+                        <span class="truncate">Menunggu pembayaran via YoBasePay...</span>
                     </div>
                 </div>
             </div>
@@ -578,6 +594,10 @@
             // Update Price
             const priceText = isStandar ? 'Rp 19.000' : 'Rp 49.000';
             document.querySelectorAll('.modal-price-val').forEach(el => el.textContent = priceText);
+            const totalAmountEl = document.getElementById('modalTotalAmount');
+            if (totalAmountEl) totalAmountEl.textContent = priceText;
+            const gatewayFeeEl = document.getElementById('modalGatewayFee');
+            if (gatewayFeeEl) gatewayFeeEl.textContent = 'Mengikuti metode pilihan';
 
             // Set loading in QR box
             const qrBox = document.getElementById('modalQrBox');
@@ -585,7 +605,7 @@
                 qrBox.innerHTML = `
                     <div class="text-center p-3 text-slate-400">
                         <span class="material-symbols-outlined text-3xl animate-spin text-[#2A54F5]">sync</span>
-                        <p class="text-[11px] text-slate-600 mt-2 font-semibold">Memuat QRIS YoBasePay...</p>
+                        <p class="text-[11px] text-slate-600 mt-2 font-semibold">Membuat tagihan YoBasePay...</p>
                     </div>
                 `;
             }
@@ -594,7 +614,7 @@
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
 
-            // Request YoBasePay V4 QRIS
+            // Request a YoBasePay V4 checkout
             fetch('{{ route("subscription.create-qris") }}', {
                 method: 'POST',
                 headers: {
@@ -613,30 +633,77 @@
                     activeTransactionCode = data.transaction_code;
 
                     if (qrBox) {
-                        qrBox.innerHTML = `
-                            <img src="${data.qr_image}"
-                                 alt="QRIS Realtime YoBasePay"
-                                 class="w-full h-full object-contain rounded-lg shadow-xs" />
-                        `;
+                        qrBox.replaceChildren();
+
+                        if (typeof data.checkout_url === 'string' && data.checkout_url !== '') {
+                            const checkoutUrl = new URL(data.checkout_url, window.location.origin);
+                            if (checkoutUrl.protocol !== 'https:') {
+                                throw new Error('Halaman pembayaran harus menggunakan HTTPS.');
+                            }
+
+                            const checkoutLink = document.createElement('a');
+                            checkoutLink.href = checkoutUrl.toString();
+                            checkoutLink.target = '_blank';
+                            checkoutLink.rel = 'noopener noreferrer';
+                            checkoutLink.className = 'inline-flex items-center justify-center rounded-full bg-[#2A54F5] px-4 py-3 text-center text-xs font-bold text-white shadow-sm transition hover:bg-blue-700';
+                            checkoutLink.textContent = 'Pilih Metode Pembayaran';
+                            qrBox.append(checkoutLink);
+                        } else if (typeof data.qr_image === 'string' && data.qr_image !== '') {
+                            const qrUrl = new URL(data.qr_image, window.location.origin);
+                            if (!['https:', 'http:'].includes(qrUrl.protocol)) {
+                                throw new Error('URL gambar QR pembayaran tidak valid.');
+                            }
+
+                            const image = document.createElement('img');
+                            image.src = qrUrl.toString();
+                            image.alt = 'Kode QR pembayaran YoBasePay';
+                            image.className = 'h-full w-full rounded-lg object-contain shadow-xs';
+                            qrBox.append(image);
+                        } else if (typeof data.qr_string === 'string' && data.qr_string !== '') {
+                            const qrText = document.createElement('code');
+                            qrText.className = 'max-h-full overflow-auto break-all text-[9px] text-slate-600';
+                            qrText.textContent = data.qr_string;
+                            qrBox.append(qrText);
+                        } else {
+                            throw new Error('Gateway tidak mengembalikan metode pembayaran.');
+                        }
                     }
 
                     const invoiceText = document.getElementById('modalInvoiceText');
                     if (invoiceText) {
-                        invoiceText.textContent = `NMID : ID102039201923 • INV: ${data.transaction_code}`;
+                        invoiceText.textContent = `INV: ${data.transaction_code}`;
                     }
 
-                    startCheckoutTimer(900);
+                    const baseAmount = Number(data.amount);
+                    const amountToPay = Number(data.amount_to_pay);
+                    if (Number.isFinite(amountToPay) && amountToPay >= baseAmount) {
+                        const feeAmount = amountToPay - baseAmount;
+                        if (totalAmountEl) {
+                            totalAmountEl.textContent = `Rp ${amountToPay.toLocaleString('id-ID')}`;
+                        }
+                        if (gatewayFeeEl) {
+                            gatewayFeeEl.textContent = feeAmount > 0
+                                ? `Rp ${feeAmount.toLocaleString('id-ID')}`
+                                : (data.fee_payer === 'merchant' ? 'Ditanggung merchant' : 'Rp 0');
+                        }
+                    }
+
+                    const expiresAt = data.expired_at ? new Date(data.expired_at.replace(' ', 'T')) : null;
+                    const secondsRemaining = expiresAt && !Number.isNaN(expiresAt.getTime())
+                        ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / 1000))
+                        : 900;
+                    startCheckoutTimer(secondsRemaining);
                     startPolling(data.transaction_code);
                 } else if (data.is_free) {
                     alert(data.message);
                     window.location.reload();
                 } else {
-                    alert(data.message || 'Gagal memuat QRIS.');
+                    alert(data.message || 'Gagal membuat pembayaran.');
                     closeCheckout();
                 }
             })
             .catch(err => {
-                alert('Terjadi kendala koneksi ke gateway pembayaran.');
+                alert(err instanceof Error ? err.message : 'Terjadi kendala koneksi ke gateway pembayaran.');
                 closeCheckout();
             });
         }
@@ -654,7 +721,7 @@
                     if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
                         clearInterval(pollTimer);
                         if (countdownTimer) clearInterval(countdownTimer);
-                        alert('Pembayaran QRIS berhasil diverifikasi! Paket Anda kini aktif.');
+                        alert('Pembayaran berhasil diverifikasi! Paket Anda kini aktif.');
                         closeCheckout();
                         window.location.reload();
                     }
@@ -676,7 +743,7 @@
 
         function handleModalExpired() {
             if (pollTimer) clearInterval(pollTimer);
-            alert('Waktu pembayaran QRIS telah kedaluwarsa. Silakan ulangi transaksi.');
+            alert('Waktu pembayaran telah kedaluwarsa. Silakan ulangi transaksi.');
             closeCheckout();
         }
 
@@ -699,7 +766,7 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.is_paid || data.status === 'paid' || data.status === 'SUCCESS') {
-                            alert('Pembayaran QRIS berhasil diverifikasi! Paket Anda kini aktif.');
+                            alert('Pembayaran berhasil diverifikasi! Paket Anda kini aktif.');
                             closeCheckout();
                             window.location.reload();
                         } else {

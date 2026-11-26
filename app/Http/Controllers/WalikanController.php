@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\DictionaryEntry;
+use App\Models\SavedPhrase;
 use App\Models\TranslationHistory;
+use App\Models\TranslationPhraseUsage;
 use App\Services\TranslateLimitService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +20,7 @@ class WalikanController extends Controller
     public function index(): View
     {
         $recentTranslations = $this->historyQuery()->limit(10)->get();
-        $popularPhrases = DictionaryEntry::popular()->limit(6)->get();
+        $popularPhrases = TranslationPhraseUsage::popular()->limit(6)->get();
 
         // Sisa kuota guest
         $remainingQuota = $this->quota->guestRemaining(request());
@@ -33,14 +35,14 @@ class WalikanController extends Controller
     public function translate(Request $request): JsonResponse
     {
         $request->validate([
-            'text'               => 'required|string|max:1000',
-            'direction'          => 'nullable|in:id_to_walikan,walikan_to_id',
+            'text' => 'required|string|max:1000',
+            'direction' => 'nullable|in:id_to_walikan,walikan_to_id',
             'device_fingerprint' => 'nullable|string|max:64',
         ]);
 
         $direction = $request->input('direction', 'walikan_to_id');
-        $text      = $request->input('text');
-        $user      = auth()->user();
+        $text = $request->input('text');
+        $user = auth()->user();
 
         // ════════════════════════════════════════════
         //  A. MEMBER (sudah login)
@@ -51,13 +53,15 @@ class WalikanController extends Controller
             if (! $check['allowed']) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Credit harian tidak cukup. Butuh {$check['cost']} credit ({$check['words']} kata × 5 credit), sisa credit Anda: {$check['balance']}.",
-                    'code'    => 'INSUFFICIENT_CREDIT',
-                    'quota'   => [
-                        'type'    => 'member',
+                    'message' => "Credit harian tidak cukup. Butuh {$check['cost']} credit ({$check['words']} kata × {$check['credits_per_word']} credit), sisa credit Anda: {$check['balance']}.",
+                    'code' => 'INSUFFICIENT_CREDIT',
+                    'quota' => [
+                        'type' => 'member',
                         'balance' => $check['balance'],
-                        'cost'    => $check['cost'],
-                        'max'     => TranslateLimitService::memberMaxCredits(),
+                        'cost' => $check['cost'],
+                        'max' => $check['max'],
+                        'credits_per_word' => $check['credits_per_word'],
+                        'is_unlimited' => $check['is_unlimited'],
                     ],
                 ], 429);
             }
@@ -72,29 +76,40 @@ class WalikanController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Credit habis saat proses. Silakan coba lagi besok.',
-                    'code'    => 'INSUFFICIENT_CREDIT',
+                    'code' => 'INSUFFICIENT_CREDIT',
+                    'quota' => [
+                        'type' => 'member',
+                        'balance' => $result['balance'],
+                        'cost' => $result['cost'],
+                        'max' => $result['max'],
+                        'credits_per_word' => $result['credits_per_word'],
+                        'is_unlimited' => $result['is_unlimited'],
+                    ],
                 ], 429);
             }
 
-            TranslationHistory::create([
-                'original_text'   => $text,
+            $history = TranslationHistory::create([
+                'original_text' => $text,
                 'translated_text' => $translated,
-                'direction'       => $direction,
-                'user_id'         => $user->id,
-                'ip_address'      => $request->ip(),
+                'direction' => $direction,
+                'user_id' => $user->id,
+                'ip_address' => $request->ip(),
             ]);
+            $this->recordPhraseUsages($history);
 
             return response()->json([
-                'success'    => true,
+                'success' => true,
                 'translated' => $translated,
-                'original'   => $text,
-                'remaining'  => $result['balance'],
-                'quota'      => [
-                    'type'    => 'member',
+                'original' => $text,
+                'remaining' => $result['balance'],
+                'quota' => [
+                    'type' => 'member',
                     'balance' => $result['balance'],
-                    'cost'    => $result['cost'],
-                    'words'   => $result['words'],
-                    'max'     => TranslateLimitService::memberMaxCredits(),
+                    'cost' => $result['cost'],
+                    'words' => $result['words'],
+                    'max' => $result['max'],
+                    'credits_per_word' => $result['credits_per_word'],
+                    'is_unlimited' => $result['is_unlimited'],
                 ],
             ]);
         }
@@ -105,46 +120,39 @@ class WalikanController extends Controller
         $check = $this->quota->guestCanTranslate($request);
 
         if (! $check['allowed']) {
-            $code    = $check['reason'];
-            $message = $code === 'BLOCKED'
-                ? 'Akun sementara kamu diblokir.'
-                : 'Token gratis Anda sudah habis (10 token seumur hidup). Silakan daftar untuk akses unlimited!';
-
-            return response()->json([
-                'success' => false,
-                'message' => $message,
-                'code'    => $code,
-                'quota'   => [
-                    'type'      => 'guest',
-                    'remaining' => 0,
-                    'max'       => TranslateLimitService::guestMaxTokens(),
-                ],
-            ], $code === 'BLOCKED' ? 403 : 429);
+            return $this->guestQuotaErrorResponse($check['reason']);
         }
 
         // Proses terjemahan
         $translated = $this->convertWalikan($text, $direction);
 
         // Kurangi token (atomic, locked)
-        $remaining = $this->quota->consumeGuestToken($request);
+        $consumption = $this->quota->consumeGuestToken($request);
 
-        TranslationHistory::create([
-            'original_text'   => $text,
+        if (! $consumption['allowed']) {
+            return $this->guestQuotaErrorResponse($consumption['reason']);
+        }
+
+        $remaining = $consumption['remaining'];
+
+        $history = TranslationHistory::create([
+            'original_text' => $text,
             'translated_text' => $translated,
-            'direction'       => $direction,
-            'user_id'         => null,
-            'ip_address'      => $request->ip(),
+            'direction' => $direction,
+            'user_id' => null,
+            'ip_address' => $request->ip(),
         ]);
+        $this->recordPhraseUsages($history);
 
         return response()->json([
-            'success'    => true,
+            'success' => true,
             'translated' => $translated,
-            'original'   => $text,
-            'remaining'  => $remaining,
-            'quota'      => [
-                'type'      => 'guest',
+            'original' => $text,
+            'remaining' => $remaining,
+            'quota' => [
+                'type' => 'guest',
                 'remaining' => $remaining,
-                'max'       => TranslateLimitService::guestMaxTokens(),
+                'max' => TranslateLimitService::guestMaxTokens(),
             ],
         ]);
     }
@@ -157,26 +165,28 @@ class WalikanController extends Controller
             $info = $this->quota->memberCreditInfo($user);
 
             return response()->json([
-                'type'             => 'member',
-                'balance'          => $info['balance'],
-                'max'              => $info['max'],
+                'type' => 'member',
+                'balance' => $info['balance'],
+                'max' => $info['max'],
                 'credits_per_word' => $info['credits_per_word'],
+                'is_unlimited' => $info['is_unlimited'],
             ]);
         }
 
         return response()->json([
-            'type'      => 'guest',
+            'type' => 'guest',
             'remaining' => $this->quota->guestRemaining($request),
-            'max'       => TranslateLimitService::guestMaxTokens(),
+            'max' => TranslateLimitService::guestMaxTokens(),
         ]);
     }
 
-    public function popularPhrases()
+    public function popularPhrases(): JsonResponse
     {
-        $phrases = DictionaryEntry::popular()->limit(6)->get()
-            ->map(fn ($p) => [
-                'indonesian' => $p->indonesian_word,
-                'walikan'    => $p->walikan_word,
+        $phrases = TranslationPhraseUsage::popular()->limit(8)->get()
+            ->map(fn (TranslationPhraseUsage $phrase): array => [
+                'indonesian' => $phrase->indonesian_display,
+                'walikan' => $phrase->walikan_display,
+                'usage_count' => (int) $phrase->usage_count,
             ]);
 
         return response()->json($phrases);
@@ -186,12 +196,12 @@ class WalikanController extends Controller
     {
         $request->validate([
             'indonesian_word' => 'required|string',
-            'walikan_word'    => 'required|string',
+            'walikan_word' => 'required|string',
         ]);
 
-        \App\Models\SavedPhrase::updateOrCreate(
+        SavedPhrase::updateOrCreate(
             [
-                'user_id'        => auth()->id(),
+                'user_id' => auth()->id(),
                 'indonesian_word' => $request->indonesian_word,
             ],
             [
@@ -200,6 +210,27 @@ class WalikanController extends Controller
         );
 
         return response()->json(['success' => true, 'message' => 'Frasa disimpan!']);
+    }
+
+    /**
+     * Return a consistent response when a guest has no translation tokens left.
+     */
+    private function guestQuotaErrorResponse(string $code): JsonResponse
+    {
+        $message = $code === 'BLOCKED'
+            ? 'Akun sementara kamu diblokir.'
+            : 'Token gratis Anda sudah habis (10 token seumur hidup). Silakan daftar untuk akses unlimited!';
+
+        return response()->json([
+            'success' => false,
+            'message' => $message,
+            'code' => $code,
+            'quota' => [
+                'type' => 'guest',
+                'remaining' => 0,
+                'max' => TranslateLimitService::guestMaxTokens(),
+            ],
+        ], $code === 'BLOCKED' ? 403 : 429);
     }
 
     // ════════════════════════════════════════════
@@ -235,7 +266,7 @@ class WalikanController extends Controller
                     ? ($toWalikan ? $entry->walikan_word : $entry->indonesian_word)
                     : implode('', array_reverse(mb_str_split($lower)));
 
-                return $leading . $this->capitalizeFirst($out) . $trailing;
+                return $leading.$this->capitalizeFirst($out).$trailing;
             })
             ->implode('');
     }
@@ -246,7 +277,7 @@ class WalikanController extends Controller
             return $word;
         }
 
-        return mb_strtoupper(mb_substr($word, 0, 1)) . mb_strtolower(mb_substr($word, 1));
+        return mb_strtoupper(mb_substr($word, 0, 1)).mb_strtolower(mb_substr($word, 1));
     }
 
     // ════════════════════════════════════════════
@@ -264,5 +295,45 @@ class WalikanController extends Controller
         }
 
         return $query->latest();
+    }
+
+    private function recordPhraseUsages(TranslationHistory $history): void
+    {
+        preg_match_all('/[\p{L}\p{N}]+/u', mb_strtolower($history->original_text), $originalMatches);
+        preg_match_all('/[\p{L}\p{N}]+/u', mb_strtolower($history->translated_text), $translatedMatches);
+
+        $originalWords = $originalMatches[0] ?? [];
+        $translatedWords = $translatedMatches[0] ?? [];
+
+        if ($originalWords === [] && $translatedWords === []) {
+            return;
+        }
+
+        if (count($originalWords) !== count($translatedWords)) {
+            throw new \LogicException('Translation word counts must match to track popular phrases.');
+        }
+
+        $usages = [];
+
+        foreach ($originalWords as $index => $originalWord) {
+            $indonesianWord = $history->direction === 'id_to_walikan'
+                ? $originalWord
+                : $translatedWords[$index];
+            $walikanWord = $history->direction === 'id_to_walikan'
+                ? $translatedWords[$index]
+                : $originalWord;
+
+            $usages[] = [
+                'translation_history_id' => $history->id,
+                'indonesian_word' => $indonesianWord,
+                'walikan_word' => $walikanWord,
+                'created_at' => $history->created_at,
+                'updated_at' => $history->updated_at,
+            ];
+        }
+
+        foreach (array_chunk($usages, 100) as $usageBatch) {
+            TranslationPhraseUsage::insert($usageBatch);
+        }
     }
 }

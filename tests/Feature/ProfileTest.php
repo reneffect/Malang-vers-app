@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Membership;
+use App\Models\MembershipTier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -41,6 +43,40 @@ class ProfileTest extends TestCase
             ->assertSee(route('profile.update'), false);
     }
 
+    public function test_profile_sidebar_displays_the_active_membership_from_database(): void
+    {
+        $tier = MembershipTier::create([
+            'name' => 'Paket Premium',
+            'slug' => 'premium',
+            'duration_days' => 30,
+            'monthly_price' => 49000,
+            'yearly_price' => 490000,
+            'daily_credits' => 1000,
+            'is_unlimited_translate' => true,
+            'is_active' => true,
+        ]);
+        $user = User::factory()->create();
+        $endsAt = now()->addDays(30);
+
+        Membership::create([
+            'user_id' => $user->id,
+            'membership_tier_id' => $tier->getKey(),
+            'started_at' => now(),
+            'ends_at' => $endsAt,
+            'status' => 'active',
+            'billing_cycle' => 'monthly',
+            'payment_reference' => 'YOV4-PRO-001',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('profile.index'));
+
+        $response->assertOk()
+            ->assertSee('Member Premium (Aktif s/d '.$endsAt->format('d M Y').')')
+            ->assertSee('Paket Premium')
+            ->assertSee('Akses penuh semua E-Book dan fitur penerjemah tanpa batas.')
+            ->assertSee('QRIS Otomatis');
+    }
+
     public function test_authenticated_user_can_update_their_profile(): void
     {
         $user = User::factory()->create([
@@ -55,6 +91,7 @@ class ProfileTest extends TestCase
             'tanggal_lahir' => '2000-01-31',
             'kota' => 'Malang',
             'bio' => 'Pengguna MulangVerse.',
+            'alias_osob' => 'Sam Kera',
         ]);
 
         $response->assertRedirect(route('profile.index'))
@@ -67,6 +104,7 @@ class ProfileTest extends TestCase
             'phone' => '081234567890',
             'kota' => 'Malang',
             'bio' => 'Pengguna MulangVerse.',
+            'alias_osob' => 'Sam Kera',
         ]);
     }
 

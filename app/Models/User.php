@@ -6,15 +6,27 @@ use Carbon\Carbon;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $role
+ * @property int $xp
+ * @property int $level
+ * @property int $daily_credit
+ * @property Carbon|null $credit_reset_date
+ * @property-read int $xp_for_next_level
+ */
 #[Fillable([
     'name', 'email', 'google_id', 'password', 'phone', 'role',
-    'xp', 'level', 'kota', 'tanggal_lahir', 'bio', 'avatar',
+    'xp', 'level', 'kota', 'tanggal_lahir', 'bio', 'avatar', 'alias_osob',
     'daily_credit', 'credit_reset_date',
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -27,11 +39,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'tanggal_lahir'     => 'date',
-            'xp'                => 'integer',
-            'level'             => 'integer',
-            'daily_credit'      => 'integer',
+            'password' => 'hashed',
+            'tanggal_lahir' => 'date',
+            'xp' => 'integer',
+            'level' => 'integer',
+            'daily_credit' => 'integer',
             'credit_reset_date' => 'date',
         ];
     }
@@ -59,7 +71,13 @@ class User extends Authenticatable
     {
         return $this->hasOne(Membership::class)
             ->where('status', 'active')
-            ->where('ends_at', '>', now());
+            ->where(function (Builder $query): void {
+                $query->where('ends_at', '>', now())
+                    ->orWhere(function (Builder $query): void {
+                        $query->whereNull('ends_at')
+                            ->whereHas('tier', fn (Builder $tierQuery): Builder => $tierQuery->where('slug', 'gratis'));
+                    });
+            });
     }
 
     /** Semua riwayat membership. */
@@ -90,11 +108,20 @@ class User extends Authenticatable
     }
 
     /**
+     * Ambil paket aktif user, atau paket Gratis dari database jika tidak berlangganan.
+     */
+    public function getCurrentPlan(): ?MembershipTier
+    {
+        return $this->getActivePlan()
+            ?? MembershipTier::query()->where('slug', 'gratis')->first();
+    }
+
+    /**
      * Apakah user saat ini berlangganan Paket Premium aktif?
      */
     public function isPremium(): bool
     {
-        $plan = $this->getActivePlan();
+        $plan = $this->getCurrentPlan();
 
         return $plan !== null && $plan->slug === 'premium';
     }
@@ -104,7 +131,7 @@ class User extends Authenticatable
      */
     public function isStandar(): bool
     {
-        $plan = $this->getActivePlan();
+        $plan = $this->getCurrentPlan();
 
         return $plan !== null && $plan->slug === 'standar';
     }
@@ -114,7 +141,7 @@ class User extends Authenticatable
      */
     public function hasActiveSubscription(): bool
     {
-        return $this->activeMembership()->exists();
+        return in_array($this->getCurrentPlan()?->slug, ['standar', 'premium'], true);
     }
 
     /**
@@ -142,18 +169,20 @@ class User extends Authenticatable
      */
     public function getRemainingCredits(): int
     {
-        if ($this->isPremium()) {
+        if ($this->getCurrentPlan()?->isUnlimitedTranslate()) {
             return -1; // -1 = unlimited
         }
 
         $todayWib = Carbon::now('Asia/Jakarta')->toDateString();
+        $plan = $this->getCurrentPlan();
+        $maxCredits = $plan?->effectiveDailyCredits() ?? 100;
 
-        if ((string) $this->credit_reset_date !== $todayWib) {
-            $plan = $this->getActivePlan();
-            $maxCredits = $plan?->daily_credits ?? 100;
-
+        if ($this->credit_reset_date?->toDateString() !== $todayWib) {
             $this->daily_credit = $maxCredits;
             $this->credit_reset_date = $todayWib;
+            $this->save();
+        } elseif ((int) $this->daily_credit > $maxCredits) {
+            $this->daily_credit = $maxCredits;
             $this->save();
         }
 
@@ -194,8 +223,8 @@ class User extends Authenticatable
     {
         return match ($this->role) {
             'superadmin' => 'Super Administrator',
-            'admin'      => 'Administrator',
-            default      => 'Member',
+            'admin' => 'Administrator',
+            default => 'Member',
         };
     }
 }

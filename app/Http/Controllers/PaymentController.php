@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\MembershipTier;
-use App\Models\Payment;
 use App\Models\Transaction;
 use App\Services\MembershipService;
 use App\Services\PaymentProcessorService;
@@ -11,6 +10,7 @@ use App\Services\YoBasePayService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -32,7 +32,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Inisiasi checkout QRIS untuk paket membership dan tampilkan halaman pembayaran.
+     * Inisiasi checkout membership dan tampilkan halaman pembayaran.
      */
     public function checkout(Request $request): View|RedirectResponse
     {
@@ -41,15 +41,15 @@ class PaymentController extends Controller
             'billing' => ['nullable', 'in:monthly,yearly'],
         ]);
 
-        $tier        = MembershipTier::active()->findOrFail($validated['tier_id']);
-        $billing     = $validated['billing'] ?? 'monthly';
+        $tier = MembershipTier::active()->findOrFail($validated['tier_id']);
+        $billing = $validated['billing'] ?? 'monthly';
         $yearlyPrice = (float) $tier->yearly_price > 0
             ? (float) $tier->yearly_price
             : (float) $tier->monthly_price * 12;
-        $price       = $billing === 'yearly' ? $yearlyPrice : (float) $tier->monthly_price;
-        $user        = auth()->user();
+        $price = $billing === 'yearly' ? $yearlyPrice : (float) $tier->monthly_price;
+        $user = auth()->user();
 
-        // Jika user telah login, buat transaksi riil dan minta QRIS ke YoBasePay
+        // Jika user telah login, buat transaksi dan minta pembayaran ke YoBasePay
         if ($user) {
             try {
                 $result = $this->membershipService->createMembershipTransaction($user, $tier, $billing);
@@ -61,11 +61,12 @@ class PaymentController extends Controller
 
                 /** @var Transaction $transaction */
                 $transaction = $result['transaction'];
-                $payment     = $transaction->payment;
+                $payment = $transaction->payment;
 
                 return view('member.checkout', compact('transaction', 'payment', 'tier', 'billing', 'price'));
             } catch (\Exception $e) {
-                // Fallback ke preview jika ada kendala koneksi
+                return redirect()->route('membership.public')
+                    ->with('error', 'Pembayaran belum dapat dibuat: '.$e->getMessage());
             }
         }
 
@@ -73,7 +74,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Tampilkan halaman pembayaran QRIS untuk transaksi yang sudah dibuat.
+     * Tampilkan halaman pembayaran untuk transaksi yang sudah dibuat.
      */
     public function show(string $code): View|RedirectResponse
     {
@@ -82,11 +83,15 @@ class PaymentController extends Controller
             ->firstOrFail();
 
         // Pastikan hanya pemilik yang bisa melihat
-        if (auth()->check() && auth()->id() !== $transaction->user_id) {
+        if ((int) auth()->id() !== (int) $transaction->user_id) {
             abort(403, 'Akses tidak sah.');
         }
 
         $payment = $transaction->payment;
+        if (! $payment) {
+            abort(404, 'Data pembayaran tidak ditemukan.');
+        }
+
         $tier = null;
 
         $membershipItem = $transaction->items()->where('item_type', 'membership_tier')->first();
@@ -96,10 +101,10 @@ class PaymentController extends Controller
 
         return view('member.checkout', [
             'transaction' => $transaction,
-            'payment'     => $payment,
-            'tier'        => $tier,
-            'billing'     => 'monthly',
-            'price'       => (float) $transaction->total_amount,
+            'payment' => $payment,
+            'tier' => $tier,
+            'billing' => $membershipItem?->billing_cycle ?? 'monthly',
+            'price' => (float) $transaction->total_amount,
         ]);
     }
 
@@ -110,37 +115,65 @@ class PaymentController extends Controller
     public function checkStatus(string $code): JsonResponse
     {
         $transaction = Transaction::where('transaction_code', $code)
+            ->where('user_id', auth()->id())
             ->with(['payment'])
             ->firstOrFail();
+        $verificationError = null;
 
         // Jika transaksi masih pending dan belum kedaluwarsa, cek ke YoBasePay API
         if ($transaction->status === 'pending') {
             if ($transaction->expires_at && $transaction->expires_at->isPast()) {
                 $this->paymentProcessor->processTransaction($transaction, 'EXPIRED');
+            } elseif (! $transaction->payment) {
+                $verificationError = 'Data pembayaran transaksi tidak ditemukan.';
+                Log::error('Payment status check rejected: local payment record missing', [
+                    'transaction_code' => $transaction->transaction_code,
+                ]);
+            } elseif (! is_string($transaction->payment->provider_reference) || trim($transaction->payment->provider_reference) === '') {
+                $verificationError = 'Referensi pembayaran dari gateway tidak ditemukan.';
+                Log::error('Payment status check rejected: gateway reference missing', [
+                    'transaction_code' => $transaction->transaction_code,
+                ]);
             } else {
                 try {
-                    $gwStatus = $this->yoBasePayService->checkStatus($transaction->transaction_code);
-                    $remoteStatus = strtoupper($gwStatus['status'] ?? '');
+                    $gwStatus = $this->yoBasePayService->checkStatus($transaction->payment->provider_reference);
+                    $gatewayData = is_array($gwStatus['data'] ?? null) ? $gwStatus['data'] : $gwStatus;
+                    $remoteStatus = strtoupper((string) ($gatewayData['status'] ?? ''));
 
                     if ($remoteStatus === 'SUCCESS') {
-                        $this->paymentProcessor->processTransaction($transaction, 'SUCCESS', $gwStatus);
+                        $result = $this->paymentProcessor->processTransaction($transaction, 'SUCCESS', $gatewayData);
+                        if (! $result['success']) {
+                            $verificationError = $result['message'];
+                        }
+
                         $transaction->refresh();
                     } elseif (in_array($remoteStatus, ['EXPIRED', 'CANCELLED', 'FAILED'], true)) {
-                        $this->paymentProcessor->processTransaction($transaction, $remoteStatus, $gwStatus);
+                        $this->paymentProcessor->processTransaction($transaction, $remoteStatus, $gatewayData);
                         $transaction->refresh();
+                    } elseif ($remoteStatus !== 'PENDING') {
+                        $verificationError = 'Gateway mengembalikan status pembayaran yang tidak valid.';
+                        Log::warning('Payment status check received an unknown gateway status', [
+                            'transaction_code' => $transaction->transaction_code,
+                            'gateway_status' => $remoteStatus,
+                        ]);
                     }
                 } catch (\Exception $e) {
-                    // Log error tapi jangan gagalkan polling klien
+                    Log::warning('Payment status check failed', [
+                        'transaction_code' => $transaction->transaction_code,
+                        'exception' => $e,
+                    ]);
+                    $verificationError = 'Status pembayaran belum dapat diverifikasi. Silakan coba kembali.';
                 }
             }
         }
 
         return response()->json([
             'transaction_code' => $transaction->transaction_code,
-            'status'           => $transaction->status,
-            'is_paid'          => $transaction->isPaid(),
-            'paid_at'          => $transaction->paid_at?->toDateTimeString(),
-            'expires_at'       => $transaction->expires_at?->toDateTimeString(),
+            'status' => $transaction->status,
+            'is_paid' => $transaction->isPaid(),
+            'paid_at' => $transaction->paid_at?->toDateTimeString(),
+            'expires_at' => $transaction->expires_at?->toDateTimeString(),
+            'verification_error' => $verificationError,
         ]);
     }
 
@@ -151,6 +184,7 @@ class PaymentController extends Controller
     {
         $transaction = Transaction::where('transaction_code', $code)
             ->where('user_id', auth()->id())
+            ->with('payment')
             ->firstOrFail();
 
         if ($transaction->status !== 'pending') {
@@ -160,14 +194,47 @@ class PaymentController extends Controller
             ], 422);
         }
 
-        // Beritahu gateway
-        try {
-            $this->yoBasePayService->cancelPayment($transaction->transaction_code);
-        } catch (\Exception $e) {
-            // Lanjutkan pembatalan lokal
+        if (! $transaction->payment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data pembayaran transaksi tidak ditemukan.',
+            ], 422);
         }
 
-        $this->paymentProcessor->processTransaction($transaction, 'CANCELLED');
+        try {
+            $gatewayResponse = $this->yoBasePayService->cancelPayment($transaction->transaction_code);
+        } catch (\Exception $e) {
+            Log::warning('Payment cancellation could not be verified with gateway', [
+                'transaction_code' => $transaction->transaction_code,
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Pembatalan belum dapat diverifikasi oleh gateway. Silakan coba kembali.',
+            ], 502);
+        }
+
+        if (strtoupper((string) ($gatewayResponse['status'] ?? '')) !== 'SUCCESS') {
+            Log::warning('Payment cancellation rejected by gateway', [
+                'transaction_code' => $transaction->transaction_code,
+                'gateway_response' => $gatewayResponse,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gateway belum mengonfirmasi pembatalan pembayaran.',
+            ], 502);
+        }
+
+        $result = $this->paymentProcessor->processTransaction($transaction, 'CANCELLED');
+
+        if (! $result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], 422);
+        }
 
         return response()->json([
             'success' => true,

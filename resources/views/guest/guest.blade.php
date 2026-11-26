@@ -14,13 +14,28 @@
 
     @vite(['resources/css/guest.css', 'resources/js/guest.js'])
 </head>
-<body class="min-h-screen flex flex-col bg-slate-50">
-    <x-guest.navbar />
-
+<body class="min-h-screen flex flex-col bg-white">
     <main class="flex-1">
 
         {{-- Hero --}}
         <section class="hero">
+            <header class="site-header">
+                <div class="site-navbar">
+                    <a href="{{ route('home') }}" class="brand" aria-label="MalangVerse">
+                        <span class="brand-mark" aria-hidden="true">M</span>
+                        <span class="brand-copy">
+                            <span class="brand-name">MalangVerse</span>
+                            <span class="brand-tagline">Preservasi Boso Walikan</span>
+                        </span>
+                    </a>
+
+                    <div class="navbar-actions">
+                        <a href="{{ route('login') }}" class="button button-outline">Masuk</a>
+                        <a href="{{ route('register') }}" class="button button-light">Daftar</a>
+                    </div>
+                </div>
+            </header>
+
             <div class="hero-content">
                 <span class="hero-badge">
                     <span class="material-symbols-outlined" style="color: #FAD8C3; font-size: 20px;">auto_awesome</span>
@@ -30,10 +45,10 @@
                 <p class="hero-subtitle">Jelajahi dan ubah kosakata Kiwalan khas Arema ke Bahasa Indonesia secara<br>instan, akurat, dan interaktif langsung dari peramban desktop Anda.</p>
             </div>
 
-            {{-- Lengkungan background biru halus sesuai Figma --}}
+            {{-- Lengkungan hanya di sisi kiri background biru --}}
             <div class="hero-wave" aria-hidden="true">
                 <svg viewBox="0 0 1440 90" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                    <path d="M0,35 C320,65 540,25 840,48 C1140,70 1320,75 1440,60 L1440,90 L0,90 Z" fill="#f8fafc"/>
+                    <path d="M0,45 C160,45 300,90 480,90 L1440,90 L1440,90 L0,90 Z" fill="#fff"/>
                 </svg>
             </div>
         </section>
@@ -93,8 +108,8 @@
         @endphp
 
         {{-- Penerjemah --}}
-        <section class="relative z-10 -mt-24 px-4">
-            <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-slate-100 p-4 md:p-6">
+        <section class="relative z-10 -mt-5 px-4">
+            <div class="mx-auto w-full max-w-4xl bg-white rounded-3xl shadow-xl border border-slate-100 p-4 md:w-[86%]">
 
                 {{-- Quota Badge (Guest Token) --}}
                 <div id="quota-badge" class="hidden flex items-center justify-between mb-3 px-1">
@@ -114,7 +129,7 @@
                 <div class="relative grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-3.5 items-stretch">
 
                     {{-- Input --}}
-                    <div id="card-sumber" class="translate-box is-active rounded-2xl border p-4 md:p-5 flex flex-col cursor-text min-h-[220px]">
+                    <div id="card-sumber" class="translate-box is-active rounded-2xl border p-3 md:p-4 flex flex-col cursor-text min-h-[168px] lg:min-h-[220px]">
                         <span class="lang-badge inline-flex w-fit items-center gap-1.5 text-xs font-semibold text-blue-600 bg-white border border-slate-200/80 px-3 py-1 rounded-full mb-3 shadow-xs">
                             <span class="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
                             <span id="source-language-label">Boso Walikan</span>
@@ -122,7 +137,7 @@
 
                         <textarea
                             id="sumber-teks"
-                            rows="5"
+                            rows="2"
                             maxlength="500"
                             class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400 bg-transparent text-sm leading-relaxed"
                             placeholder="Oyi Sam! Ayas kera ngalam sejati, ladub kerjo nak Ijen numpak honda."
@@ -151,7 +166,7 @@
                     </div>
 
                     {{-- Output --}}
-                    <div id="card-hasil" class="translate-box rounded-2xl border p-4 md:p-5 flex flex-col cursor-text min-h-[220px]">
+                    <div id="card-hasil" class="translate-box rounded-2xl border p-3 md:p-4 flex flex-col cursor-text min-h-[168px] lg:min-h-[220px]">
                         <div class="flex items-center gap-2 mb-3">
                             <span class="text-xs font-semibold text-slate-700">
                                 <span id="target-language-label">Bahasa Indonesia</span>
@@ -163,7 +178,7 @@
 
                         <textarea
                             id="hasil-teks"
-                            rows="5"
+                            rows="2"
                             readonly
                             class="flex-1 w-full resize-none outline-none text-slate-800 placeholder-slate-400 bg-transparent text-sm leading-relaxed"
                             placeholder="Iya Mas! Saya anak Malang asli, berangkat kerja ke Ijen naik sepeda motor."

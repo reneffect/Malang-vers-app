@@ -23,7 +23,8 @@ class TranslateLimitService
     private const GUEST_LIFETIME_TOKENS = 10;
 
     // ─── Default Member Config (fallback jika plan tidak ada) ──
-    private const DEFAULT_DAILY_CREDITS  = 100;
+    private const DEFAULT_DAILY_CREDITS = 100;
+
     private const DEFAULT_CREDITS_PER_WORD = 5;
 
     // ════════════════════════════════════════════════════════════
@@ -47,7 +48,7 @@ class TranslateLimitService
             return ['allowed' => false, 'reason' => 'BLOCKED', 'remaining' => 0];
         }
 
-        $used      = $usage ? (int) $usage->usage_count : 0;
+        $used = $usage ? (int) $usage->usage_count : 0;
         $remaining = max(0, self::GUEST_LIFETIME_TOKENS - $used);
 
         if ($remaining <= 0) {
@@ -61,12 +62,12 @@ class TranslateLimitService
      * Kurangi 1 token guest (dengan lock agar anti race-condition).
      * Return sisa token setelah dikurangi.
      */
-    public function consumeGuestToken(Request $request): int
+    public function consumeGuestToken(Request $request): array
     {
         $ip = $this->resolveIp($request);
         $fp = $request->input('device_fingerprint', '');
 
-        return DB::transaction(function () use ($ip, $fp) {
+        return DB::transaction(function () use ($ip, $fp): array {
             $usage = GuestUsage::where(function ($q) use ($ip, $fp) {
                 if ($ip) {
                     $q->orWhere('ip_address', $ip);
@@ -76,8 +77,16 @@ class TranslateLimitService
                 }
             })->lockForUpdate()->first();
 
+            if ($usage?->is_blocked) {
+                return ['allowed' => false, 'reason' => 'BLOCKED', 'remaining' => 0];
+            }
+
+            if ($usage && (int) $usage->usage_count >= self::GUEST_LIFETIME_TOKENS) {
+                return ['allowed' => false, 'reason' => 'LIMIT_EXCEEDED', 'remaining' => 0];
+            }
+
             if (! $usage) {
-                $usage              = new GuestUsage();
+                $usage = new GuestUsage;
                 $usage->guest_token = $fp ?: $ip ?: bin2hex(random_bytes(16));
                 $usage->usage_count = 0;
             }
@@ -89,11 +98,14 @@ class TranslateLimitService
                 $usage->device_fingerprint = $fp;
             }
 
-            $usage->usage_count  += 1;
+            $usage->usage_count += 1;
             $usage->last_used_at = now();
             $usage->save();
 
-            return max(0, self::GUEST_LIFETIME_TOKENS - (int) $usage->usage_count);
+            return [
+                'allowed' => true,
+                'remaining' => max(0, self::GUEST_LIFETIME_TOKENS - (int) $usage->usage_count),
+            ];
         });
     }
 
@@ -102,10 +114,10 @@ class TranslateLimitService
      */
     public function guestRemaining(Request $request): int
     {
-        $ip    = $this->resolveIp($request);
-        $fp    = $request->input('device_fingerprint', '');
+        $ip = $this->resolveIp($request);
+        $fp = $request->input('device_fingerprint', '');
         $usage = $this->findGuestUsage($ip, $fp);
-        $used  = $usage ? (int) $usage->usage_count : 0;
+        $used = $usage ? (int) $usage->usage_count : 0;
 
         return max(0, self::GUEST_LIFETIME_TOKENS - $used);
     }
@@ -119,42 +131,53 @@ class TranslateLimitService
      * Lazy reset: kalau hari sudah ganti → reset sesuai plan.
      * Premium → selalu allowed tanpa cek saldo.
      *
-     * @return array{allowed: bool, reason?: string, balance: int, cost: int, words: int}
+     * @return array{allowed: bool, reason?: string, balance: int, max: int, cost: int, credits_per_word: int, words: int, is_unlimited: bool}
      */
     public function memberCanTranslate(User $user, string $text): array
     {
-        // Premium: skip semua pengecekan
-        if ($user->isPremium()) {
+        $plan = $user->getCurrentPlan();
+
+        if ($plan?->isUnlimitedTranslate()) {
             return [
                 'allowed' => true,
                 'balance' => -1,
-                'cost'    => 0,
-                'words'   => $this->countWords($text),
+                'max' => -1,
+                'cost' => 0,
+                'credits_per_word' => 0,
+                'words' => $this->countWords($text),
+                'is_unlimited' => true,
             ];
         }
 
-        $user      = $this->lazyResetCredit($user);
-        $plan      = $user->getActivePlan();
-        $perWord   = $plan?->effectiveCreditsPerWord() ?? self::DEFAULT_CREDITS_PER_WORD;
+        $user = $this->lazyResetCredit($user);
+        $plan = $user->getCurrentPlan();
+        $max = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
+        $perWord = $plan?->effectiveCreditsPerWord() ?? self::DEFAULT_CREDITS_PER_WORD;
         $wordCount = $this->countWords($text);
-        $cost      = $wordCount * $perWord;
-        $balance   = (int) $user->daily_credit;
+        $cost = $wordCount * $perWord;
+        $balance = (int) $user->daily_credit;
 
         if ($balance < $cost) {
             return [
                 'allowed' => false,
-                'reason'  => 'INSUFFICIENT_CREDIT',
+                'reason' => 'INSUFFICIENT_CREDIT',
                 'balance' => $balance,
-                'cost'    => $cost,
-                'words'   => $wordCount,
+                'max' => $max,
+                'cost' => $cost,
+                'credits_per_word' => $perWord,
+                'words' => $wordCount,
+                'is_unlimited' => false,
             ];
         }
 
         return [
             'allowed' => true,
             'balance' => $balance,
-            'cost'    => $cost,
-            'words'   => $wordCount,
+            'max' => $max,
+            'cost' => $cost,
+            'credits_per_word' => $perWord,
+            'words' => $wordCount,
+            'is_unlimited' => false,
         ];
     }
 
@@ -162,40 +185,47 @@ class TranslateLimitService
      * Kurangi credit member (dengan lockForUpdate agar anti race-condition).
      * Premium → tidak ada pemotongan, langsung return sukses.
      *
-     * @return array{success: bool, balance: int, cost: int, words: int}
+     * @return array{success: bool, balance: int, max: int, cost: int, credits_per_word: int, words: int, is_unlimited: bool}
      */
     public function consumeMemberCredit(User $user, string $text): array
     {
         $wordCount = $this->countWords($text);
 
-        // Premium: bypass pemotongan
-        if ($user->isPremium()) {
-            return [
-                'success' => true,
-                'balance' => -1,
-                'cost'    => 0,
-                'words'   => $wordCount,
-            ];
-        }
-
         return DB::transaction(function () use ($user, $wordCount) {
             /** @var User $locked */
             $locked = User::where('id', $user->id)->lockForUpdate()->first();
+            $plan = $locked->getCurrentPlan();
+
+            if ($plan?->isUnlimitedTranslate()) {
+                return [
+                    'success' => true,
+                    'balance' => -1,
+                    'max' => -1,
+                    'cost' => 0,
+                    'credits_per_word' => 0,
+                    'words' => $wordCount,
+                    'is_unlimited' => true,
+                ];
+            }
 
             // Lazy reset di dalam transaksi (atomic)
             $locked = $this->lazyResetCredit($locked);
 
-            $plan    = $locked->getActivePlan();
+            $plan = $locked->getCurrentPlan();
+            $max = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
             $perWord = $plan?->effectiveCreditsPerWord() ?? self::DEFAULT_CREDITS_PER_WORD;
-            $cost    = $wordCount * $perWord;
+            $cost = $wordCount * $perWord;
             $balance = (int) $locked->daily_credit;
 
             if ($balance < $cost) {
                 return [
                     'success' => false,
                     'balance' => $balance,
-                    'cost'    => $cost,
-                    'words'   => $wordCount,
+                    'max' => $max,
+                    'cost' => $cost,
+                    'credits_per_word' => $perWord,
+                    'words' => $wordCount,
+                    'is_unlimited' => false,
                 ];
             }
 
@@ -205,38 +235,44 @@ class TranslateLimitService
             return [
                 'success' => true,
                 'balance' => (int) $locked->daily_credit,
-                'cost'    => $cost,
-                'words'   => $wordCount,
+                'max' => $max,
+                'cost' => $cost,
+                'credits_per_word' => $perWord,
+                'words' => $wordCount,
+                'is_unlimited' => false,
             ];
         });
     }
 
     /**
-     * Ambil info credit member saat ini (read-only).
+     * Ambil saldo dan batas kredit yang sudah diselaraskan dengan paket aktif.
      *
      * @return array{balance: int, max: int, credits_per_word: int, is_unlimited: bool}
      */
     public function memberCreditInfo(User $user): array
     {
-        if ($user->isPremium()) {
+        $user->refresh();
+        $plan = $user->getCurrentPlan();
+
+        if ($plan?->isUnlimitedTranslate()) {
             return [
-                'balance'          => -1,
-                'max'              => -1,
+                'balance' => -1,
+                'max' => -1,
                 'credits_per_word' => 0,
-                'is_unlimited'     => true,
+                'is_unlimited' => true,
             ];
         }
 
-        $user    = $this->lazyResetCredit($user);
-        $plan    = $user->getActivePlan();
-        $max     = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
+        $user = $this->lazyResetCredit($user);
+        $plan = $user->getCurrentPlan();
+        $max = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
         $perWord = $plan?->effectiveCreditsPerWord() ?? self::DEFAULT_CREDITS_PER_WORD;
 
         return [
-            'balance'          => (int) $user->daily_credit,
-            'max'              => $max,
+            'balance' => (int) $user->daily_credit,
+            'max' => $max,
             'credits_per_word' => $perWord,
-            'is_unlimited'     => false,
+            'is_unlimited' => false,
         ];
     }
 
@@ -278,10 +314,15 @@ class TranslateLimitService
     {
         $todayWib = Carbon::now('Asia/Jakarta')->toDateString();
 
-        if ((string) $user->credit_reset_date !== $todayWib) {
-            $plan                  = $user->getActivePlan();
-            $user->daily_credit    = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
+        $plan = $user->getCurrentPlan();
+        $maxCredits = $plan?->effectiveDailyCredits() ?? self::DEFAULT_DAILY_CREDITS;
+
+        if ($user->credit_reset_date?->toDateString() !== $todayWib) {
+            $user->daily_credit = $maxCredits;
             $user->credit_reset_date = $todayWib;
+            $user->save();
+        } elseif ((int) $user->daily_credit > $maxCredits) {
+            $user->daily_credit = $maxCredits;
             $user->save();
         }
 

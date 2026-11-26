@@ -19,7 +19,7 @@
 
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
 
-        {{-- HERO CARD E-BOOK SESUAI FIGMA/DESAIN --}}
+        {{-- ============ HERO CARD E-BOOK ============ --}}
         <section class="bg-[#2A54F5] rounded-3xl p-7 sm:p-10 md:p-12 text-white shadow-xl shadow-blue-500/10 relative overflow-hidden">
             <div class="relative z-10 max-w-2xl">
                 {{-- Badge Header --}}
@@ -35,7 +35,9 @@
 
                 {{-- Subtitle Hero --}}
                 <p class="text-blue-100 text-xs sm:text-sm md:text-base leading-relaxed mb-7 max-w-xl">
-                    Koleksi komprehensif kosakata Kiwalan khas Arema Malang, dari arsip sejarah gerilya kemerdekaan 1949 hingga dialek slang modern pemuda Ngalam.
+                    Koleksi komprehensif kosakata Kiwalan khas Arema Malang, dari<br>
+                    arsip sejarah gerilya kemerdekaan 1949 hingga dialek slang<br>
+                    modern pemuda Ngalam.
                 </p>
 
                 {{-- Search Bar Telusuri --}}
@@ -72,58 +74,45 @@
         </div>
 
         @php
-            // Default 4 buku kurasi sesuai desain Figma/screenshot jika belum ada di database
+            // Helper: cek apakah file sampul benar-benar tersedia
+            $hasCover = function ($book) {
+                $path = $book->lokasi_sampul ?? null;
+                return $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path);
+            };
+
+            // Mapping tipe cover berdasarkan judul (fallback jika file sampul tidak tersedia)
+            $getCoverType = function ($book) {
+                $judul = strtolower($book->judul ?? '');
+                if (str_contains($judul, 'akbar')) return 'akbar';
+                if (str_contains($judul, 'saku')) return 'saku';
+                if (str_contains($judul, 'gerilya') || str_contains($judul, 'ensiklopedia')) return 'ensiklopedia';
+                return 'percakapan';
+            };
+
+            // Fallback dummy books jika database kosong
             $displayBooks = $books->isNotEmpty() ? $books : collect([
                 (object)[
-                    'id' => 1,
-                    'judul' => 'Kamus Akbar Boso Walikan Malang (Edisi Lengkap)',
-                    'penulis' => 'Tim Budayawan Arema',
-                    'jumlah_halaman' => 480,
-                    'harga' => 50000,
-                    'harga_lisensi' => 50000,
-                    'lokasi_sampul' => null,
-                    'lokasi_berkas' => '#',
-                    'lokasi_pratinjau' => '#',
-                    'cover_type' => 'akbar',
+                    'id' => 1, 'judul' => 'Kamus Akbar Boso Walikan Malang (Edisi Lengkap)',
+                    'penulis' => 'Tim Budayawan Arema', 'jumlah_halaman' => 480,
+                    'harga' => 50000, 'harga_lisensi' => 50000, 'lokasi_sampul' => null,
                     'can_be_claimed' => false,
                 ],
                 (object)[
-                    'id' => 2,
-                    'judul' => 'Kamus Saku Kiwalan Populer',
-                    'penulis' => 'Sam Kaji & Nawak Ngalam',
-                    'jumlah_halaman' => 180,
-                    'harga' => 35000,
-                    'harga_lisensi' => 35000,
-                    'lokasi_sampul' => null,
-                    'lokasi_berkas' => '#',
-                    'lokasi_pratinjau' => '#',
-                    'cover_type' => 'saku',
+                    'id' => 2, 'judul' => 'Kamus Saku Kiwalan Populer',
+                    'penulis' => 'Sam Kaji & Nawak Ngalam', 'jumlah_halaman' => 180,
+                    'harga' => 35000, 'harga_lisensi' => 35000, 'lokasi_sampul' => null,
                     'can_be_claimed' => true,
                 ],
                 (object)[
-                    'id' => 3,
-                    'judul' => 'Ensiklopedia Osob Kiwalan Gerilya 1949',
-                    'penulis' => 'Sejarah Arema',
-                    'jumlah_halaman' => 620,
-                    'harga' => 75000,
-                    'harga_lisensi' => 75000,
-                    'lokasi_sampul' => null,
-                    'lokasi_berkas' => '#',
-                    'lokasi_pratinjau' => '#',
-                    'cover_type' => 'ensiklopedia',
+                    'id' => 3, 'judul' => 'Ensiklopedia Osob Kiwalan Gerilya 1949',
+                    'penulis' => 'Sejarah Arema', 'jumlah_halaman' => 620,
+                    'harga' => 75000, 'harga_lisensi' => 75000, 'lokasi_sampul' => null,
                     'can_be_claimed' => false,
                 ],
                 (object)[
-                    'id' => 4,
-                    'judul' => 'Percakapan Harian Kiwalan Ngalam',
-                    'penulis' => 'Komunitas Osob Ngalam',
-                    'jumlah_halaman' => 210,
-                    'harga' => 40000,
-                    'harga_lisensi' => 40000,
-                    'lokasi_sampul' => null,
-                    'lokasi_berkas' => '#',
-                    'lokasi_pratinjau' => '#',
-                    'cover_type' => 'percakapan',
+                    'id' => 4, 'judul' => 'Percakapan Harian Kiwalan Ngalam',
+                    'penulis' => 'Komunitas Osob Ngalam', 'jumlah_halaman' => 210,
+                    'harga' => 40000, 'harga_lisensi' => 40000, 'lokasi_sampul' => null,
                     'can_be_claimed' => false,
                 ],
             ]);
@@ -135,19 +124,14 @@
                 <article class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md hover:-translate-y-1 group">
                     {{-- AREA SAMPUL BUKU --}}
                     <div class="aspect-[3/4] p-3.5 bg-[#F6F8FD] flex items-center justify-center overflow-hidden relative">
-                        @if (!empty($book->lokasi_sampul))
+                        @if ($hasCover($book))
+                            {{-- File sampul tersedia di storage --}}
                             <img src="{{ Storage::disk('public')->url($book->lokasi_sampul) }}"
                                  alt="Sampul {{ $book->judul }}"
                                  class="h-full w-full object-cover rounded-2xl shadow-xs" loading="lazy">
                         @else
-                            {{-- MOCKUP SAMPUL KREATIF SESUAI FIGMA JIKA BELUM ADA FILE GAMBAR --}}
-                            @php
-                                $type = $book->cover_type ?? (
-                                    str_contains(strtolower($book->judul), 'akbar') ? 'akbar' :
-                                    (str_contains(strtolower($book->judul), 'saku') ? 'saku' :
-                                    (str_contains(strtolower($book->judul), 'gerilya') || str_contains(strtolower($book->judul), 'ensiklopedia') ? 'ensiklopedia' : 'percakapan'))
-                                );
-                            @endphp
+                            {{-- MOCKUP SAMPUL KREATIF (file belum diunggah) --}}
+                            @php $type = $getCoverType($book); @endphp
 
                             @if ($type === 'akbar')
                                 {{-- 1. Kamus Akbar (Navy & Gold Hardcover) --}}
@@ -229,10 +213,10 @@
                     </div>
 
                     {{-- DETAIL INFORMASI BUKU --}}
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <div>
+                    <div class="p-4 pb-2 flex-1 flex flex-col justify-between">
+                        <div class="min-w-0">
                             {{-- Judul Buku --}}
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 line-clamp-1 leading-snug" title="{{ $book->judul }}">
+                            <h3 class="text-sm sm:text-base font-bold text-slate-900 line-clamp-2 leading-snug" title="{{ $book->judul }}">
                                 {{ $book->judul }}
                             </h3>
 
@@ -243,25 +227,12 @@
 
                             {{-- Badge Halaman & PDF --}}
                             <div class="flex items-center gap-2 mt-3">
-                                <span class="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-medium">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-slate-600">
-                                        <path d="M12 7v14"></path>
-                                        <path d="M16 12h2"></path>
-                                        <path d="M16 8h2"></path>
-                                        <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path>
-                                        <path d="M6 12h2"></path>
-                                        <path d="M6 8h2"></path>
-                                    </svg>
+                                <span class="inline-flex items-center gap-1 bg-[#EEF2FF] text-slate-500 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                    <span class="material-symbols-outlined text-base leading-none shrink-0" aria-hidden="true">menu_book</span>
                                     <span>{{ $book->jumlah_halaman ?: 480 }} Halaman</span>
                                 </span>
-                                <span class="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-slate-600 px-2.5 py-1 rounded-full text-[11px] font-medium">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 text-slate-600">
-                                        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path>
-                                        <path d="M14 2v4a2 2 0 0 0 2 2h4"></path>
-                                        <path d="M10 9H8"></path>
-                                        <path d="M16 13H8"></path>
-                                        <path d="M16 17H8"></path>
-                                    </svg>
+                                <span class="inline-flex items-center gap-1 bg-[#EEF2FF] text-slate-500 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                                    <span class="material-symbols-outlined text-base leading-none shrink-0" aria-hidden="true">description</span>
                                     <span>PDF HD</span>
                                 </span>
                             </div>
@@ -272,45 +243,49 @@
                             <div>
                                 <p class="text-[10px] text-slate-400 font-medium">Harga Lisensi</p>
                                 @php
-                                    $bookPrice = (float) (!empty($book->harga_lisensi) ? $book->harga_lisensi : ($book->harga ?? 0));
+                                    $bookPrice = method_exists($book, 'licensePrice')
+                                        ? $book->licensePrice()
+                                        : (float) (!empty($book->harga_lisensi) ? $book->harga_lisensi : ($book->harga ?? 0));
                                 @endphp
-                                <p class="text-base sm:text-lg font-extrabold text-[#1E40AF]">
-                                    Rp {{ number_format($bookPrice, 0, ',', '.') }}
+                                <p class="whitespace-nowrap text-sm sm:text-base font-extrabold leading-tight text-[#1E40AF]">
+                                    Rp&nbsp;{{ number_format($bookPrice, 0, ',', '.') }}
                                 </p>
                             </div>
 
                             @php
                                 $user = auth()->user();
                                 $canReadFull = $user && isset($book->id) && $user->canAccessEbook($book->id);
-                                $canClaimStandar = $user && $user->isStandar() && ($user->ownedEbooks()->where('acquisition_type', 'claimed')->count() < 1) && ($book->can_be_claimed ?? true);
+                                $canClaimStandar = $user && ! $canReadFull && $user->isStandar()
+                                    && $user->ownedEbooks()->where('acquisition_type', 'claimed')->count() < 1
+                                    && (method_exists($book, 'isClaimableByStandard')
+                                        ? $book->isClaimableByStandard()
+                                        : (($book->can_be_claimed ?? false) && $bookPrice <= \App\Models\Ebook::STANDARD_CLAIM_MAX_PRICE));
                             @endphp
 
-                            @if ($canReadFull)
-                                <a href="{{ route('ebook.read', $book->id) }}"
-                                   target="_blank"
-                                   class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs">
-                                    <span class="material-symbols-outlined text-sm">menu_book</span>
-                                    <span>Baca Penuh</span>
-                                </a>
-                            @elseif ($canClaimStandar)
-                                <button type="button"
-                                        onclick="claimEbook({{ $book->id }}, '{{ addslashes($book->judul) }}')"
-                                        class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer shadow-xs">
-                                    <span class="material-symbols-outlined text-sm">stars</span>
-                                    <span>Klaim Gratis</span>
-                                </button>
-                            @else
-                                <form action="{{ route('ebook.purchase', $book->id) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit"
-                                            class="inline-flex items-center gap-1.5 bg-[#1E40AF] hover:bg-blue-800 text-white px-3.5 sm:px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-xs">
-                                        <span>Beli / Baca</span>
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            @if (isset($book->id))
+                                @if ($canClaimStandar)
+                                    <button type="button"
+                                            onclick="claimEbook({{ $book->id }}, '{{ addslashes($book->judul) }}')"
+                                            class="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1E40AF] px-3.5 sm:px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-800 whitespace-nowrap cursor-pointer">
+                                        <span>Klaim / Baca</span>
+                                        <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <line x1="5" y1="12" x2="19" y2="12"></line>
                                             <polyline points="12 5 19 12 12 19"></polyline>
                                         </svg>
                                     </button>
-                                </form>
+                                @else
+                                    <a href="{{ $canReadFull ? route('ebook.read', $book->id) : route('ebook.reader', $book->id) }}"
+                                       @if ($canReadFull) target="_blank" rel="noopener" @endif
+                                       class="inline-flex items-center justify-center gap-1.5 rounded-full bg-[#1E40AF] px-3.5 sm:px-4 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-800 whitespace-nowrap cursor-pointer">
+                                        <span>{{ $canReadFull ? 'Baca' : 'Beli / Baca' }}</span>
+                                        <svg class="h-3 w-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            <polyline points="12 5 19 12 12 19"></polyline>
+                                        </svg>
+                                    </a>
+                                @endif
+                            @else
+                                <span class="text-xs text-slate-500">Belum tersedia</span>
                             @endif
                         </div>
                     </div>

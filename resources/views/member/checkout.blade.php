@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Pembayaran QRIS - MalangVerse</title>
+    <title>Pembayaran - MalangVerse</title>
 
     @vite(['resources/css/guest.css', 'resources/js/guest.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +20,7 @@
     <x-guest.navbar />
 
     @php
+        $payment = $payment ?? null;
         $user = auth()->user();
         $item = isset($transaction) && $transaction->items ? $transaction->items->first() : null;
         $isMembership = !isset($transaction) || ($item && $item->isMembership());
@@ -41,6 +42,16 @@
         $totalPrice = isset($transaction)
             ? (float) $transaction->total_amount
             : (float) ($price ?? ($isStandar ? 19000 : 49000));
+        $gatewayResponse = $payment?->gateway_response ?? [];
+        $hasGatewayTotal = is_array($gatewayResponse)
+            && isset($gatewayResponse['amount_to_pay'])
+            && is_numeric($gatewayResponse['amount_to_pay']);
+        $gatewayTotal = $hasGatewayTotal ? (float) $gatewayResponse['amount_to_pay'] : $totalPrice;
+        $customerFee = max(0, $gatewayTotal - $totalPrice);
+        $gatewayCheckoutUrl = $payment?->payment_url
+            ?? ($gatewayResponse['checkout_url'] ?? $gatewayResponse['payment_url'] ?? null);
+        $gatewayMethodName = $gatewayResponse['method_name'] ?? null;
+        $receiverName = $gatewayResponse['receiver_name'] ?? null;
 
         $txCode = isset($transaction) ? $transaction->transaction_code : 'INV-PREVIEW';
         $expiresAtTimestamp = isset($payment) && $payment?->expires_at
@@ -67,13 +78,13 @@
 
             {{-- Subtitle Hero --}}
             <p class="text-blue-100 text-xs sm:text-sm md:text-base max-w-xl mx-auto leading-relaxed mb-7">
-                Selesaikan transaksi dengan mudah menggunakan QRIS Realtime standar Bank Indonesia.
+                Selesaikan transaksi dengan metode pembayaran pilihan melalui gateway YoBasePay.
             </p>
 
             {{-- Pill Mode Pembayaran --}}
             <div class="inline-flex items-center gap-1.5 bg-white text-[#2A54F5] px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-md select-none">
-                <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
-                <span>QRIS Instan Otomatis</span>
+                <span class="material-symbols-outlined text-sm">payments</span>
+                <span>Pembayaran Multi-Kanal</span>
             </div>
         </div>
 
@@ -100,7 +111,7 @@
                             Invoice: {{ $txCode }}
                         </h2>
                         <p class="text-xs text-slate-500 mt-0.5">
-                            Pembayaran resmi melalui gateway YoBasePay QRIS Realtime.
+                            Pembayaran resmi melalui gateway YoBasePay V4.
                         </p>
                     </div>
                 </div>
@@ -148,7 +159,13 @@
                                 @if ($isMembership && isset($isStandar) && $isStandar)
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                        <span class="font-medium">500 kredit / 100 terjemahan harian</span>
+                                        <span class="font-medium">
+                                            @if (isset($tier) && $tier?->daily_credits !== null)
+                                                {{ number_format((int) $tier->daily_credits, 0, ',', '.') }} kredit harian
+                                            @else
+                                                Kuota harian sesuai paket
+                                            @endif
+                                        </span>
                                     </li>
                                     <li class="flex items-center gap-2.5">
                                         <span class="material-symbols-outlined text-[#2A54F5] text-[18px] shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
@@ -192,8 +209,14 @@
                                     <span class="font-bold text-slate-800">Rp {{ number_format($totalPrice, 0, ',', '.') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
-                                    <span>Biaya Layanan QRIS</span>
-                                    <span class="font-bold text-[#2A54F5]">Gratis (Rp 0)</span>
+                                    <span>Biaya Metode</span>
+                                    <span class="font-bold text-[#2A54F5]">
+                                        @if ($hasGatewayTotal)
+                                            Rp {{ number_format($customerFee, 0, ',', '.') }}
+                                        @else
+                                            Mengikuti metode pilihan
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="flex items-center justify-between text-slate-600">
                                     <span>Kode Invoice</span>
@@ -204,10 +227,10 @@
                             <div class="border-t border-slate-200/80 pt-3.5 mt-3.5 flex items-end justify-between">
                                 <div>
                                     <span class="text-xs font-bold text-slate-800 block">Total Tagihan</span>
-                                    <span class="text-[10px] text-slate-400">Termasuk PPN 11%</span>
+                                    <span class="text-[10px] text-slate-400">Biaya metode dapat berubah sesuai pilihan gateway.</span>
                                 </div>
                                 <div class="text-2xl sm:text-3xl font-black text-[#2A54F5]">
-                                    Rp {{ number_format($totalPrice, 0, ',', '.') }}
+                                        Rp {{ number_format($gatewayTotal, 0, ',', '.') }}
                                 </div>
                             </div>
                         </div>
@@ -222,7 +245,7 @@
                     </div>
                 </div>
 
-                {{-- Kolom Kanan: QRIS Card & Timer --}}
+                {{-- Kolom Kanan: Instruksi Pembayaran & Timer --}}
                 <div class="bg-[#F1F5FB] rounded-3xl p-5 sm:p-6 border border-slate-100 flex flex-col justify-between">
                     <div>
                         {{-- Countdown Banner --}}
@@ -241,19 +264,19 @@
                             {{-- Top QR Card Header --}}
                             <div class="flex items-center justify-between pb-3 border-b border-slate-100 text-left">
                                 <div>
-                                    <span class="text-xs font-black text-rose-600 tracking-wider">QRIS</span>
-                                    <span class="text-[11px] text-slate-400 ml-1">| Standar Pembayaran Nasional</span>
+                                    <span class="text-xs font-black text-rose-600 tracking-wider">YOBASEPAY</span>
+                                    <span class="text-[11px] text-slate-400 ml-1">| {{ $gatewayMethodName ?? 'Pilih Metode' }}</span>
                                 </div>
-                                <span class="text-[11px] font-bold text-slate-700">GPN Indonesia</span>
+                                <span class="text-[11px] font-bold text-slate-700">V4</span>
                             </div>
 
                             {{-- Merchant Header --}}
                             <div class="my-3 text-center">
                                 <h4 class="font-black text-xs text-slate-800 tracking-wider uppercase">
-                                    MALANGVERSE DIGITAL NUSANTARA
+                                    {{ $receiverName ?? 'MalangVerse' }}
                                 </h4>
                                 <p class="text-[10px] text-slate-400 font-mono mt-0.5">
-                                    NMID : ID102039201923 • A01
+                                    Invoice: {{ $txCode }}
                                 </p>
                             </div>
 
@@ -266,14 +289,21 @@
                                              class="w-full h-full object-contain rounded-lg"
                                              loading="eager" />
                                     @elseif (!empty($payment?->qr_string))
-                                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($payment->qr_string) }}"
-                                             alt="QRIS Realtime YoBasePay"
-                                             class="w-full h-full object-contain rounded-lg" />
+                                        <code class="max-h-full overflow-auto break-all text-[9px] text-slate-600">{{ $payment->qr_string }}</code>
+                                    @elseif (!empty($gatewayResponse['nomor_va']))
+                                        <div class="text-center">
+                                            <p class="text-[10px] font-semibold text-slate-500">Nomor / Kode Pembayaran</p>
+                                            <code class="mt-2 block break-all text-sm font-bold text-slate-800">{{ $gatewayResponse['nomor_va'] }}</code>
+                                        </div>
+                                    @elseif (is_string($gatewayCheckoutUrl) && $gatewayCheckoutUrl !== '')
+                                        <a href="{{ $gatewayCheckoutUrl }}" target="_blank" rel="noopener noreferrer"
+                                           class="inline-flex items-center justify-center rounded-full bg-[#2A54F5] px-4 py-3 text-center text-xs font-bold text-white shadow-sm transition hover:bg-blue-700">
+                                            Pilih Metode Pembayaran
+                                        </a>
                                     @else
-                                        {{-- Fallback SVG Placeholder --}}
                                         <div class="text-center p-4">
-                                            <span class="material-symbols-outlined text-4xl text-slate-400 animate-spin">sync</span>
-                                            <p class="text-xs text-slate-500 mt-2 font-medium">Memuat QRIS...</p>
+                                            <span class="material-symbols-outlined text-4xl text-rose-500">error</span>
+                                            <p class="text-xs text-slate-600 mt-2 font-medium">Detail pembayaran dari gateway belum tersedia.</p>
                                         </div>
                                     @endif
                                 </div>
@@ -281,17 +311,21 @@
 
                             {{-- QR Instructions --}}
                             <p class="text-[11px] text-slate-500 max-w-xs mx-auto leading-relaxed mt-2">
-                                Scan QRIS menggunakan <strong>M-Banking</strong> (BCA, Mandiri, BRI, BNI) atau <strong>E-Wallet</strong> (GoPay, OVO, ShopeePay, DANA) pilihan Anda.
+                                @if ($payment?->qr_code_url || $payment?->qr_string)
+                                    Scan QR menggunakan aplikasi pembayaran pilihan Anda.
+                                @elseif (is_string($gatewayCheckoutUrl) && $gatewayCheckoutUrl !== '')
+                                    Buka halaman YoBasePay untuk memilih Virtual Account, QRIS, E-Wallet, atau metode lain yang tersedia.
+                                @else
+                                    Ikuti instruksi pembayaran yang ditampilkan pada halaman ini.
+                                @endif
                             </p>
 
                             {{-- Payment Provider Pills --}}
                             <div class="flex items-center justify-center gap-1.5 flex-wrap mt-3 pt-3 border-t border-slate-100 text-[10px]">
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">BCA mobile</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Livin' Mandiri</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">GoPay</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">OVO</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">ShopeePay</span>
-                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">DANA</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Virtual Account</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">QRIS</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">E-Wallet</span>
+                                <span class="border border-slate-200 text-slate-700 font-semibold px-2.5 py-0.5 rounded-full bg-white">Retail</span>
                             </div>
                         </div>
                     </div>
@@ -299,7 +333,7 @@
                     {{-- Live Polling Status Pill --}}
                     <div id="statusPill" class="mt-4 flex items-center justify-center gap-2 bg-[#E0E7FF] text-[#1E40AF] px-4 py-2.5 rounded-full text-[11px] font-medium text-center transition-all">
                         <span id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-[#2563EB] animate-pulse shrink-0"></span>
-                        <span id="statusMessage" class="truncate font-semibold">Menunggu pembayaran via QRIS Bank Indonesia...</span>
+                        <span id="statusMessage" class="truncate font-semibold">Menunggu pembayaran via YoBasePay...</span>
                     </div>
                 </div>
 
@@ -371,6 +405,9 @@
                         handleExpiredUI();
                     } else if (data.status === 'cancelled') {
                         handleCancelledUI();
+                    } else if (data.verification_error) {
+                        const statusMessage = document.getElementById('statusMessage');
+                        if (statusMessage) statusMessage.textContent = data.verification_error;
                     }
                 })
                 .catch(() => {});

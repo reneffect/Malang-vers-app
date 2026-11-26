@@ -11,7 +11,9 @@ class PricingController extends Controller
     {
         $plans = MembershipTier::active()->get();
         $faqs = collect();
+        $user = auth()->user();
+        $currentPlanSlug = $user?->getCurrentPlan()?->slug ?? ($user ? 'gratis' : null);
 
-        return view('member.member-membership', compact('plans', 'faqs'));
+        return view('member.member-membership', compact('plans', 'faqs', 'user', 'currentPlanSlug'));
     }
 }

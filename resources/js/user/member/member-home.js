@@ -9,13 +9,23 @@ const quotaBadge     = document.getElementById('quota-badge');
 const quotaText      = document.getElementById('quota-text');
 const quotaBar       = document.getElementById('quota-bar');
 const creditEstimate = document.getElementById('credit-estimate');
+let creditsPerWord = Number(quotaBadge?.dataset.creditsPerWord ?? 5);
+let isUnlimited = quotaBadge?.dataset.unlimited === 'true';
 
 function updateQuotaUI(quota) {
     if (!quotaBadge) return;
 
     if (quota.type === 'member') {
-        const pct = (quota.balance / quota.max) * 100;
-        if (quotaText)  quotaText.textContent = `Credit: ${quota.balance} / ${quota.max}`;
+        creditsPerWord = Number(quota.credits_per_word ?? creditsPerWord);
+        isUnlimited = quota.is_unlimited === true;
+        const pct = isUnlimited ? 100 : (quota.max > 0
+            ? Math.min(100, Math.max(0, (quota.balance / quota.max) * 100))
+            : 0);
+        if (quotaText) {
+            quotaText.textContent = isUnlimited
+                ? 'Credit: Tanpa Batas'
+                : `Credit: ${quota.balance} / ${quota.max}`;
+        }
         if (quotaBar) {
             quotaBar.style.width = `${pct}%`;
             // Change bar color based on remaining
@@ -37,8 +47,12 @@ function updateCreditEstimate() {
         return;
     }
     const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
-    const cost = wordCount * 5;
-    creditEstimate.textContent = `⚡ Estimasi: ${cost} credit (${wordCount} kata × 5)`;
+    if (isUnlimited) {
+        creditEstimate.textContent = '⚡ Terjemahan tanpa batas';
+    } else {
+        const cost = wordCount * creditsPerWord;
+        creditEstimate.textContent = `⚡ Estimasi: ${cost} credit (${wordCount} kata × ${creditsPerWord})`;
+    }
     creditEstimate.classList.remove('hidden');
 }
 
@@ -158,4 +172,108 @@ document.addEventListener('keydown', (event) => {
     if (event.ctrlKey && event.key === 'Enter') {
         window.translateText();
     }
+});
+
+const historyList = document.getElementById('translation-history-list');
+const historyItemTemplate = document.getElementById('translation-history-item-template');
+const historyEmptyMessage = document.getElementById('translation-history-empty');
+const historyCount = document.getElementById('translation-history-count');
+const popularPhraseList = document.getElementById('popular-phrase-list');
+const popularPhrasesUrl = document.querySelector('meta[name="popular-phrases-url"]')?.content;
+
+function addTranslationToHistory({ original, translated, direction }) {
+    const templateItem = historyItemTemplate?.content.firstElementChild;
+
+    if (!historyList || !templateItem) {
+        return;
+    }
+
+    const historyItem = templateItem.cloneNode(true);
+    historyItem.querySelector('[data-history-direction-label]').textContent =
+        direction === 'id_to_walikan' ? 'Bahasa Indonesia:' : 'Osob Kiwalan:';
+    historyItem.querySelector('[data-history-original]').textContent = original;
+    historyItem.querySelector('[data-history-translated]').textContent = translated;
+    historyItem.querySelector('[data-history-copy]').dataset.text = translated;
+    historyList.prepend(historyItem);
+
+    while (historyList.children.length > 4) {
+        historyList.lastElementChild.remove();
+    }
+
+    historyEmptyMessage?.classList.add('hidden');
+
+    if (historyCount) {
+        historyCount.textContent = String(Number(historyCount.textContent) + 1);
+    }
+}
+
+function createPopularPhraseButton(phrase) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.phraseId = phrase.indonesian;
+    button.dataset.phraseWalikan = phrase.walikan;
+    button.className = 'inline-flex items-center gap-1.5 rounded-full border border-slate-200/90 bg-[#F4F7FF] px-3.5 sm:px-4 py-1.5 sm:py-2 text-left transition-all hover:border-blue-300 hover:bg-blue-50 active:scale-95 cursor-pointer shadow-2xs';
+
+    const walikanLabel = document.createElement('span');
+    walikanLabel.className = 'text-xs sm:text-sm font-bold text-slate-800';
+    walikanLabel.textContent = phrase.walikan;
+
+    const arrow = document.createElement('span');
+    arrow.className = 'text-xs text-slate-400 font-normal';
+    arrow.textContent = '→';
+
+    const indonesianLabel = document.createElement('span');
+    indonesianLabel.className = 'text-xs sm:text-sm text-slate-400 font-normal';
+    indonesianLabel.textContent = phrase.indonesian;
+
+    button.append(walikanLabel, arrow, indonesianLabel);
+
+    return button;
+}
+
+async function refreshPopularPhrases() {
+    if (!popularPhraseList || !popularPhrasesUrl) {
+        return;
+    }
+
+    const response = await fetch(popularPhrasesUrl, {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+    });
+
+    if (!response.ok) {
+        throw new Error('Frasa populer gagal diperbarui.');
+    }
+
+    const phrases = await response.json();
+
+    if (!Array.isArray(phrases) || phrases.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.className = 'text-sm text-slate-500';
+        emptyMessage.textContent = 'Frasa populer akan muncul saat digunakan dalam terjemahan.';
+        popularPhraseList.replaceChildren(emptyMessage);
+
+        return;
+    }
+
+    popularPhraseList.replaceChildren(...phrases.map(createPopularPhraseButton));
+}
+
+popularPhraseList?.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    const button = event.target.closest('button[data-phrase-id]');
+
+    if (button && popularPhraseList.contains(button)) {
+        window.usePhrase(button.dataset.phraseId, button.dataset.phraseWalikan);
+    }
+});
+
+window.addEventListener('translation:completed', (event) => {
+    addTranslationToHistory(event.detail);
+    refreshPopularPhrases().catch((error) => {
+        console.error('Gagal memperbarui frasa populer.', error);
+    });
 });

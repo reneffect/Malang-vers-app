@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\WalikanController;
 use App\Http\Controllers\YoBasePayWebhookController;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -61,6 +62,7 @@ Route::post('/auth/firebase-callback', [LoginController::class, 'handleFirebaseC
 */
 Route::middleware(['auth', 'member', 'subscription.expiry'])->group(function () {
     Route::get('/member-home', [MemberController::class, 'index'])->name('member.member-home');
+    Route::get('/api/member/translation-history', [MemberController::class, 'history'])->name('member.translation-history');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/pengaturan-profil', [ProfileController::class, 'index'])->name('profile.index');
@@ -70,13 +72,16 @@ Route::middleware(['auth', 'member', 'subscription.expiry'])->group(function () 
 
     // ── Subscription (Membership) ─────────────────────────────
     Route::get('/subscription/checkout', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
-    Route::post('/subscription/activate', [SubscriptionController::class, 'activate'])->name('subscription.activate');
     Route::post('/api/subscription/create-qris', [SubscriptionController::class, 'createQris'])->name('subscription.create-qris');
 
     // ── E-Book: Beli satuan & klaim Standar ───────────────────
     Route::post('/ebook/{ebook}/purchase', [EbookPurchaseController::class, 'purchase'])->name('ebook.purchase');
     Route::post('/ebook/{ebook}/claim', [EbookPurchaseController::class, 'claim'])->name('ebook.claim');
     Route::get('/ebook/{ebook}/preview', [EbookPurchaseController::class, 'preview'])->name('ebook.preview');
+    Route::get('/ebook/{ebook}/reader', [EbookPurchaseController::class, 'reader'])->name('ebook.reader');
+    Route::get('/ebook/{ebook}/reader/page/{page}', [EbookPurchaseController::class, 'previewPage'])
+        ->whereNumber('page')
+        ->name('ebook.reader.page');
 
     // ── E-Book: Baca PDF penuh (hanya jika punya akses) ───────
     Route::get('/ebook/{ebook}/read', [EbookPurchaseController::class, 'read'])
@@ -91,18 +96,20 @@ Route::middleware(['auth', 'member', 'subscription.expiry'])->group(function () 
 */
 Route::get('/pembayaran', [PaymentController::class, 'index'])->name('payment.index');
 Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
-Route::get('/pembayaran/{code}', [PaymentController::class, 'show'])->name('payment.show');
-Route::get('/api/payment/status/{code}', [PaymentController::class, 'checkStatus'])->name('payment.status');
-Route::post('/api/payment/cancel/{code}', [PaymentController::class, 'cancel'])->name('payment.cancel');
+Route::middleware('auth')->group(function () {
+    Route::get('/pembayaran/{code}', [PaymentController::class, 'show'])->name('payment.show');
+    Route::get('/api/payment/status/{code}', [PaymentController::class, 'checkStatus'])->name('payment.status');
+    Route::post('/api/payment/cancel/{code}', [PaymentController::class, 'cancel'])->name('payment.cancel');
+});
 
 // YoBasePay V4 Webhook Callback (Non-CSRF)
 Route::post('/payment/yobasepay/webhook', [YoBasePayWebhookController::class, 'handle'])
     ->name('payment.yobasepay.webhook')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+    ->withoutMiddleware([ValidateCsrfToken::class]);
 
 Route::post('/payment/qris/callback', [YoBasePayWebhookController::class, 'handle'])
     ->name('payment.qris.callback')
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+    ->withoutMiddleware([ValidateCsrfToken::class]);
 
 /*
 |--------------------------------------------------------------------------

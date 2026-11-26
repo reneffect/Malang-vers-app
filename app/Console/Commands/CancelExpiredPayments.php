@@ -6,11 +6,13 @@ use App\Models\Transaction;
 use App\Services\PaymentProcessorService;
 use App\Services\YoBasePayService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class CancelExpiredPayments extends Command
 {
     protected $signature = 'payments:cancel-expired';
-    protected $description = 'Batalkan dan tandai expired untuk transaksi QRIS yang melewati batas waktu';
+
+    protected $description = 'Batalkan dan tandai expired untuk transaksi yang melewati batas waktu';
 
     public function handle(
         YoBasePayService $yoBasePayService,
@@ -31,14 +33,25 @@ class CancelExpiredPayments extends Command
                 if ($remoteStatus === 'SUCCESS') {
                     $paymentProcessor->processTransaction($transaction, 'SUCCESS', $gwStatus);
                     $this->info("Transaksi {$transaction->transaction_code} ternyata telah dibayar!");
+
                     continue;
                 }
             } catch (\Exception $e) {
-                // Abaikan jika check remote gagal
+                Log::warning('Expired payment status could not be checked with YoBasePay', [
+                    'transaction_code' => $transaction->transaction_code,
+                    'exception' => $e,
+                ]);
             }
 
             // Batalkan di gateway jika bisa
-            $yoBasePayService->cancelPayment($transaction->transaction_code);
+            try {
+                $yoBasePayService->cancelPayment($transaction->transaction_code);
+            } catch (\Exception $e) {
+                Log::warning('Expired payment could not be cancelled with YoBasePay', [
+                    'transaction_code' => $transaction->transaction_code,
+                    'exception' => $e,
+                ]);
+            }
 
             // Tandai expired lokal
             $paymentProcessor->processTransaction($transaction, 'EXPIRED');

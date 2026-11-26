@@ -6,6 +6,18 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id_membership_tier
+ * @property string $name
+ * @property string|null $slug
+ * @property int $duration_days
+ * @property string $monthly_price
+ * @property string $yearly_price
+ * @property int|null $daily_credits
+ * @property int $credits_per_word
+ * @property bool $is_active
+ * @property bool $is_unlimited_translate
+ */
 class MembershipTier extends Model
 {
     protected $table = 'membership_tiers';
@@ -40,21 +52,21 @@ class MembershipTier extends Model
     ];
 
     protected $casts = [
-        'benefits'               => 'array',
-        'features'               => 'array',
-        'monthly_price'          => 'decimal:2',
-        'yearly_price'           => 'decimal:2',
-        'price'                  => 'decimal:2',
-        'translation_quota'      => 'integer',
-        'daily_credits'          => 'integer',
-        'credits_per_word'       => 'integer',
-        'claimable_ebooks'       => 'integer',
-        'preview_pages'          => 'integer',
-        'is_active'              => 'boolean',
-        'is_featured'            => 'boolean',
+        'benefits' => 'array',
+        'features' => 'array',
+        'monthly_price' => 'decimal:2',
+        'yearly_price' => 'decimal:2',
+        'price' => 'decimal:2',
+        'translation_quota' => 'integer',
+        'daily_credits' => 'integer',
+        'credits_per_word' => 'integer',
+        'claimable_ebooks' => 'integer',
+        'preview_pages' => 'integer',
+        'is_active' => 'boolean',
+        'is_featured' => 'boolean',
         'is_unlimited_translate' => 'boolean',
-        'show_ads'               => 'boolean',
-        'show_pro_badge'         => 'boolean',
+        'show_ads' => 'boolean',
+        'show_pro_badge' => 'boolean',
     ];
 
     // ============================================================
@@ -77,6 +89,16 @@ class MembershipTier extends Model
     public function effectiveCreditsPerWord(): int
     {
         return $this->credits_per_word ?? 5;
+    }
+
+    public function badgeLabel(): string
+    {
+        return match ($this->slug) {
+            'gratis' => 'GRATIS',
+            'standar' => 'STANDAR',
+            'premium' => 'PRO',
+            default => mb_strtoupper($this->name),
+        };
     }
 
     public function scopeActive(Builder $query): Builder

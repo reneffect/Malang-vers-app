@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Membership;
 use App\Models\MembershipTier;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -55,5 +57,40 @@ class MembershipTest extends TestCase
 
         $response->assertOk()
             ->assertDontSee('Paket Tidak Aktif');
+    }
+
+    public function test_membership_page_marks_the_database_plan_as_current(): void
+    {
+        MembershipTier::create([
+            'name' => 'Paket Gratis',
+            'slug' => 'gratis',
+            'daily_credits' => 100,
+            'is_active' => true,
+            'order' => 1,
+        ]);
+        $standardTier = MembershipTier::create([
+            'name' => 'Paket Standar',
+            'slug' => 'standar',
+            'daily_credits' => 1000,
+            'is_active' => true,
+            'order' => 2,
+            'monthly_price' => 19000,
+        ]);
+        $user = User::factory()->create();
+        Membership::create([
+            'user_id' => $user->id,
+            'membership_tier_id' => $standardTier->id_membership_tier,
+            'started_at' => now(),
+            'ends_at' => now()->addMonth(),
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user)->get('/membership');
+
+        $response->assertOk()
+            ->assertSee('STANDAR')
+            ->assertSee('1000 kredit per hari')
+            ->assertSee('Paket Saat Ini')
+            ->assertDontSee('Pilih Paket Standar');
     }
 }

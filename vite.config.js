@@ -8,6 +8,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/guest.css',
+                'resources/css/component/navbar.css',
                 'resources/js/guest.js',
                 'resources/css/login/login.css',
                 'resources/js/login/login.js',

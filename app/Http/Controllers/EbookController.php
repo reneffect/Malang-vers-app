@@ -51,7 +51,7 @@ class EbookController extends Controller
         }
 
         $data['kode_url'] = $kodeUrl;
-        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks', 'public');
+        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks', 'local');
         $data['sudah_diterbitkan'] = true;
         unset($data['deskripsi'], $data['file_pdf']);
 
@@ -66,9 +66,10 @@ class EbookController extends Controller
 
         if ($request->hasFile('file_pdf')) {
             if ($ebook->lokasi_berkas) {
+                Storage::disk('local')->delete($ebook->lokasi_berkas);
                 Storage::disk('public')->delete($ebook->lokasi_berkas);
             }
-            $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks', 'public');
+            $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks', 'local');
         }
 
         if ($ebook->judul !== $data['judul']) {
@@ -93,6 +94,7 @@ class EbookController extends Controller
     public function destroy(Ebook $ebook)
     {
         if ($ebook->lokasi_berkas) {
+            Storage::disk('local')->delete($ebook->lokasi_berkas);
             Storage::disk('public')->delete($ebook->lokasi_berkas);
         }
         $ebook->delete();

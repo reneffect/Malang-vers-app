@@ -25,13 +25,21 @@ class SubscriptionController extends Controller
     {
         $tiers = MembershipTier::active()->orderBy('order')->get();
         $plans = $tiers;
-        $user  = auth()->user();
+        $user = auth()->user();
+        $currentPlan = $user?->getCurrentPlan();
+        $currentPlanSlug = $currentPlan?->slug ?? ($user ? 'gratis' : null);
 
-        return view('member.member-membership', compact('tiers', 'plans', 'user'));
+        return view('member.member-membership', compact(
+            'tiers',
+            'plans',
+            'user',
+            'currentPlan',
+            'currentPlanSlug',
+        ));
     }
 
     /**
-     * Endpoint API AJAX untuk membuat transaksi QRIS YoBasePay V4
+     * Endpoint API AJAX untuk membuat transaksi YoBasePay V4
      * langsung dari modal checkout membership di halaman MalangVerse.
      */
     public function createQris(Request $request): JsonResponse
@@ -41,9 +49,9 @@ class SubscriptionController extends Controller
             'billing' => ['nullable', 'in:monthly,yearly'],
         ]);
 
-        $tier    = MembershipTier::active()->findOrFail($validated['tier_id']);
+        $tier = MembershipTier::active()->findOrFail($validated['tier_id']);
         $billing = $validated['billing'] ?? 'monthly';
-        $user    = auth()->user();
+        $user = auth()->user();
 
         if (! $user) {
             return response()->json([
@@ -64,19 +72,25 @@ class SubscriptionController extends Controller
             }
 
             /** @var Transaction $tx */
-            $tx      = $result['transaction'];
+            $tx = $result['transaction'];
             $payment = $tx->payment;
-            $qris    = $result['qris'];
+            $gateway = $result['gateway'];
 
             return response()->json([
-                'success'          => true,
-                'is_free'          => false,
+                'success' => true,
+                'is_free' => false,
                 'transaction_code' => $tx->transaction_code,
-                'amount'           => (float) $tx->total_amount,
-                'qr_image'         => $payment?->qr_code_url ?? ($qris['qr_image'] ?? null),
-                'qr_string'        => $payment?->qr_string ?? ($qris['qr_string'] ?? null),
-                'expired_at'       => $payment?->expires_at?->format('Y-m-d H:i:s') ?? ($qris['expired_at'] ?? null),
-                'payment_url'      => route('payment.show', $tx->transaction_code),
+                'amount' => (float) $tx->total_amount,
+                'amount_to_pay' => $gateway['amount_to_pay'] ?? null,
+                'fee' => $gateway['fee'] ?? null,
+                'fee_payer' => $gateway['fee_payer'] ?? null,
+                'qr_image' => $payment?->qr_code_url ?? ($gateway['qr_image'] ?? null),
+                'qr_string' => $payment?->qr_string ?? ($gateway['qr_string'] ?? null),
+                'checkout_url' => $payment?->payment_url ?? ($gateway['checkout_url'] ?? $gateway['payment_url'] ?? null),
+                'method_name' => $gateway['method_name'] ?? null,
+                'category' => $gateway['category'] ?? $payment?->payment_method,
+                'expired_at' => $payment?->expires_at?->format('Y-m-d H:i:s') ?? ($gateway['expired_at'] ?? null),
+                'payment_url' => route('payment.show', $tx->transaction_code),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -96,9 +110,9 @@ class SubscriptionController extends Controller
             'billing' => ['nullable', 'in:monthly,yearly'],
         ]);
 
-        $tier    = MembershipTier::active()->findOrFail($validated['tier_id']);
+        $tier = MembershipTier::active()->findOrFail($validated['tier_id']);
         $billing = $validated['billing'] ?? 'monthly';
-        $user    = auth()->user();
+        $user = auth()->user();
 
         try {
             $result = $this->membershipService->createMembershipTransaction($user, $tier, $billing);

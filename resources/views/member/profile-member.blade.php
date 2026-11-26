@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 
-<body class="bg-[#F8FAFC] font-sans antialiased text-slate-800 min-h-screen flex flex-col">
+<body class="bg-[#F8F7FF] font-sans antialiased text-slate-800 min-h-screen flex flex-col" style="font-family: Inter, ui-sans-serif, system-ui, sans-serif;">
 
     {{-- Navbar Component --}}
     <x-guest.navbar />
@@ -22,6 +22,16 @@
     @php
         $user = auth()->user() ?? $user;
         $membership = $membership ?? (isset($user) ? $user->activeMembership()->with('tier')->first() : null);
+        $currentPlan = $currentPlan ?? $membership?->tier ?? $user?->getCurrentPlan();
+        $ebookCollectionCount = $ebookCollectionCount ?? 0;
+        $memberLabel = match ($currentPlan?->slug) {
+            'premium' => 'Member Premium',
+            'standar' => 'Member Standar',
+            default => 'Member Gratis',
+        };
+        $isUnlimitedPlan = (bool) ($currentPlan?->is_unlimited_translate ?? false);
+        $dailyCreditLimit = $currentPlan?->effectiveDailyCredits() ?? 100;
+        $membershipEndDate = $membership?->ends_at;
         $userAvatar = $user && $user->avatar
             ? asset('storage/' . $user->avatar)
             : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80';
@@ -74,42 +84,43 @@
             {{-- ============ LEFT COLUMN: SIDEBAR ============ --}}
             <aside class="space-y-5">
                 {{-- User Profile Card --}}
-                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100/90 text-center relative overflow-hidden">
+                <div class="bg-white rounded-md p-5 shadow-sm border border-slate-200 text-center relative overflow-hidden">
                     {{-- Soft Blue Top Banner --}}
-                    <div class="h-16 bg-[#EFF6FF] -mx-6 -mt-6"></div>
+                    <div class="h-12 bg-[#EFF6FF] -mx-5 -mt-5"></div>
 
                     {{-- Avatar Circle with Verified Check --}}
-                    <div class="relative inline-block -mt-10 mb-3">
-                        <div class="w-22 h-22 rounded-full ring-4 ring-white shadow-md mx-auto overflow-hidden bg-slate-200">
+                    <div class="relative inline-block -mt-8 mb-3">
+                        <div class="w-16 h-16 rounded-full ring-4 ring-white shadow-md mx-auto overflow-hidden bg-slate-200">
                             <img id="sidebarAvatarImg" src="{{ $userAvatar }}" alt="Foto Profil" class="w-full h-full object-cover">
                         </div>
                         <div class="absolute bottom-0.5 right-0.5 w-6 h-6 rounded-full bg-[#2A54F5] text-white flex items-center justify-center ring-2 ring-white shadow-xs">
-                            <span class="material-symbols-outlined text-sm font-bold">check</span>
+                            <span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">verified</span>
                         </div>
                     </div>
 
                     {{-- Nama & Email --}}
                     <h3 class="text-lg font-extrabold text-slate-900 leading-tight">
-                        {{ $user->name ?? 'Ngalup Ker' }}
+                        {{ $user->name }}
                     </h3>
                     <p class="text-xs text-slate-400 mt-0.5 font-medium">
-                        {{ $user->email ?? 'ngalup@ker.id' }}
+                        {{ $user->email }}
                     </p>
 
                     {{-- Membership Pill Badge --}}
                     <div class="mt-4">
                         <span class="inline-flex items-center gap-1.5 bg-[#EEF2FF] text-[#2A54F5] text-[11px] font-semibold px-3 py-1.5 rounded-full border border-blue-100/80">
                             <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">hotel_class</span>
-                            <span>Member Premium (Aktif s/d {{ isset($membership) && $membership->expires_at ? $membership->expires_at->format('d M Y') : '18 Nov 2026' }})</span>
+                            <span>{{ $memberLabel }} (Aktif{{ $membershipEndDate ? ' s/d '.$membershipEndDate->format('d M Y') : '' }})</span>
                         </span>
                     </div>
                 </div>
 
                 {{-- Sidebar Navigation Links --}}
-                <div class="bg-white rounded-3xl p-2.5 shadow-sm border border-slate-100/90 space-y-1">
+                <div class="bg-white rounded-md p-2.5 shadow-sm border border-slate-200 space-y-1">
                     {{-- Profil Saya (Active) --}}
                     <a href="{{ route('profile.index') }}"
-                       class="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#EEF2FF] text-[#2A54F5] font-bold text-xs sm:text-sm">
+                       aria-current="page"
+                       class="flex items-center justify-between gap-3 border-l-4 border-[#2A54F5] pl-3.5 pr-4 py-3 rounded-full bg-[#EEF2FF] text-[#2A54F5] font-bold text-xs sm:text-sm">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-lg">person</span>
                             <span>Profil Saya</span>
@@ -119,13 +130,13 @@
 
                     {{-- Koleksi Kamus Digital --}}
                     <a href="{{ route('kamus') }}"
-                       class="flex items-center justify-between px-4 py-3 rounded-2xl text-slate-600 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition">
+                       class="flex items-center justify-between px-4 py-3 rounded-full text-slate-600 hover:bg-slate-50 font-semibold text-xs sm:text-sm transition border-b border-slate-200">
                         <div class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-lg text-slate-500">auto_stories</span>
+                            <span class="material-symbols-outlined text-lg text-slate-500">menu_book</span>
                             <span>Koleksi Kamus Digital</span>
                         </div>
                         <span class="w-5 h-5 rounded-full bg-[#2A54F5] text-white text-[10px] font-bold flex items-center justify-center">
-                            3
+                            {{ $ebookCollectionCount }}
                         </span>
                     </a>
 
@@ -144,7 +155,7 @@
             </aside>
 
             {{-- ============ RIGHT COLUMN: FORM & STATUS LANGGANAN ============ --}}
-            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-slate-100/90">
+            <div class="bg-white rounded-md p-6 sm:p-8 md:p-10 shadow-sm border border-slate-200">
 
                 {{-- Header Section --}}
                 <div class="flex items-start justify-between pb-6 border-b border-slate-100 flex-wrap gap-3">
@@ -159,9 +170,9 @@
                 </div>
 
                 {{-- Foto Tampilan Utama Upload Box --}}
-                <div class="mt-6 p-4 sm:p-5 bg-[#F8FAFC] rounded-2xl border border-slate-100 flex flex-col sm:flex-row items-center gap-5">
+                <div class="mt-6 p-4 sm:p-5 bg-[#F8FAFC] rounded-[32px] sm:rounded-full border border-slate-100 flex flex-col sm:flex-row items-center gap-5">
                     <div class="relative shrink-0">
-                        <div class="w-18 h-18 sm:w-20 sm:h-20 rounded-full ring-4 ring-white shadow-sm overflow-hidden bg-slate-200">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full ring-4 ring-white shadow-sm overflow-hidden bg-slate-200">
                             <img id="mainAvatarPreviewImg" src="{{ $userAvatar }}" alt="Foto Tampilan Utama" class="w-full h-full object-cover">
                         </div>
                     </div>
@@ -174,12 +185,14 @@
                             <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp" class="hidden">
                             <button type="button"
                                     onclick="document.getElementById('avatarFileInput').click()"
-                                    class="px-4 py-2 bg-[#2A54F5] hover:bg-blue-700 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer">
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#2A54F5] hover:bg-blue-700 text-white font-bold text-xs rounded-full shadow-xs transition cursor-pointer">
+                                <span class="material-symbols-outlined text-base">upload</span>
                                 Unggah Foto Baru
                             </button>
                             <button type="button"
                                     id="btnDeletePhoto"
-                                    class="px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-full transition cursor-pointer">
+                                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-full transition cursor-pointer">
+                                <span class="material-symbols-outlined text-base">delete_outline</span>
                                 Hapus Foto
                             </button>
                         </div>
@@ -198,8 +211,8 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Lengkap</label>
                             <div class="relative">
-                                <input type="text" name="name" value="{{ old('name', $user->name ?? 'Ngalup Ker') }}" required
-                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <input type="text" name="name" value="{{ old('name', $user->name) }}" required
+                                       class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
                                 <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">id_card</span>
                             </div>
                         </div>
@@ -208,9 +221,10 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Nama Panggilan / Alias Osob</label>
                             <div class="relative">
-                                <input type="text" name="alias_osob" value="{{ old('alias_osob', $user->alias_osob ?? 'Sam Kera Ngalam') }}"
+                                <input type="text" name="alias_osob" value="{{ old('alias_osob', $user->alias_osob) }}"
                                        placeholder="Contoh: Sam Kera Ngalam"
-                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                       maxlength="255"
+                                       class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
                                 <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">tag</span>
                             </div>
                         </div>
@@ -222,14 +236,21 @@
                         <div>
                             <div class="flex items-center justify-between mb-1.5">
                                 <label class="text-xs font-bold text-slate-700">Alamat Email</label>
-                                <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 select-none">
-                                    <span class="material-symbols-outlined text-[13px]">check_circle</span>
-                                    <span>Terverifikasi</span>
-                                </span>
+                                @if ($user->email_verified_at)
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60 select-none">
+                                        <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                                        <span>Terverifikasi</span>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 select-none">
+                                        <span class="material-symbols-outlined text-[13px]">info</span>
+                                        <span>Belum diverifikasi</span>
+                                    </span>
+                                @endif
                             </div>
                             <div class="relative">
-                                <input type="email" name="email" value="{{ old('email', $user->email ?? 'ngalup@ker.id') }}" required
-                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                                       class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
                                 <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">mail</span>
                             </div>
                         </div>
@@ -238,9 +259,9 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Nomor WhatsApp</label>
                             <div class="relative">
-                                <input type="text" name="phone" value="{{ old('phone', $user->phone ?? '0812-3456-7890') }}"
+                                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}"
                                        placeholder="08xxxxxxxxxx"
-                                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                       class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
                                 <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">chat</span>
                             </div>
                         </div>
@@ -250,9 +271,9 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Domisili</label>
                         <div class="relative">
-                            <input type="text" name="kota" value="{{ old('kota', $user->kota ?? 'Kota Malang, Jawa Timur') }}"
+                            <input type="text" name="kota" value="{{ old('kota', $user->kota) }}"
                                    placeholder="Contoh: Kota Malang, Jawa Timur"
-                                   class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
+                                   class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition pr-10">
                             <span class="material-symbols-outlined absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-300 text-lg pointer-events-none">location_on</span>
                         </div>
                     </div>
@@ -264,8 +285,8 @@
                             <span id="bioCharCounter" class="text-[11px] text-slate-400 font-medium">72 / 160 Karakter</span>
                         </div>
                         <textarea name="bio" id="bioInput" rows="3" maxlength="160"
-                                  class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition resize-none leading-relaxed"
-                                  placeholder="Ceritakan sedikit tentang diri Anda...">{{ old('bio', $user->bio ?? 'Pegiat kebudayaan Arema dan penutur aktif Boso Walikan sejak kecil.') }}</textarea>
+                                  class="w-full px-4 py-3 bg-[#F8FAFC] border border-slate-100 rounded-[28px] text-xs sm:text-sm text-slate-800 font-medium focus:outline-none focus:border-[#2A54F5] focus:ring-2 focus:ring-blue-100 transition resize-none leading-relaxed"
+                                  placeholder="Ceritakan sedikit tentang diri Anda...">{{ old('bio', $user->bio) }}</textarea>
                     </div>
 
                     {{-- Status Langganan Aktif Card --}}
@@ -273,37 +294,43 @@
                         <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Status Langganan Aktif</h3>
                         <p class="text-xs text-slate-400 mt-0.5 mb-4">Rincian hak akses kamus komprehensif, fitur penerjemah instan, dan lisensi budaya.</p>
 
-                        <div class="bg-gradient-to-r from-[#EFF6FF] via-[#F4F7FF] to-[#EEF2FF] border border-blue-100/90 rounded-3xl p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                        <div class="bg-gradient-to-r from-[#EFF6FF] via-[#F4F7FF] to-[#EEF2FF] border border-blue-100/90 rounded-xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5">
                             <div class="flex items-start gap-4">
                                 <div class="w-12 h-12 rounded-full bg-[#1341D1] text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
                                     <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">hotel_class</span>
                                 </div>
                                 <div>
-                                    @if(isset($membership) && $membership->tier)
+                                    @if($currentPlan)
                                         <div class="flex items-center gap-2">
-                                            <h4 class="text-base font-extrabold text-slate-900">{{ $membership->tier->name }}</h4>
+                                            <h4 class="text-base font-extrabold text-slate-900">{{ $currentPlan->name }}</h4>
                                             <span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Aktif</span>
                                         </div>
                                         <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Akses penuh ke 3.500+ entri osob, dan fitur penerjemah tanpa batas.
+                                            @if ($isUnlimitedPlan)
+                                                Akses penuh semua E-Book dan fitur penerjemah tanpa batas.
+                                            @elseif ($currentPlan->slug === 'standar')
+                                                Kuota {{ number_format($dailyCreditLimit, 0, ',', '.') }} kredit harian dan klaim 1 E-Book pilihan.
+                                            @else
+                                                Kuota {{ number_format($dailyCreditLimit, 0, ',', '.') }} kredit harian dengan pratinjau E-Book.
+                                            @endif
                                         </p>
                                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-3 text-[11px] text-slate-500">
                                             <div class="flex items-center gap-1.5">
                                                 <span class="material-symbols-outlined text-[15px] text-slate-400">qr_code_2</span>
-                                                <span>Metode Pembayaran: <strong class="text-slate-800 font-semibold">QRIS Otomatis</strong></span>
+                                                <span>Metode: <strong class="text-slate-800 font-semibold">{{ $membership?->payment_reference ? 'QRIS Otomatis' : ($currentPlan->slug === 'gratis' ? 'Paket Gratis' : 'Tidak tercatat') }}</strong></span>
                                             </div>
                                             <div class="flex items-center gap-1.5">
                                                 <span class="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
-                                                <span>Masa Langganan: <strong class="text-slate-800 font-semibold">{{ $membership->expires_at ? $membership->expires_at->format('d M Y') : '-' }}</strong></span>
+                                                <span>Masa Langganan: <strong class="text-slate-800 font-semibold">{{ $membershipEndDate?->format('d M Y') ?? 'Tanpa batas waktu' }}</strong></span>
                                             </div>
                                         </div>
                                     @else
                                         <div class="flex items-center gap-2">
-                                            <h4 class="text-base font-extrabold text-slate-900">Member Gratis</h4>
+                                            <h4 class="text-base font-extrabold text-slate-900">{{ $currentPlan?->name ?? 'Member Gratis' }}</h4>
                                             <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Gratis</span>
                                         </div>
                                         <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Informasi langganan belum tersedia atau belum berlangganan paket berbayar.
+                                            Informasi langganan belum tersedia atau belum berlangganan paket berbayar. Kuota {{ number_format($dailyCreditLimit, 0, ',', '.') }} kredit per hari.
                                         </p>
                                         <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 mt-3 text-[11px] text-slate-500">
                                             <div class="flex items-center gap-1.5">
@@ -317,7 +344,8 @@
 
                             <div class="shrink-0 text-center md:text-right">
                                 <a href="{{ route('membership.public') }}"
-                                   class="inline-block px-5 py-2.5 bg-white border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs sm:text-sm font-bold rounded-full transition shadow-xs">
+                                   class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-[#2A54F5] text-[#2A54F5] hover:bg-blue-50 text-xs sm:text-sm font-bold rounded-full transition shadow-xs">
+                                    <span class="material-symbols-outlined text-base">settings</span>
                                     Kelola Langganan
                                 </a>
                                 <span class="block text-[10px] text-slate-400 mt-1.5">Faktur otomatis dikirim via email</span>
@@ -366,6 +394,7 @@
             const avatarInput = document.getElementById('avatarFileInput');
             const mainImg = document.getElementById('mainAvatarPreviewImg');
             const sidebarImg = document.getElementById('sidebarAvatarImg');
+            const navbarImg = document.querySelector('[data-navbar-avatar]');
             const feedback = document.getElementById('avatarUploadFeedback');
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
@@ -379,6 +408,7 @@
                     reader.onload = function (e) {
                         if (mainImg) mainImg.src = e.target.result;
                         if (sidebarImg) sidebarImg.src = e.target.result;
+                        if (navbarImg) navbarImg.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
 
@@ -405,6 +435,7 @@
                         if (data.success) {
                             if (mainImg) mainImg.src = data.url;
                             if (sidebarImg) sidebarImg.src = data.url;
+                            if (navbarImg) navbarImg.src = data.url;
                             if (feedback) {
                                 feedback.classList.remove('text-blue-600');
                                 feedback.classList.add('text-emerald-600');
@@ -433,6 +464,7 @@
                         const defaultUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&h=200&q=80';
                         if (mainImg) mainImg.src = defaultUrl;
                         if (sidebarImg) sidebarImg.src = defaultUrl;
+                        if (navbarImg) navbarImg.src = defaultUrl;
                     }
                 });
             }

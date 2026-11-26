@@ -1,3 +1,4 @@
+@auth
 <header class="sticky top-0 z-50 w-full bg-white border-b border-slate-100/90 shadow-xs">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
         {{-- Brand / Logo --}}
@@ -26,50 +27,46 @@
         {{-- Actions (Right) --}}
         <div class="flex items-center gap-3">
             @if ($profile)
-                <div class="relative">
-                    <details class="profile-dropdown">
-                        <summary class="profile-trigger">
-                            <div class="flex items-center gap-2.5 rounded-full border border-slate-200/90 bg-white py-1 pl-1 pr-3 shadow-xs hover:border-slate-300 transition-colors cursor-pointer list-none select-none [&::-webkit-details-marker]:hidden">
-                                @if ($profile['avatarUrl'])
-                                    <img data-navbar-avatar src="{{ $profile['avatarUrl'] }}" alt="{{ $profile['name'] }}" class="w-8 h-8 rounded-full object-cover">
-                                @else
-                                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center">
-                                        {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
-                                    </div>
-                                @endif
-                                <span class="text-sm font-semibold text-slate-800">{{ $profile['name'] }}</span>
-                                <span class="rounded-full bg-[#1D4ED8] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                                    {{ $profile['badge'] }}
-                                </span>
-                                <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="m4 6 4 4 4-4" />
-                                </svg>
+                <details class="relative profile-dropdown">
+                    <summary class="flex items-center gap-2.5 rounded-full border border-slate-200/90 bg-white py-1 pl-1 pr-3 shadow-xs hover:border-slate-300 transition-colors cursor-pointer list-none select-none [&::-webkit-details-marker]:hidden">
+                        @if ($profile['avatarUrl'])
+                            <img data-navbar-avatar src="{{ $profile['avatarUrl'] }}" alt="{{ $profile['name'] }}" class="w-8 h-8 rounded-full object-cover">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs flex items-center justify-center">
+                                {{ mb_strtoupper(mb_substr($profile['name'], 0, 1)) }}
                             </div>
-                        </summary>
+                        @endif
+                        <span class="text-sm font-semibold text-slate-800">{{ $profile['name'] }}</span>
+                        <span class="rounded-full bg-[#1D4ED8] px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                            {{ $profile['badge'] }}
+                        </span>
+                        <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="m4 6 4 4 4-4" />
+                        </svg>
+                    </summary>
 
-                        <div class="absolute right-0 mt-2 w-48 rounded-2xl bg-white p-2 shadow-xl border border-slate-100 z-50">
-                            <div class="px-3 py-2 border-b border-slate-100">
-                                <p class="text-xs font-bold text-slate-800 truncate">{{ $profile['name'] }}</p>
-                                <p class="text-[11px] text-slate-500 truncate">{{ $profile['email'] }}</p>
-                            </div>
-                            <a href="{{ $profile['profileHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
-                                Profil Saya
-                            </a>
-                            <a href="{{ $profile['dashboardHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
-                                Dashboard
-                            </a>
-                            <a href="{{ $profile['membershipHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
-                                Langganan
-                            </a>
-                            <form method="POST" action="{{ $profile['logoutHref'] }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer">
-                                    Keluar
-                                </button>
-                            </form>
+                    <div class="absolute right-0 mt-2 w-48 rounded-2xl bg-white p-2 shadow-xl border border-slate-100 z-50">
+                        <div class="px-3 py-2 border-b border-slate-100">
+                            <p class="text-xs font-bold text-slate-800 truncate">{{ $profile['name'] }}</p>
+                            <p class="text-[11px] text-slate-500 truncate">{{ $profile['email'] }}</p>
                         </div>
-                    </details>
-                </div>
+                        <a href="{{ $profile['profileHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
+                            Profil Saya
+                        </a>
+                        <a href="{{ $profile['dashboardHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
+                            Dashboard
+                        </a>
+                        <a href="{{ $profile['membershipHref'] }}" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors">
+                            Langganan
+                        </a>
+                        <form method="POST" action="{{ $profile['logoutHref'] }}">
+                            @csrf
+                            <button type="submit" class="w-full text-left flex items-center gap-2 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer">
+                                Keluar
+                            </button>
+                        </form>
+                    </div>
+                </details>
             @else
                 @foreach ($authLinks as $index => $link)
                     <a href="{{ $link['href'] }}"
@@ -81,3 +78,4 @@
         </div>
     </div>
 </header>
+@endauth

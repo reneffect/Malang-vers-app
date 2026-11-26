@@ -4,14 +4,22 @@ namespace App\Http\Controllers\Auth; // ← PERBAIKAN: Namespace sesuai folder A
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MembershipService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 
 class LoginController extends Controller
 {
+    public function __construct(
+        private readonly MembershipService $membershipService,
+    ) {}
+
     /**
      * Tampilkan halaman login Member
      */
@@ -39,23 +47,25 @@ class LoginController extends Controller
     /**
      * Proses registrasi user baru
      */
-    public function register(Request $request)
+    public function register(Request $request): RedirectResponse
     {
-        // Validasi input
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        // Buat user baru
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'member', // Default role adalah member
-            'is_active' => true,
-        ]);
+        DB::transaction(function () use ($validated): void {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'member',
+                'is_active' => true,
+            ]);
+
+            $this->membershipService->ensureDefaultMembership($user);
+        });
 
         return redirect()->route('login');
     }
@@ -63,7 +73,7 @@ class LoginController extends Controller
     /**
      * Proses login untuk Member/Guest
      */
-    public function loginMember(Request $request)
+    public function loginMember(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => 'required|email',
@@ -84,6 +94,10 @@ class LoginController extends Controller
                 ])->onlyInput('email');
             }
 
+            if ($user->role === 'member') {
+                $this->membershipService->ensureDefaultMembership($user);
+            }
+
             return redirect()->intended(route('member.member-home'));
         }
 
@@ -95,7 +109,7 @@ class LoginController extends Controller
     /**
      * Handle Firebase Google Sign-In Callback
      */
-    public function handleFirebaseCallback(Request $request)
+    public function handleFirebaseCallback(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'name' => 'nullable|string',
@@ -103,14 +117,14 @@ class LoginController extends Controller
             'google_id' => 'required|string',
         ]);
 
-        $name = !empty($validated['name']) ? $validated['name'] : explode('@', $validated['email'])[0];
+        $name = ! empty($validated['name']) ? $validated['name'] : explode('@', $validated['email'])[0];
 
         $user = User::where('google_id', $validated['google_id'])
             ->orWhere('email', $validated['email'])
             ->first();
 
         if ($user) {
-            if (!$user->google_id) {
+            if (! $user->google_id) {
                 $user->google_id = $validated['google_id'];
                 $user->save();
             }
@@ -122,6 +136,10 @@ class LoginController extends Controller
                 'password' => Hash::make(Str::random(32)),
                 'role' => 'member',
             ]);
+        }
+
+        if ($user->role === 'member') {
+            $this->membershipService->ensureDefaultMembership($user);
         }
 
         Auth::login($user, true);

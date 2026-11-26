@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ */
 class Transaction extends Model
 {
     protected $table = 'transactions';
@@ -23,8 +26,8 @@ class Transaction extends Model
 
     protected $casts = [
         'total_amount' => 'decimal:2',
-        'paid_at'      => 'datetime',
-        'expires_at'   => 'datetime',
+        'paid_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     // ============================================================
@@ -76,7 +79,7 @@ class Transaction extends Model
 
     public function markAsPaid(): void
     {
-        $this->status  = 'paid';
+        $this->status = 'paid';
         $this->paid_at = now();
         $this->save();
     }
@@ -84,6 +87,6 @@ class Transaction extends Model
     /** Generate kode transaksi unik format: MV-YYYYMMDD-RANDOM */
     public static function generateCode(): string
     {
-        return 'MV-' . now()->format('Ymd') . '-' . strtoupper(substr(uniqid(), -6));
+        return 'MV-'.now()->format('Ymd').'-'.strtoupper(substr(uniqid(), -6));
     }
 }

@@ -14,6 +14,7 @@ class TransactionItem extends Model
         'item_type',
         'ebook_id',
         'membership_tier_id',
+        'billing_cycle',
         'item_name_snapshot',
         'quantity',
         'unit_price',
@@ -21,9 +22,9 @@ class TransactionItem extends Model
     ];
 
     protected $casts = [
-        'quantity'   => 'integer',
+        'quantity' => 'integer',
         'unit_price' => 'decimal:2',
-        'subtotal'   => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     // ============================================================

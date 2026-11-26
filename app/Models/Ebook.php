@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Ebook extends Model
 {
+    public const STANDARD_CLAIM_MAX_PRICE = 35000;
+
     protected $table = 'buku_digital';
 
     protected $fillable = [
@@ -29,12 +31,12 @@ class Ebook extends Model
     ];
 
     protected $casts = [
-        'harga'             => 'decimal:2',
-        'harga_lisensi'     => 'decimal:2',
-        'terjual'           => 'integer',
-        'jumlah_halaman'    => 'integer',
-        'is_bundle'         => 'boolean',
-        'can_be_claimed'    => 'boolean',
+        'harga' => 'decimal:2',
+        'harga_lisensi' => 'decimal:2',
+        'terjual' => 'integer',
+        'jumlah_halaman' => 'integer',
+        'is_bundle' => 'boolean',
+        'can_be_claimed' => 'boolean',
         'sudah_diterbitkan' => 'boolean',
     ];
 
@@ -59,7 +61,20 @@ class Ebook extends Model
 
     public function scopeClaimable(Builder $query): Builder
     {
-        return $query->where('can_be_claimed', true)->where('sudah_diterbitkan', true);
+        return $query->where('can_be_claimed', true)
+            ->whereRaw('COALESCE(NULLIF(harga_lisensi, 0), harga) <= ?', [self::STANDARD_CLAIM_MAX_PRICE])
+            ->where('sudah_diterbitkan', true);
+    }
+
+    public function licensePrice(): float
+    {
+        return (float) ($this->harga_lisensi > 0 ? $this->harga_lisensi : $this->harga);
+    }
+
+    public function isClaimableByStandard(): bool
+    {
+        return $this->can_be_claimed
+            && $this->licensePrice() <= self::STANDARD_CLAIM_MAX_PRICE;
     }
 
     // ============================================================

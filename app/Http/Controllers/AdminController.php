@@ -63,7 +63,7 @@ class AdminController extends Controller
         }
 
         $data['kode_url'] = $kodeUrl;
-        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'public');
+        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'local');
         if ($request->hasFile('cover_image')) {
             $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
         }
@@ -89,9 +89,10 @@ class AdminController extends Controller
 
         if ($request->hasFile('file_pdf')) {
             if ($ebook->lokasi_berkas) {
+                Storage::disk('local')->delete($ebook->lokasi_berkas);
                 Storage::disk('public')->delete($ebook->lokasi_berkas);
             }
-            $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'public');
+            $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'local');
         }
 
         if ($request->hasFile('cover_image')) {
@@ -124,6 +125,7 @@ class AdminController extends Controller
     public function deleteEbook(Ebook $ebook)
     {
         if ($ebook->lokasi_berkas) {
+            Storage::disk('local')->delete($ebook->lokasi_berkas);
             Storage::disk('public')->delete($ebook->lokasi_berkas);
         }
         if ($ebook->lokasi_sampul) {

@@ -15,6 +15,7 @@ class AdminEbookCoverTest extends TestCase
 
     public function test_admin_can_create_an_ebook_with_a_cover_image(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
         $admin = User::factory()->create([
             'role' => 'admin',
@@ -34,11 +35,14 @@ class AdminEbookCoverTest extends TestCase
 
         $ebook = Ebook::query()->where('judul', 'Kamus Sampul Uji')->firstOrFail();
         $this->assertNotNull($ebook->lokasi_sampul);
+        Storage::disk('local')->assertExists($ebook->lokasi_berkas);
+        Storage::disk('public')->assertMissing($ebook->lokasi_berkas);
         Storage::disk('public')->assertExists($ebook->lokasi_sampul);
     }
 
     public function test_admin_cannot_upload_a_non_image_as_ebook_cover(): void
     {
+        Storage::fake('local');
         Storage::fake('public');
         $admin = User::factory()->create([
             'role' => 'admin',
@@ -59,5 +63,6 @@ class AdminEbookCoverTest extends TestCase
             'judul' => 'Kamus Sampul Invalid',
         ]);
         Storage::disk('public')->assertDirectoryEmpty('ebooks');
+        Storage::disk('local')->assertDirectoryEmpty('ebooks');
     }
 }
