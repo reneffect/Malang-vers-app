@@ -4,12 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Ebook;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // <-- Ditambahkan untuk perhitungan pendapatan
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class EbookController extends Controller
 {
+    // Method untuk halaman member (tetap sama seperti aslinya)
     public function index(Request $request): View
     {
         $category = $request->string('category', 'semua')->toString();
@@ -34,6 +36,29 @@ class EbookController extends Controller
             'category' => $category,
             'books' => $books,
             'bundle' => $bundle,
+        ]);
+    }
+
+    // Method BARU untuk halaman Admin beserta kartu statistiknya
+    public function adminIndex(): View
+    {
+        // 1. Total buku yang sudah diterbitkan
+        $totalAktif = Ebook::where('sudah_diterbitkan', true)->count();
+
+        // 2. Total unduhan/terjual (menggunakan kolom 'terjual' dari model)
+        $totalUnduhan = Ebook::sum('terjual');
+
+        // 3. Total Pendapatan 
+        // (Opsi B: Dihitung langsung dari tabel ebook. Jika ni-sama sudah punya model Transaksi, 
+        // uncomment Opsi A di bawah dan hapus Opsi B ini)
+        $totalPendapatan = Ebook::sum(DB::raw('terjual * harga'));
+        // $totalPendapatan = \App\Models\Transaksi::where('status', 'lunas')->sum('total');
+
+        return view('admin.ebooks', [
+            'ebooks'          => Ebook::latest()->paginate(4),
+            'totalAktif'      => $totalAktif,
+            'totalUnduhan'    => $totalUnduhan,
+            'totalPendapatan' => $totalPendapatan,
         ]);
     }
 

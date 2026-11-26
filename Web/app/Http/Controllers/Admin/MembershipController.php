@@ -3,111 +3,78 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Membership;
 use App\Models\MembershipTier;
 use Illuminate\Http\Request;
 
 class MembershipController extends Controller
 {
-    public function index(Request $r)
+    public function index(Request $request)
     {
-        $filter = $r->get('filter', 'all');
-        $query = MembershipTier::query()
+        $filter = $request->query('filter', 'all');
+
+        $tiers = MembershipTier::query()
             ->withCount([
-                'memberships as active_members' => fn ($memberships) => $memberships->where('status', 'active'),
-            ]);
+                'memberships as active_members' => fn ($q) => $q->where('status', 'active'),
+            ])
+            ->orderBy('order')
+            ->get();
 
-        if ($filter === 'active') {
-            $query->where('is_active', true);
-        }
-
-        $tiers = $query->orderBy('order')->get();
-
-        // Hitung statistik
-        $totalPelanggan = Membership::where('status', 'active')->count();
-
-        // MRR = Monthly Recurring Revenue
-        $mrr = Membership::where('status', 'active')
-            ->join('membership_tiers', 'memberships.membership_tier_id', '=', 'membership_tiers.id_membership_tier')
-            ->sum('membership_tiers.monthly_price');
-
-        // ARPU = Average Revenue Per User
-        $arpu = $totalPelanggan > 0 ? $mrr / $totalPelanggan : 0;
-
-        // Retensi = (total member aktif / total member ever) * 100
-        $totalEver = Membership::count();
-        $tingkatRetensi = $totalEver > 0 ? round(($totalPelanggan / $totalEver) * 100, 1) : 0;
-
-        return view('admin.membership', compact(
-            'tiers',
-            'filter',
-            'totalPelanggan',
-            'mrr',
-            'arpu',
-            'tingkatRetensi'
-        ));
+        return view('admin.membership', compact('tiers', 'filter'));
     }
 
-    public function store(Request $r)
+    public function store(Request $request)
     {
-        $data = $this->validateData($r);
-
-        $data['duration_days'] = 30;
-        $data['price'] = $data['monthly_price'];
-        $data['features'] = $r->input('privileges', []);
+        $data = $this->validated($request);
+        $data['is_active'] = true;
 
         MembershipTier::create($data);
 
-        return back()->with('success', 'Paket langganan berhasil dikonfigurasi!');
+        return redirect()
+            ->route('admin.membership')
+            ->with('success', 'Paket berhasil ditambahkan.');
     }
 
-    public function update(Request $r, MembershipTier $membershipTier)
+    public function update(Request $request, MembershipTier $membershipTier)
     {
-        $data = $this->validateData($r);
-        $data['duration_days'] = 30;
-        $data['price'] = $data['monthly_price'];
-        $data['features'] = $r->input('privileges', []);
+        $membershipTier->update($this->validated($request));
 
-        $membershipTier->update($data);
-
-        return back()->with('success', 'Paket berhasil diperbarui!');
+        return redirect()
+            ->route('admin.membership')
+            ->with('success', 'Paket berhasil diperbarui.');
     }
 
     public function destroy(MembershipTier $membershipTier)
     {
-        // Cek apakah ada user yang masih berlangganan tier ini
-        $activeMembers = $membershipTier->memberships()
-            ->where('status', 'active')
-            ->count();
-
-        if ($activeMembers > 0) {
-            return back()->with('error', 'Tidak bisa menghapus tier yang masih memiliki pelanggan aktif!');
-        }
-
         $membershipTier->delete();
 
-        return back()->with('success', 'Paket dihapus dari sistem.');
+        return redirect()
+            ->route('admin.membership')
+            ->with('success', 'Paket berhasil dihapus.');
     }
 
-    private function validateData(Request $r)
+    public function toggle(MembershipTier $membershipTier)
     {
-        return $r->validate([
-            'name' => 'required|string|max:100',
-            'tagline' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'monthly_price' => 'required|numeric|min:0',
-            'yearly_price' => 'required|numeric|min:0',
+        $membershipTier->update(['is_active' => ! $membershipTier->is_active]);
+
+        return back();
+    }
+
+    private function validated(Request $request): array
+    {
+        $data = $request->validate([
+            'name'              => 'required|string|max:100',
+            'tagline'           => 'nullable|string|max:150',
+            'monthly_price'     => 'required|numeric|min:0',
+            'yearly_price'      => 'required|numeric|min:0',
             'translation_quota' => 'nullable|integer|min:0',
-            'ebook_access' => 'required|in:semua,saku,khusus',
-            'privileges' => 'nullable|array',
-            'privileges.*' => 'in:audio_nafiri,badge_komunitas,bebas_iklan',
-            'is_active' => 'nullable|boolean',
-            'sort_order' => 'nullable|integer',
-        ], [
-            'name.required' => 'Nama tier paket wajib diisi.',
-            'monthly_price.required' => 'Harga bulanan wajib diisi.',
-            'yearly_price.required' => 'Harga tahunan wajib diisi.',
-            'ebook_access.required' => 'Hak akses e-book wajib dipilih.',
+            'ebook_access'      => 'required|in:semua,saku,khusus',
+            'privileges'        => 'nullable|array',
+            'privileges.*'      => 'string',
         ]);
+
+        $data['benefits'] = $data['privileges'] ?? [];
+        unset($data['privileges']);
+
+        return $data;
     }
 }

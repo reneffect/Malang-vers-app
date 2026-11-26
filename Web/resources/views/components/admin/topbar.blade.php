@@ -1,16 +1,22 @@
+@props(['showSearch' => true])
+
 <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
     <div class="flex items-center justify-between px-8 py-4">
         {{-- Search Bar --}}
-        <div class="flex-1 max-w-xl">
-            <div class="relative">
-                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                <input type="text" 
-                       placeholder="Cari kamus atau penulis..."
-                       class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
-                              focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4 
-                              focus:ring-blue-500/10 transition-all">
+        @if ($showSearch)
+            <div class="flex-1 max-w-xl">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text"
+                           placeholder="Cari kamus atau penulis..."
+                           class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm
+                                  focus:outline-none focus:border-blue-500 focus:bg-white focus:ring-4
+                                  focus:ring-blue-500/10 transition-all">
+                </div>
             </div>
-        </div>
+        @else
+            <div class="flex-1"></div>
+        @endif
 
         {{-- Profile Admin --}}
         @php($admin = auth()->user())

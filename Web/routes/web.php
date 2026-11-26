@@ -73,12 +73,12 @@ Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.c
 
 /*
 |--------------------------------------------------------------------------
-| Admin (SATU BLOK, URL & Nama Route Sudah Bersih!)
+| Admin (SATU BLOK)
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->name('admin.')->group(function () {
 
-    // 1. Login admin (PUBLIK, tidak pakai middleware auth/admin)
+    // 1. Login admin (PUBLIK)
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.attempt');
 
@@ -94,10 +94,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
         // CRUD E-Book
-        Route::post('/ebooks/store', [AdminController::class, 'storeEbook'])->name('ebooks.store');
+        // Store pakai POST /ebooks (bukan /ebooks/store) agar tidak bentrok dengan /ebooks/{ebook}
+        Route::post('/ebooks', [AdminController::class, 'storeEbook'])->name('ebooks.store');
         Route::put('/ebooks/{ebook}', [AdminController::class, 'updateEbook'])->name('ebooks.update');
         Route::delete('/ebooks/{ebook}', [AdminController::class, 'deleteEbook'])->name('ebooks.destroy');
-        Route::post('/ebooks/{ebook}/toggle', [AdminController::class, 'toggleEbook'])->name('ebooks.toggle');
 
         // CRUD Users
         Route::post('/users/store', [AdminController::class, 'storeUser'])->name('users.store');

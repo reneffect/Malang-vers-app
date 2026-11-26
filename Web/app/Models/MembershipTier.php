@@ -19,27 +19,28 @@ class MembershipTier extends Model
         'description',
         'duration_days',
         'price',
-        'benefits',
         'monthly_price',
         'yearly_price',
+        'benefits',
         'translation_quota',
         'ebook_access',
         'features',
+        'badge',
         'is_active',
         'is_featured',
-        'sort_order',
+        'is_recommended',
         'order',
     ];
 
     protected $casts = [
-        'benefits' => 'array',
-        'features' => 'array',
+        'price' => 'decimal:2',
         'monthly_price' => 'decimal:2',
         'yearly_price' => 'decimal:2',
-        'price' => 'decimal:2',
         'translation_quota' => 'integer',
+        'features' => 'array',
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
+        'is_recommended' => 'boolean',
     ];
 
     public function scopeActive(Builder $query): Builder
@@ -47,14 +48,13 @@ class MembershipTier extends Model
         return $query->where('is_active', true);
     }
 
-    // Relasi ke memberships (user yang berlangganan tier ini)
-    public function memberships(): HasMany
-    {
-        return $this->hasMany(Membership::class, 'membership_tier_id', 'id_membership_tier');
-    }
+    // app/Models/MembershipTier.php
+public function memberships()
+{
+    return $this->hasMany(Membership::class, 'membership_tier_id');
+}
 
-    // Helper: jumlah pelanggan aktif
-    public function getActiveMembersCountAttribute()
+    public function getActiveMembersCountAttribute(): int
     {
         return $this->memberships()
             ->where('status', 'active')

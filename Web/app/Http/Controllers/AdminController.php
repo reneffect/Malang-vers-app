@@ -3,38 +3,99 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ebook;
-use App\Models\Membership;
-use App\Models\MembershipTier;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage; // ✅ FIX 1: Tambah import Storage
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AdminController extends Controller
 {
     // ============================================================
-    //  1. KELOLA E-BOOK
+    //  HELPER
     // ============================================================
+
+    private function membershipsReady(): bool
+    {
+        return Schema::hasTable('memberships')
+            && Schema::hasColumns('memberships', ['user_id', 'membership_tier_id', 'status']);
+    }
+
+    private function activeMemberUserIds(?string $tierNameLike = null): array
+    {
+        if (! $this->membershipsReady()) {
+            return [];
+        }
+
+        $query = DB::table('memberships as m')
+            ->where('m.status', 'active');
+
+        if ($tierNameLike !== null) {
+            $query->join('membership_tiers as t', 't.id_membership_tier', '=', 'm.membership_tier_id')
+                ->where('t.name', 'like', "%{$tierNameLike}%");
+        }
+
+        return $query->distinct()->pluck('m.user_id')->all();
+    }
+
+    private function activeTierNames(): array
+    {
+        if (! $this->membershipsReady()) {
+            return [];
+        }
+
+        return DB::table('memberships as m')
+            ->join('membership_tiers as t', 't.id_membership_tier', '=', 'm.membership_tier_id')
+            ->where('m.status', 'active')
+            ->orderByDesc('m.started_at')
+            ->get(['m.user_id', 't.name'])
+            ->unique('user_id')
+            ->pluck('name', 'user_id')
+            ->all();
+    }
+
+    private function generateUniqueSlug(string $table, string $column, string $value, ?int $ignoreId = null, string $ignoreKey = 'id'): string
+    {
+        $base = Str::slug($value) ?: 'item';
+        $slug = $base;
+        $suffix = 2;
+
+        while (
+            DB::table($table)
+                ->where($column, $slug)
+                ->when($ignoreId, fn ($q) => $q->where($ignoreKey, '!=', $ignoreId))
+                ->exists()
+        ) {
+            $slug = $base.'-'.$suffix++;
+        }
+
+        return $slug;
+    }
+
+    // ============================================================
+    //  1. KELOLA E-BOOK  (tabel: buku_digital)
+    // ============================================================
+
     public function ebooks(Request $request): View
     {
-        $cols = Schema::getColumnListing('buku_digital'); // Atau 'ebooks' sesuai nama tabel kamu
+        // 1. Total Kamus Aktif (hanya menghitung yang sudah diterbitkan)
+        $totalKamus = Ebook::where('sudah_diterbitkan', true)->count();
 
-        $totalKamus = Ebook::count();
-        $totalUnduhan = in_array('terjual', $cols) ? (int) Ebook::sum('terjual') : 0;
+        // 2. Total Unduhan/Terjual (menggunakan kolom 'terjual' dari model Ebook)
+        $totalUnduhan = (int) Ebook::sum('terjual');
 
-        // ✅ FIX 3: Samakan nama variabel dengan view (totalPendapatan, totalUlasan)
-        $totalPendapatan = (in_array('terjual', $cols) && in_array('harga', $cols))
-                            ? (int) Ebook::sum(DB::raw('terjual * harga')) : 0;
+        // 3. Total Pendapatan (menghitung harga * terjual, COALESCE mencegah error null)
+        $totalPendapatan = (int) Ebook::selectRaw('COALESCE(SUM(terjual * harga), 0) as total')->value('total');
 
-        $avgRating = in_array('rating', $cols) ? (float) (Ebook::avg('rating') ?? 0) : 0.0;
-        $totalUlasan = in_array('rating', $cols) ? (int) Ebook::whereNotNull('rating')->count() : 0;
+        // Catatan: Tabel buku_digital belum punya kolom rating/ulasan
+        $avgRating = 0.0;
+        $totalUlasan = 0;
 
-        $ebooks = Ebook::orderBy('id', 'desc')->paginate(12);
+        $ebooks = Ebook::orderBy('id', 'desc')->paginate(12); // Bisa diubah ke 4 sesuai preferensi awal
 
         return view('admin.ebooks', compact(
             'ebooks', 'totalKamus', 'totalUnduhan', 'totalPendapatan', 'avgRating', 'totalUlasan'
@@ -44,33 +105,35 @@ class AdminController extends Controller
     public function storeEbook(Request $request)
     {
         $data = $request->validate([
-            'judul' => 'required|string|max:255',
-            'penulis' => 'required|string|max:255',
-            'kategori' => 'required|string|max:100',
-            'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
-            'file_pdf' => 'required|file|mimes:pdf|max:153600',
-            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'judul'          => 'required|string|max:200',
+            'penulis'        => 'required|string|max:150',
+            'kategori'       => 'required|string|max:100',
+            'harga'          => 'required|numeric|min:0|max:9999999999.99',
+            'jumlah_halaman' => 'nullable|integer|min:0',
+            'file_pdf'       => 'required|file|mimes:pdf|max:153600',
+            'cover_image'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'harga.max' => 'Harga maksimal Rp 9.999.999.999.',
         ]);
 
-        $baseKodeUrl = Str::slug($data['judul']);
-        $kodeUrl = $baseKodeUrl;
-        $suffix = 2;
+        $kodeUrl = $this->generateUniqueSlug('buku_digital', 'kode_url', $data['judul']);
 
-        while (Ebook::where('kode_url', $kodeUrl)->exists()) {
-            $kodeUrl = $baseKodeUrl.'-'.$suffix;
-            $suffix++;
-        }
+        $payload = [
+            'judul'             => $data['judul'],
+            'penulis'           => $data['penulis'],
+            'kategori'          => $data['kategori'],
+            'harga'             => $data['harga'],
+            'jumlah_halaman'    => $data['jumlah_halaman'] ?? null,
+            'kode_url'          => $kodeUrl,
+            'lokasi_berkas'     => $request->file('file_pdf')->store('ebooks/files', 'public'),
+            'sudah_diterbitkan' => true,
+        ];
 
-        $data['kode_url'] = $kodeUrl;
-        $data['lokasi_berkas'] = $request->file('file_pdf')->store('ebooks/files', 'public');
         if ($request->hasFile('cover_image')) {
-            $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
+            $payload['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
         }
-        $data['sudah_diterbitkan'] = true;
-        unset($data['deskripsi'], $data['file_pdf'], $data['cover_image']);
 
-        Ebook::create($data);
+        Ebook::create($payload);
 
         return redirect()->route('admin.ebooks')->with('success', 'E-Book berhasil ditambahkan.');
     }
@@ -78,13 +141,15 @@ class AdminController extends Controller
     public function updateEbook(Request $request, Ebook $ebook)
     {
         $data = $request->validate([
-            'judul' => 'required|string|max:255',
-            'penulis' => 'required|string|max:255',
-            'kategori' => 'required|string|max:100',
-            'deskripsi' => 'required|string',
-            'harga' => 'required|numeric|min:0',
-            'file_pdf' => 'nullable|file|mimes:pdf|max:153600',
-            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'judul'          => 'required|string|max:200',
+            'penulis'        => 'required|string|max:150',
+            'kategori'       => 'required|string|max:100',
+            'harga'          => 'required|numeric|min:0|max:9999999999.99',
+            'jumlah_halaman' => 'nullable|integer|min:0',
+            'file_pdf'       => 'nullable|file|mimes:pdf|max:153600',
+            'cover_image'    => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ], [
+            'harga.max' => 'Harga maksimal Rp 9.999.999.999.',
         ]);
 
         if ($request->hasFile('file_pdf')) {
@@ -95,27 +160,17 @@ class AdminController extends Controller
         }
 
         if ($request->hasFile('cover_image')) {
-            $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
-
             if ($ebook->lokasi_sampul) {
                 Storage::disk('public')->delete($ebook->lokasi_sampul);
             }
+            $data['lokasi_sampul'] = $request->file('cover_image')->store('ebooks/covers', 'public');
         }
 
         if ($ebook->judul !== $data['judul']) {
-            $baseKodeUrl = Str::slug($data['judul']);
-            $kodeUrl = $baseKodeUrl;
-            $suffix = 2;
-
-            while (Ebook::where('kode_url', $kodeUrl)->whereKeyNot($ebook->getKey())->exists()) {
-                $kodeUrl = $baseKodeUrl.'-'.$suffix;
-                $suffix++;
-            }
-
-            $data['kode_url'] = $kodeUrl;
+            $data['kode_url'] = $this->generateUniqueSlug('buku_digital', 'kode_url', $data['judul'], $ebook->getKey(), 'id');
         }
 
-        unset($data['deskripsi'], $data['file_pdf'], $data['cover_image']);
+        unset($data['file_pdf'], $data['cover_image']);
         $ebook->update($data);
 
         return redirect()->route('admin.ebooks')->with('success', 'E-Book berhasil diperbarui.');
@@ -129,171 +184,83 @@ class AdminController extends Controller
         if ($ebook->lokasi_sampul) {
             Storage::disk('public')->delete($ebook->lokasi_sampul);
         }
+
         $ebook->delete();
 
         return redirect()->route('admin.ebooks')->with('success', 'E-Book berhasil dihapus.');
     }
 
     // ============================================================
-    //  2. KELOLA PAKET LANGGANAN (MEMBERSHIP TIER)
+    //  2. KELOLA PENGGUNA  (tabel: users)
     // ============================================================
-    public function membership(Request $request): View
-    {
-        $cols = Schema::getColumnListing('membership_tiers');
 
-        // Deteksi kolom yang benar-benar ada (anti-crash)
-        $colOrder = in_array('sort_order', $cols) ? 'sort_order'
-                    : (in_array('order', $cols) ? 'order'
-                    : (in_array('price', $cols) ? 'price' : 'id'));
-        $colActive = in_array('is_active', $cols) ? 'is_active'
-                    : (in_array('active', $cols) ? 'active' : null);
-        $colDurasi = in_array('duration_days', $cols) ? 'duration_days'
-                    : (in_array('durasi_hari', $cols) ? 'durasi_hari' : null);
-        $colFitur = in_array('features', $cols) ? 'features'
-                    : (in_array('fitur', $cols) ? 'fitur' : null);
-
-        $tiers = MembershipTier::orderBy($colOrder, 'asc')->get();
-
-        // Cast kolom fitur ke array kalau ada (biar view bisa foreach)
-        if ($colFitur) {
-            $tiers->each(function ($t) use ($colFitur) {
-                $val = $t->{$colFitur};
-                if (is_string($val)) {
-                    $decoded = json_decode($val, true);
-                    $t->setAttribute('features_list', is_array($decoded) ? $decoded : array_filter(array_map('trim', explode("\n", $val))));
-                } else {
-                    $t->setAttribute('features_list', is_array($val) ? $val : []);
-                }
-            });
-        }
-
-        $totalPelanggan = Schema::hasTable('memberships') && in_array('status', Schema::getColumnListing('memberships'))
-            ? Membership::where('status', 'active')->count() : 0;
-        $mrr = 0;
-        $arpu = 0;
-        $tingkatRetensi = 94.2;
-
-        $filter = $request->get('filter', 'all');
-        if ($filter === 'active' && $colActive) {
-            $tiers = $tiers->where($colActive, true);
-        }
-
-        return view('admin.membership', compact(
-            'tiers', 'totalPelanggan', 'mrr', 'arpu', 'tingkatRetensi', 'filter', 'cols'
-        ));
-    }
-
-    public function storeTier(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:100',
-            'price' => 'required|numeric|min:0',
-            'duration_days' => 'required|integer|min:1',
-            'features' => 'required|string',
-            'benefits' => 'nullable|string',
-            'is_active' => 'nullable',
-            'sort_order' => 'nullable|integer|min:0',
-        ]);
-
-        $data['slug'] = Str::slug($data['name']);
-        $data['features'] = array_filter(array_map('trim', explode("\n", $data['features'])));
-        $data['is_active'] = $request->boolean('is_active');
-        $data['sort_order'] = $data['sort_order'] ?? 0;
-
-        MembershipTier::create($data);
-
-        return redirect()->route('admin.membership')->with('success', 'Tier berhasil ditambahkan.');
-    }
-
-    public function updateTier(Request $request, MembershipTier $tier)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:100',
-            'price' => 'required|numeric|min:0',
-            'duration_days' => 'required|integer|min:1',
-            'features' => 'required|string',
-            'benefits' => 'nullable|string',
-            'is_active' => 'nullable',
-            'sort_order' => 'nullable|integer|min:0',
-        ]);
-
-        $data['slug'] = Str::slug($data['name']);
-        $data['features'] = array_filter(array_map('trim', explode("\n", $data['features'])));
-        $data['is_active'] = $request->boolean('is_active');
-        $data['sort_order'] = $data['sort_order'] ?? 0;
-
-        $tier->update($data);
-
-        return redirect()->route('admin.membership')->with('success', 'Tier berhasil diperbarui.');
-    }
-
-    public function deleteTier(MembershipTier $tier)
-    {
-        $tier->delete();
-
-        return redirect()->route('admin.membership')->with('success', 'Tier berhasil dihapus.');
-    }
-
-    public function toggleTier(MembershipTier $tier)
-    {
-        $tier->update(['is_active' => ! $tier->is_active]);
-
-        return back()->with('success', 'Status tier diperbarui.');
-    }
-
-    // ============================================================
-    //  3. KELOLA PENGGUNA (USERS)
-    // ============================================================
     public function users(Request $request): View
     {
         $tab = $request->get('tab', 'all');
+
         $query = User::where('role', 'member');
 
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($b) use ($q) {
-                $b->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+                $b->where('name', 'like', "%{$q}%")
+                  ->orWhere('email', 'like', "%{$q}%");
             });
         }
 
-        $users = $query
-            ->with('activeMembership.tier')
-            ->orderBy('id', 'desc')
-            ->paginate(15)
+        if ($tab === 'gratis') {
+            $query->whereNotIn('id', $this->activeMemberUserIds());
+        } elseif ($tab === 'standar') {
+            $query->whereIn('id', $this->activeMemberUserIds('standar'));
+        } elseif ($tab === 'premium') {
+            $query->whereIn('id', $this->activeMemberUserIds('premium'));
+        }
+
+        $users = $query->orderBy('id', 'desc')
+            ->paginate(10)
             ->withQueryString();
 
-        $selectedUserId = $request->validate([
-            'user' => ['nullable', 'integer', 'exists:users,id'],
-        ])['user'] ?? null;
+        $activeTiers = $this->activeTierNames();
 
-        $selectedUser = $selectedUserId
-            ? User::where('role', 'member')->with('activeMembership.tier')->findOrFail($selectedUserId)
-            : $users->first();
+        $selectedUser = null;
+        if ($request->filled('user')) {
+            $selectedUser = User::where('role', 'member')->find($request->query('user'));
+        }
+        $selectedUser ??= $users->first();
 
-        $totalMember = User::where('role', 'member')->count();
-        $totalAdmin = User::where('role', 'admin')->count();
-        $baruMingguIni = User::where('role', 'member')->where('created_at', '>=', now()->subDays(7))->count();
-        $pendingVerif = 0;
-        $premiumAktif = Membership::where('status', 'active')->count();
+        $riwayat = collect();
+        if ($selectedUser && $this->membershipsReady()) {
+            $riwayat = DB::table('memberships as m')
+                ->leftJoin('membership_tiers as t', 't.id_membership_tier', '=', 'm.membership_tier_id')
+                ->where('m.user_id', $selectedUser->id)
+                ->orderByDesc('m.started_at')
+                ->limit(5)
+                ->get(['m.status', 'm.started_at', 'm.ends_at', 't.name as tier_name']);
+        }
 
-        $ditangguhan = Schema::hasColumn('users', 'status')
-            ? User::where('role', 'member')->where('status', 'suspended')->count()
-            : 0;
+        $totalMember   = User::where('role', 'member')->count();
+        $totalAdmin    = User::where('role', 'admin')->count();
+        $baruMingguIni = User::where('role', 'member')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->count();
+        $premiumAktif  = count($this->activeMemberUserIds());
+        $pendingVerif  = 0;
+        $ditangguhan   = 0; 
 
         return view('admin.users', compact(
             'users', 'totalMember', 'totalAdmin', 'baruMingguIni',
-            'pendingVerif', 'premiumAktif', 'ditangguhan', 'tab', 'selectedUser'
+            'pendingVerif', 'premiumAktif', 'ditangguhan', 'tab',
+            'selectedUser', 'activeTiers', 'riwayat'
         ));
     }
 
     public function storeUser(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:user,admin,member',
-            'status' => 'required|in:active,banned',
+            'name'     => 'required|string|max:100',
+            'email'    => 'required|email|max:150|unique:users,email',
+            'phone'    => 'nullable|string|max:30',
+            'role'     => 'required|in:admin,member',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
@@ -306,11 +273,10 @@ class AdminController extends Controller
     public function updateUser(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$user->id,
-            'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:user,admin,member',
-            'status' => 'required|in:active,banned',
+            'name'     => 'required|string|max:100',
+            'email'    => 'required|email|max:150|unique:users,email,'.$user->id,
+            'phone'    => 'nullable|string|max:30',
+            'role'     => 'required|in:admin,member',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
@@ -330,6 +296,7 @@ class AdminController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Tidak bisa menghapus akun sendiri.');
         }
+
         $user->delete();
 
         return redirect()->route('admin.users')->with('success', 'User berhasil dihapus.');
@@ -337,68 +304,53 @@ class AdminController extends Controller
 
     public function toggleUser(User $user)
     {
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak bisa mengubah status akun sendiri.');
-        }
-        $newStatus = ($user->status ?? 'active') === 'active' ? 'banned' : 'active';
-        $user->update(['status' => $newStatus]);
-
-        return back()->with('success', 'Status user diperbarui.');
+        return back()->with('error', 'Fitur tangguhkan belum tersedia, kolom status belum ada di tabel users.');
     }
 
     // ============================================================
-    //  4. TRANSAKSI & VERIFIKASI
+    //  3. TRANSAKSI  (tabel: transactions)
     // ============================================================
+
     public function transaksi(Request $request): View
     {
-        $cols = Schema::getColumnListing('transactions');
-
-        $colNominal = null;
-        foreach (['total', 'total_harga', 'jumlah', 'nominal', 'amount', 'nilai', 'harga', 'grand_total'] as $c) {
-            if (in_array($c, $cols)) {
-                $colNominal = $c;
-                break;
-            }
-        }
-
         $status = $request->get('status', 'all');
-        $period = $request->get('period', '30');
+        $period = (int) $request->get('period', 30);
+        $search = trim((string) $request->get('search', ''));
 
-        $query = Transaction::query();
+        $query = Transaction::with('user')
+            ->where('created_at', '>=', now()->subDays($period));
 
-        if ($status !== 'all' && in_array('status', $cols)) {
+        if ($status !== 'all') {
             $query->where('status', $status);
         }
-        if (in_array('created_at', $cols)) {
-            $query->where('created_at', '>=', now()->subDays((int) $period));
+
+        if ($search !== '') {
+            $query->where('transaction_code', 'like', "%{$search}%");
         }
 
-        if ($request->filled('search')) {
-            $query->where('id', 'like', "%{$request->search}%");
-        }
-
-        $transactions = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
-
-        $transactions->getCollection()->transform(function ($trx) use ($colNominal) {
-            $trx->setAttribute('total', $colNominal ? ($trx->{$colNominal} ?? 0) : 0);
-
-            return $trx;
-        });
-
-        $hasStatus = in_array('status', $cols);
-        $totalPemasukan = ($colNominal && $hasStatus) ? (int) Transaction::where('status', 'success')->sum($colNominal) : 0;
-        $transaksiBerhasil = $hasStatus ? Transaction::where('status', 'success')->count() : 0;
-        $transaksiGagal = $hasStatus ? Transaction::whereIn('status', ['failed', 'pending'])->count() : 0;
+        $transactions = $query->orderBy('id', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
         $today = now()->startOfDay();
-        $transaksiHariIni = Transaction::where('created_at', '>=', $today)->count();
-        $volumeHariIni = $colNominal ? (int) Transaction::where('status', 'success')->where('created_at', '>=', $today)->sum($colNominal) : 0;
+
+        $totalPemasukan    = (int) Transaction::where('status', 'paid')->sum('total_amount');
+        $transaksiBerhasil = Transaction::where('status', 'paid')->count();
+        $transaksiGagal    = Transaction::whereIn('status', ['pending', 'cancelled', 'expired'])->count();
+        $transaksiHariIni  = Transaction::where('created_at', '>=', $today)->count();
+        $volumeHariIni     = (int) Transaction::where('status', 'paid')
+            ->where('created_at', '>=', $today)
+            ->sum('total_amount');
 
         return view('admin.transaksi', compact(
             'transactions', 'totalPemasukan', 'transaksiBerhasil', 'transaksiGagal',
             'volumeHariIni', 'transaksiHariIni', 'status', 'period'
         ));
     }
+
+    // ============================================================
+    //  4. VERIFIKASI
+    // ============================================================
 
     public function verifikasi(): View
     {

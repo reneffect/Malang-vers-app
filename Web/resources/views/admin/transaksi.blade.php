@@ -12,7 +12,7 @@
     <x-admin.sidebar active="transaksi" />
 
     <div class="ml-64 min-h-screen flex flex-col">
-        <x-admin.topbar />
+        <x-admin.topbar :show-search="false" />
 
         <main class="flex-1 p-8">
 
