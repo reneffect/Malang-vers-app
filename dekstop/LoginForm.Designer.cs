@@ -32,6 +32,7 @@ namespace dekstop
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LoginForm));
             this.rootLayout = new System.Windows.Forms.TableLayoutPanel();
             this.cardPanel = new System.Windows.Forms.Panel();
             this.loginGroup = new System.Windows.Forms.GroupBox();
@@ -47,12 +48,14 @@ namespace dekstop
             this.brandTitle = new System.Windows.Forms.Label();
             this.logoPanel = new System.Windows.Forms.Panel();
             this.logoLabel = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.rootLayout.SuspendLayout();
             this.cardPanel.SuspendLayout();
             this.loginGroup.SuspendLayout();
             this.footerPanel.SuspendLayout();
             this.brandPanel.SuspendLayout();
             this.logoPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // rootLayout
@@ -232,6 +235,7 @@ namespace dekstop
             // logoPanel
             // 
             this.logoPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(54)))), ((int)(((byte)(86)))), ((int)(((byte)(255)))));
+            this.logoPanel.Controls.Add(this.pictureBox1);
             this.logoPanel.Controls.Add(this.logoLabel);
             this.logoPanel.Location = new System.Drawing.Point(27, 18);
             this.logoPanel.Margin = new System.Windows.Forms.Padding(4);
@@ -251,6 +255,18 @@ namespace dekstop
             this.logoLabel.TabIndex = 0;
             this.logoLabel.Text = "▣";
             this.logoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.logoLabel.Click += new System.EventHandler(this.logoLabel_Click);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(3, 4);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(40, 40);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 3;
+            this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // LoginForm
             // 
@@ -273,10 +289,13 @@ namespace dekstop
             this.brandPanel.ResumeLayout(false);
             this.brandPanel.PerformLayout();
             this.logoPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }

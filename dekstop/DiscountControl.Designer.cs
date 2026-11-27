@@ -568,7 +568,7 @@ namespace dekstop
             this.txtMinBeli.Name = "txtMinBeli";
             this.txtMinBeli.Size = new System.Drawing.Size(398, 27);
             this.txtMinBeli.TabIndex = 11;
-            this.txtMinBeli.Text = "Rp 50.000";
+            this.txtMinBeli.Text = "0";
             // 
             // lblMasaBerlaku
             // 

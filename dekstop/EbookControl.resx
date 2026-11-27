@@ -117,4 +117,35 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="pictureBox1.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABEAAAAMCAYAAACEJVa/AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
+        EgAACxIB0t1+/AAAAA50RVh0U29mdHdhcmUARmlnbWGesZZjAAAA/klEQVQ4T52S4Q2CMBCFGaEJbeJP
+        RvAnwZZ0BEdwBDeQEdxAN9ANdAPdQBOh5z9G0LwrRRQ14iUXUh73+rW8SFhKYl0ulaGTNHTj1u4QG1pJ
+        fbHCnoTUtJCadtJca//NtcY6zspZhPIC2u1hJnVVSOO2Kg+mYfCh86ZBn7h55HeuCnZ8KWWqNfRRSgmI
+        lClnaBBCb2e/mXgq6Bfb0BxBxBSa/LtfTYSthUgpYbOm+a6GmHRIzr75YoeSgIKsysoxDPEcTMLDj794
+        9jN/knS1PknuDu/CxoHDeuLm/bC5zbOJv7QPYevryE+rwyQ21RRh6qKGkjkVoHw9SijM4lh3GtcfGcVr
+        tAYAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="pictureBox2.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABEAAAAMCAYAAACEJVa/AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
+        EgAACxIB0t1+/AAAAA50RVh0U29mdHdhcmUARmlnbWGesZZjAAAAsUlEQVQ4T52S0Q3DIAxEPUpGQYaP
+        joEwH90iHaEbZISOkG7CKK2MgQJpUJKTTiLYeTFHAGo5MwPpz2E7DGDV1DC6hseuSa9NX9xwaBuI50IS
+        10i/wOFSvnq/TUA61JC0SJC8ZlmjuiOspdb0jyAyeptDrUMQ303i8F0hBhB5nksjZ8IvEz5jFizOhm9m
+        CMl7e/5zOz+IN9sMxg4yXQ25LCHyv7Ide+ScT9T5I4i9UhnxBZlr0iBNmGZYAAAAAElFTkSuQmCC
+</value>
+  </data>
+  <data name="pictureBox3.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAL
+        EgAACxIB0t1+/AAAAA50RVh0U29mdHdhcmUARmlnbWGesZZjAAAAvUlEQVQoU5WQwQ3DIAxFM0JH6Agd
+        ISPkEGhUBYcRkDDndoNkg2SDjtBROkJGILIhLXBI1S99ycjvA3ZVFZIKRwm4shWOZT9ThL0Y3CwBF6oP
+        Q3Qrwcl5EYBrTiXigLLfQG+PAwLsxF9SdiaYa7BTyWWKIR76J0xqOnNue6zJ4uYuZZ/FTfpGuNkX5rmI
+        2eH73pBgl0473WmsyVeFJqzXvYlpFRrejBzcs9HmVL6c6rPisBV8ScDHkSPjOfCPN70gmv6JRWNwAAAA
+        AElFTkSuQmCC
+</value>
+  </data>
 </root>

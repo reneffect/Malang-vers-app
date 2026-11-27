@@ -29,6 +29,7 @@ namespace dekstop
             btnPageLast.Click += (s, e) => { currentPage = GetDiscountPageCount(); ApplyDiscountPage(); };
             btnPage1.Click += (s, e) => { currentPage = 1; ApplyDiscountPage(); };
             SetupNilaiValidation();
+            SetupMinimalValidation();
             SetupDataGridView();
             if (cmbTipe.Items.Count > 0) cmbTipe.SelectedIndex = 0;
             dtpMulaiBerlaku = new DateTimePicker { Format = DateTimePickerFormat.Custom, CustomFormat = "dd MMMM yyyy", Font = new System.Drawing.Font("Segoe UI", 9F), Location = new Point(14, 274), Size = new Size(398, 27), Value = DateTime.Today };
@@ -96,7 +97,7 @@ namespace dekstop
                     DateTime mulai = d.DiskonMulaiBerlaku ?? DateTime.MinValue;
                     DateTime akhir = d.DiskonMasaBerlaku ?? DateTime.MaxValue;
                     bool notStarted = mulai > DateTime.Now; bool expired = akhir < DateTime.Now;
-                    string status = !d.DiskonAktif ? "Nonaktif" : expired ? "Kedaluwarsa" : notStarted ? "Terjadwal" : "Aktif";
+                    string status = !d.DiskonAktif || expired ? "Nonaktif" : notStarted ? "Terjadwal" : "Aktif";
                     if (status == "Aktif") activeCount++; if (status == "Terjadwal") scheduledCount++;
                     bool percent = d.DiskonJenis.Contains("%") || d.DiskonJenis.IndexOf("Persen", StringComparison.OrdinalIgnoreCase) >= 0;
                     string nilai = percent ? $"{d.DiskonNilai:0.##}%" : DatabaseService.FormatRupiah(d.DiskonNilai);
@@ -209,7 +210,7 @@ namespace dekstop
             txtNilai.Text = Convert.ToDecimal(row["NilaiRaw"]).ToString("0");
 
             decimal minBeli = Convert.ToDecimal(row["MinTransaksiRaw"]);
-            txtMinBeli.Text = minBeli > 0 ? DatabaseService.FormatRupiah(minBeli) : "Tanpa Min";
+            txtMinBeli.Text = minBeli.ToString("0", CultureInfo.InvariantCulture);
 
             DateTime mulai = Convert.ToDateTime(row["MulaiRaw"]);
             DateTime berlaku = Convert.ToDateTime(row["AkhirRaw"]);
@@ -284,6 +285,25 @@ namespace dekstop
             }
         }
 
+        private void SetupMinimalValidation()
+        {
+            txtMinBeli.Text = "0";
+            txtMinBeli.KeyPress += (sender, e) =>
+            {
+                if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar)) e.Handled = true;
+            };
+            txtMinBeli.TextChanged += (sender, e) =>
+            {
+                string digits = new string((txtMinBeli.Text ?? string.Empty).Where(char.IsDigit).ToArray());
+                if (digits != txtMinBeli.Text)
+                {
+                    int pos = txtMinBeli.SelectionStart;
+                    txtMinBeli.Text = digits;
+                    txtMinBeli.SelectionStart = Math.Min(pos, txtMinBeli.Text.Length);
+                }
+            };
+        }
+
         private decimal ParseDecimalClean(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return 0;
@@ -326,6 +346,11 @@ namespace dekstop
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(txtMinBeli.Text) || !txtMinBeli.Text.All(char.IsDigit))
+            {
+                MessageBox.Show("Minimal pembelian hanya boleh diisi angka (0 jika tanpa minimum).", "Validasi", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtMinBeli.Focus(); return;
+            }
             decimal minBeli = ParseDecimalClean(txtMinBeli.Text);
             DateTime masaBerlaku = dtpMasaBerlaku.Value.Date.Add(dtpJamBerlaku.Value.TimeOfDay);
             if (masaBerlaku <= dtpMulaiBerlaku.Value.Date)
@@ -337,9 +362,10 @@ namespace dekstop
             var model = new DiskonModel
             {
                 DiskonId = kode,
-                DiskonJenis = cmbTipe.SelectedItem?.ToString() ?? "Persentase (%)",
+                // UI label dinormalisasi ke nilai yang diizinkan CHECK constraint CK_diskon_jenis.
+                DiskonJenis = IsPercentDiscountType() ? "Persentase" : "Nominal",
                 DiskonNilai = nilai,
-                DiskonMinimalTransaksi = minBeli > 0 ? (decimal?)minBeli : null,
+                DiskonMinimalTransaksi = minBeli,
                 DiskonMulaiBerlaku = dtpMulaiBerlaku.Value.Date,
                 DiskonMasaBerlaku = masaBerlaku,
                 DiskonAktif = chkAktif.Checked,
@@ -403,7 +429,7 @@ namespace dekstop
             txtKode.Clear();
             if (cmbTipe.Items.Count > 0) cmbTipe.SelectedIndex = 0;
             txtNilai.Clear();
-            txtMinBeli.Text = "Tanpa Min";
+            txtMinBeli.Text = "0";
             DateTime defaultExpiry = DateTime.Now.AddMonths(1).Date.AddHours(23).AddMinutes(59);
             dtpMasaBerlaku.Value = defaultExpiry;
             dtpJamBerlaku.Value = defaultExpiry;

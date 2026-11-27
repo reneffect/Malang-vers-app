@@ -15,6 +15,7 @@ namespace dekstop
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EbookControl));
             this.pnlHeader = new System.Windows.Forms.Panel();
             this.lblBreadcrumb = new System.Windows.Forms.Label();
             this.lblTitle = new System.Windows.Forms.Label();
@@ -78,6 +79,9 @@ namespace dekstop
             this.pnlDialogFooter = new System.Windows.Forms.Panel();
             this.btnBatal = new System.Windows.Forms.Button();
             this.btnSimpanData = new System.Windows.Forms.Button();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.pnlHeader.SuspendLayout();
             this.pnlCard1.SuspendLayout();
             this.pnlCard2.SuspendLayout();
@@ -94,6 +98,9 @@ namespace dekstop
             this.grpPdfConfig.SuspendLayout();
             this.pnlDialogHeader.SuspendLayout();
             this.pnlDialogFooter.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             this.SuspendLayout();
             // 
             // pnlHeader
@@ -129,9 +136,10 @@ namespace dekstop
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(17)))), ((int)(((byte)(24)))), ((int)(((byte)(39)))));
             this.lblTitle.Location = new System.Drawing.Point(15, 25);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(664, 31);
+            this.lblTitle.Size = new System.Drawing.Size(684, 31);
             this.lblTitle.TabIndex = 1;
             this.lblTitle.Text = "Catalog & Vocabulary of Osob Kiwalan (Boso Walikan Malang)";
+            this.lblTitle.UseMnemonic = false;
             // 
             // lblSubtitle
             // 
@@ -150,6 +158,7 @@ namespace dekstop
             this.pnlCard1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlCard1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
             this.pnlCard1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard1.Controls.Add(this.pictureBox1);
             this.pnlCard1.Controls.Add(this.lblCard1Icon);
             this.pnlCard1.Controls.Add(this.lblCard1Title);
             this.pnlCard1.Controls.Add(this.lblCard1Val);
@@ -193,6 +202,7 @@ namespace dekstop
             this.pnlCard2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlCard2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(236)))), ((int)(((byte)(253)))), ((int)(((byte)(245)))));
             this.pnlCard2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard2.Controls.Add(this.pictureBox2);
             this.pnlCard2.Controls.Add(this.lblCard2Icon);
             this.pnlCard2.Controls.Add(this.lblCard2Title);
             this.pnlCard2.Controls.Add(this.lblCard2Val);
@@ -236,6 +246,7 @@ namespace dekstop
             this.pnlCard3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlCard3.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(245)))), ((int)(((byte)(249)))));
             this.pnlCard3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlCard3.Controls.Add(this.pictureBox3);
             this.pnlCard3.Controls.Add(this.lblCard3Icon);
             this.pnlCard3.Controls.Add(this.lblCard3Title);
             this.pnlCard3.Controls.Add(this.lblCard3Val);
@@ -410,6 +421,7 @@ namespace dekstop
             this.lblPageInfo.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.lblPageInfo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
             this.lblPageInfo.Location = new System.Drawing.Point(10, 10);
+            this.lblPageInfo.MaximumSize = new System.Drawing.Size(490, 0);
             this.lblPageInfo.Name = "lblPageInfo";
             this.lblPageInfo.Size = new System.Drawing.Size(298, 19);
             this.lblPageInfo.TabIndex = 0;
@@ -418,32 +430,42 @@ namespace dekstop
             // btnPageFirst
             // 
             this.btnPageFirst.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPageFirst.BackColor = System.Drawing.Color.White;
+            this.btnPageFirst.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPageFirst.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPageFirst.Location = new System.Drawing.Point(511, 6);
+            this.btnPageFirst.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPageFirst.Location = new System.Drawing.Point(473, 6);
             this.btnPageFirst.Name = "btnPageFirst";
-            this.btnPageFirst.Size = new System.Drawing.Size(26, 23);
+            this.btnPageFirst.Size = new System.Drawing.Size(34, 24);
             this.btnPageFirst.TabIndex = 1;
             this.btnPageFirst.Text = "<<";
+            this.btnPageFirst.UseVisualStyleBackColor = false;
             // 
             // btnPagePrev
             // 
             this.btnPagePrev.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPagePrev.BackColor = System.Drawing.Color.White;
+            this.btnPagePrev.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPagePrev.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPagePrev.Location = new System.Drawing.Point(540, 6);
+            this.btnPagePrev.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPagePrev.Location = new System.Drawing.Point(511, 6);
             this.btnPagePrev.Name = "btnPagePrev";
-            this.btnPagePrev.Size = new System.Drawing.Size(24, 23);
+            this.btnPagePrev.Size = new System.Drawing.Size(28, 24);
             this.btnPagePrev.TabIndex = 2;
             this.btnPagePrev.Text = "<";
+            this.btnPagePrev.UseVisualStyleBackColor = false;
             // 
             // btnPage1
             // 
             this.btnPage1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnPage1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.btnPage1.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
             this.btnPage1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnPage1.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.btnPage1.ForeColor = System.Drawing.Color.White;
-            this.btnPage1.Location = new System.Drawing.Point(567, 6);
+            this.btnPage1.Location = new System.Drawing.Point(543, 6);
             this.btnPage1.Name = "btnPage1";
-            this.btnPage1.Size = new System.Drawing.Size(24, 23);
+            this.btnPage1.Size = new System.Drawing.Size(28, 24);
             this.btnPage1.TabIndex = 3;
             this.btnPage1.Text = "1";
             this.btnPage1.UseVisualStyleBackColor = false;
@@ -451,42 +473,58 @@ namespace dekstop
             // btnPage2
             // 
             this.btnPage2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPage2.BackColor = System.Drawing.Color.White;
+            this.btnPage2.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPage2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPage2.Location = new System.Drawing.Point(594, 6);
+            this.btnPage2.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPage2.Location = new System.Drawing.Point(575, 6);
             this.btnPage2.Name = "btnPage2";
-            this.btnPage2.Size = new System.Drawing.Size(24, 23);
+            this.btnPage2.Size = new System.Drawing.Size(28, 24);
             this.btnPage2.TabIndex = 4;
             this.btnPage2.Text = "2";
+            this.btnPage2.UseVisualStyleBackColor = false;
             // 
             // btnPage3
             // 
             this.btnPage3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPage3.BackColor = System.Drawing.Color.White;
+            this.btnPage3.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPage3.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPage3.Location = new System.Drawing.Point(621, 6);
+            this.btnPage3.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPage3.Location = new System.Drawing.Point(607, 6);
             this.btnPage3.Name = "btnPage3";
-            this.btnPage3.Size = new System.Drawing.Size(24, 23);
+            this.btnPage3.Size = new System.Drawing.Size(28, 24);
             this.btnPage3.TabIndex = 5;
             this.btnPage3.Text = "3";
+            this.btnPage3.UseVisualStyleBackColor = false;
             // 
             // btnPageNext
             // 
             this.btnPageNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPageNext.BackColor = System.Drawing.Color.White;
+            this.btnPageNext.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPageNext.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPageNext.Location = new System.Drawing.Point(648, 6);
+            this.btnPageNext.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPageNext.Location = new System.Drawing.Point(639, 6);
             this.btnPageNext.Name = "btnPageNext";
-            this.btnPageNext.Size = new System.Drawing.Size(24, 26);
+            this.btnPageNext.Size = new System.Drawing.Size(28, 24);
             this.btnPageNext.TabIndex = 6;
             this.btnPageNext.Text = ">";
+            this.btnPageNext.UseVisualStyleBackColor = false;
             // 
             // btnPageLast
             // 
             this.btnPageLast.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnPageLast.BackColor = System.Drawing.Color.White;
+            this.btnPageLast.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.btnPageLast.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnPageLast.Location = new System.Drawing.Point(675, 6);
+            this.btnPageLast.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.btnPageLast.Location = new System.Drawing.Point(671, 6);
             this.btnPageLast.Name = "btnPageLast";
-            this.btnPageLast.Size = new System.Drawing.Size(26, 23);
+            this.btnPageLast.Size = new System.Drawing.Size(34, 24);
             this.btnPageLast.TabIndex = 7;
             this.btnPageLast.Text = ">>";
+            this.btnPageLast.UseVisualStyleBackColor = false;
             // 
             // pnlDialog
             // 
@@ -675,17 +713,26 @@ namespace dekstop
             this.txtDesc.Name = "txtDesc";
             this.txtDesc.Size = new System.Drawing.Size(372, 26);
             this.txtDesc.TabIndex = 12;
+            // 
+            // lblAccessStatus
+            // 
             this.lblAccessStatus.AutoSize = true;
             this.lblAccessStatus.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-            this.lblAccessStatus.ForeColor = System.Drawing.Color.FromArgb(30, 41, 59);
+            this.lblAccessStatus.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
             this.lblAccessStatus.Location = new System.Drawing.Point(12, 238);
             this.lblAccessStatus.Name = "lblAccessStatus";
-            this.lblAccessStatus.Size = new System.Drawing.Size(110, 20);
+            this.lblAccessStatus.Size = new System.Drawing.Size(108, 20);
             this.lblAccessStatus.TabIndex = 13;
             this.lblAccessStatus.Text = "Access Status:";
+            // 
+            // cmbAccessStatus
+            // 
             this.cmbAccessStatus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbAccessStatus.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.cmbAccessStatus.Items.AddRange(new object[] { "Free / Premium", "Premium Only", "Free Trial" });
+            this.cmbAccessStatus.Items.AddRange(new object[] {
+            "Free / Premium",
+            "Premium Only",
+            "Free Trial"});
             this.cmbAccessStatus.Location = new System.Drawing.Point(12, 258);
             this.cmbAccessStatus.Name = "cmbAccessStatus";
             this.cmbAccessStatus.Size = new System.Drawing.Size(372, 28);
@@ -754,15 +801,16 @@ namespace dekstop
             this.lblPdfStatus.TabIndex = 3;
             this.lblPdfStatus.Text = "Ukuran file: - (Belum ada file PDF dipilih)";
             // 
-            // chkEbookAktif - satu-satunya flag status yang tersedia pada ERD
+            // chkEbookAktif
+            // 
             this.chkEbookAktif.AutoSize = true;
             this.chkEbookAktif.Checked = true;
             this.chkEbookAktif.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkEbookAktif.Font = new System.Drawing.Font("Segoe UI", 8.5F);
-            this.chkEbookAktif.ForeColor = System.Drawing.Color.FromArgb(30, 41, 59);
+            this.chkEbookAktif.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
             this.chkEbookAktif.Location = new System.Drawing.Point(12, 102);
             this.chkEbookAktif.Name = "chkEbookAktif";
-            this.chkEbookAktif.Size = new System.Drawing.Size(180, 24);
+            this.chkEbookAktif.Size = new System.Drawing.Size(114, 24);
             this.chkEbookAktif.TabIndex = 4;
             this.chkEbookAktif.Text = "E-Book Aktif";
             // 
@@ -841,6 +889,37 @@ namespace dekstop
             this.btnSimpanData.UseVisualStyleBackColor = false;
             this.btnSimpanData.Click += new System.EventHandler(this.btnSimpanData_Click);
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(4, 3);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(28, 50);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 3;
+            this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
+            this.pictureBox2.Location = new System.Drawing.Point(4, 3);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(28, 50);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox2.TabIndex = 4;
+            this.pictureBox2.TabStop = false;
+            // 
+            // pictureBox3
+            // 
+            this.pictureBox3.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox3.Image")));
+            this.pictureBox3.Location = new System.Drawing.Point(4, 1);
+            this.pictureBox3.Name = "pictureBox3";
+            this.pictureBox3.Size = new System.Drawing.Size(28, 50);
+            this.pictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox3.TabIndex = 5;
+            this.pictureBox3.TabStop = false;
+            // 
             // EbookControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
@@ -875,6 +954,9 @@ namespace dekstop
             this.pnlDialogHeader.ResumeLayout(false);
             this.pnlDialogHeader.PerformLayout();
             this.pnlDialogFooter.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -947,5 +1029,8 @@ namespace dekstop
         private System.Windows.Forms.Panel pnlDialogFooter;
         private System.Windows.Forms.Button btnBatal;
         private System.Windows.Forms.Button btnSimpanData;
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox3;
     }
 }

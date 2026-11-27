@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -21,6 +21,14 @@ namespace dekstop
         public QRISTransactionControl()
         {
             InitializeComponent();
+
+            // Halaman QRIS pada aplikasi Admin bersifat read-only:
+            // hanya untuk memantau transaksi, bukan memverifikasi atau mencetak struk.
+            btnVerifikasi.Visible = false;
+            btnVerifikasi.Enabled = false;
+            btnCetakStruk.Visible = false;
+            btnCetakStruk.Enabled = false;
+
             SetupDataGridView();
 
             if (!DatabaseService.IsDesignMode())
@@ -132,7 +140,7 @@ namespace dekstop
                     DatabaseService.FormatRupiah(p.PembayaranJumlah),
                     displayDate.ToString("dd MMM yyyy HH:mm:ss", IdCulture),
                     statusText,
-                    "Lihat Struk | Cetak",
+                    "Lihat Detail",
                     p
                 );
             }
@@ -267,10 +275,8 @@ namespace dekstop
 
             dgvQris.Refresh();
 
-            if (dgvQris.Columns[e.ColumnIndex].Name == "AKSI" && selectedPayment != null)
-            {
-                OpenOfficialReceipt();
-            }
+            // Klik baris/kolom aksi hanya memilih transaksi untuk ditinjau.
+            // Tidak ada akses cetak struk pada halaman monitoring Admin.
         }
 
         private void BindDetailDialog(PembayaranModel p)
@@ -291,7 +297,6 @@ namespace dekstop
 
                 lblSettlementVal.ForeColor = Color.FromArgb(21, 128, 61);
                 lblSettlementVal.Text = "Sudah Masuk Rekening Penampung (Batch #441)";
-                btnVerifikasi.Visible = false;
             }
             else if (statusDisplay == "Tertunda")
             {
@@ -301,11 +306,10 @@ namespace dekstop
                 lblBannerTitle.ForeColor = Color.FromArgb(180, 83, 9);
                 lblBannerTitle.Text = "MENUNGGU KONFIRMASI / TERTUNDA";
                 lblBannerSubtitle.ForeColor = Color.FromArgb(217, 119, 6);
-                lblBannerSubtitle.Text = "Menunggu verifikasi pembayaran QRIS oleh Admin / Kasir";
+                lblBannerSubtitle.Text = "Menunggu verifikasi pembayaran QRIS oleh Kasir";
 
                 lblSettlementVal.ForeColor = Color.FromArgb(180, 83, 9);
                 lblSettlementVal.Text = "Menunggu Verifikasi & Settlement QRIS";
-                btnVerifikasi.Visible = true;
             }
             else
             {
@@ -319,7 +323,6 @@ namespace dekstop
 
                 lblSettlementVal.ForeColor = Color.FromArgb(185, 28, 28);
                 lblSettlementVal.Text = "Tidak Diproses (Transaksi Ditolak)";
-                btnVerifikasi.Visible = false;
             }
 
             string digitsInPayId = new string((p.PembayaranId ?? "").Where(char.IsDigit).ToArray());
@@ -348,6 +351,13 @@ namespace dekstop
 
             lblBillAmountVal.Text = DatabaseService.FormatRupiah(p.TransaksiGrandtotal);
             lblPaidAmountVal.Text = DatabaseService.FormatRupiah(p.PembayaranJumlah);
+
+            // Admin hanya memantau. Tombol verifikasi tidak pernah ditampilkan
+            // meskipun status pembayaran masih Pending.
+            btnVerifikasi.Visible = false;
+            btnVerifikasi.Enabled = false;
+            btnCetakStruk.Visible = false;
+            btnCetakStruk.Enabled = false;
         }
 
         private void ClearDetailDialog()
@@ -365,40 +375,27 @@ namespace dekstop
             lblPaidAmountVal.Text = "Rp 0";
             lblSettlementVal.Text = "-";
             btnVerifikasi.Visible = false;
+            btnVerifikasi.Enabled = false;
+            btnCetakStruk.Visible = false;
+            btnCetakStruk.Enabled = false;
         }
 
+        // Halaman QRIS Admin bersifat read-only. Tidak ada alur cetak struk
+        // maupun verifikasi dari kontrol ini.
         private void OpenOfficialReceipt()
         {
-            if (selectedPayment == null)
-            {
-                MessageBox.Show("Pilih salah satu transaksi QRIS terlebih dahulu.", "Informasi",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            using (var receiptForm = new ReceiptDetailForm(selectedPayment.TransaksiId))
-            {
-                receiptForm.ShowDialog(FindForm());
-            }
+            MessageBox.Show("Halaman QRIS Admin hanya untuk pemantauan. Pencetakan struk tidak tersedia.",
+                "Akses Tidak Tersedia", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnCetakStruk_Click(object sender, EventArgs e)
         {
-            OpenOfficialReceipt();
+            // Sengaja tidak menjalankan pencetakan untuk role Admin.
         }
 
         private void btnVerifikasi_Click(object sender, EventArgs e)
         {
-            if (selectedPayment == null) return;
-
-            using (var verifyForm = new PaymentDetailForm(selectedPayment))
-            {
-                if (verifyForm.ShowDialog(FindForm()) == DialogResult.OK)
-                {
-                    string kw = txtSearch.Text == SearchPlaceholder ? "" : txtSearch.Text.Trim();
-                    LoadQrisTransactions(kw);
-                }
-            }
+            // Sengaja tidak menjalankan verifikasi untuk role Admin.
         }
 
         private void btnTutup_Click(object sender, EventArgs e)

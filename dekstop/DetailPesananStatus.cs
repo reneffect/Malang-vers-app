@@ -1,70 +1,57 @@
-﻿using System;
+using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace dekstop
 {
     public partial class DetailPesananStatus : UserControl
     {
-        private const string NotePlaceholder = "Tulis catatan jika ada pengembalian atau manual check...";
-
         public DetailPesananStatus()
         {
             InitializeComponent();
-            orderStatusCombo.SelectedIndex = 0;
-            cashierNoteBox.Enter += CashierNoteBox_Enter;
-            cashierNoteBox.Leave += CashierNoteBox_Leave;
-        }
-
-        public int SelectedStatusIndex
-        {
-            get => orderStatusCombo.SelectedIndex;
-            set => orderStatusCombo.SelectedIndex = value;
-        }
-
-        public string CashierNote
-        {
-            get => cashierNoteBox.Text == NotePlaceholder ? string.Empty : cashierNoteBox.Text.Trim();
-            set
-            {
-                cashierNoteBox.Text = string.IsNullOrWhiteSpace(value) ? NotePlaceholder : value;
-                cashierNoteBox.ForeColor = string.IsNullOrWhiteSpace(value)
-                    ? Color.FromArgb(100, 116, 139)
-                    : Color.FromArgb(30, 41, 59);
-            }
+            updateGroupBox.Visible = false;
         }
 
         public void SetOrderDetail(string title, string format, string paymentMethod, string total)
         {
             itemTitleValue.Text = string.IsNullOrWhiteSpace(title) ? "-" : title;
+
+            // Ukur tinggi aktual teks judul agar multi-buku (4+ judul) tidak terpotong di baris terbawah.
+            int availWidth = Math.Max(180, detailGroupBox.ClientSize.Width - 28);
+            itemTitleValue.Width = availWidth;
+            Size measured = TextRenderer.MeasureText(
+                itemTitleValue.Text,
+                itemTitleValue.Font,
+                new Size(availWidth, int.MaxValue),
+                TextFormatFlags.WordBreak | TextFormatFlags.TextBoxControl);
+            itemTitleValue.Height = Math.Max(24, measured.Height + 6);
+
+            formatCaption.Location = new Point(14, itemTitleValue.Bottom + 8);
+            formatValue.Location = new Point(14, formatCaption.Bottom + 1);
+            formatValue.Height = 22;
+            formatValue.Width = Math.Max(110, (detailGroupBox.ClientSize.Width - 42) / 2);
+
+            methodCaption.Location = new Point(formatValue.Right + 12, formatCaption.Top);
+            methodValue.Location = new Point(methodCaption.Left, formatValue.Top);
+            methodValue.Height = 22;
+            methodValue.Width = Math.Max(100, detailGroupBox.ClientSize.Width - methodValue.Left - 18);
+
+            totalBillBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            totalBillBox.Location = new Point(14, formatValue.Bottom + 8);
+            totalBillBox.Width = detailGroupBox.ClientSize.Width - 28;
+            totalBillBox.Height = 27;
+            totalBillCaption.Location = new Point(6, 5);
+            totalBillValue.Location = new Point(Math.Max(90, totalBillBox.Width - 180), 4);
+            totalBillValue.Width = 174;
+
+            detailGroupBox.Height = totalBillBox.Bottom + 14;
             formatValue.Text = string.IsNullOrWhiteSpace(format) ? "-" : format;
             methodValue.Text = string.IsNullOrWhiteSpace(paymentMethod) ? "QRIS" : paymentMethod;
             totalBillValue.Text = string.IsNullOrWhiteSpace(total) ? "Rp 0" : total;
+
+            Height = detailGroupBox.Bottom + 6;
         }
 
-        public void SetStatusFromText(string status)
-        {
-            if (string.Equals(status, "Success", StringComparison.OrdinalIgnoreCase))
-                SelectedStatusIndex = 1;
-            else if (string.Equals(status, "Canceled", StringComparison.OrdinalIgnoreCase))
-                SelectedStatusIndex = 2;
-            else
-                SelectedStatusIndex = 0;
-        }
-
-        private void CashierNoteBox_Enter(object sender, EventArgs e)
-        {
-            if (cashierNoteBox.Text == NotePlaceholder)
-            {
-                cashierNoteBox.Text = string.Empty;
-                cashierNoteBox.ForeColor = Color.FromArgb(30, 41, 59);
-            }
-        }
-
-        private void CashierNoteBox_Leave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(cashierNoteBox.Text))
-                CashierNote = string.Empty;
-        }
     }
 }

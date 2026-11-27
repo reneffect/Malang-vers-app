@@ -17,7 +17,21 @@ namespace dekstop
         {
             role = string.IsNullOrWhiteSpace(userRole) ? "Admin" : userRole;
             InitializeComponent();
+            AttachSidebarIcon(pictureBox2, navTransactionBtn);
+            AttachSidebarIcon(pictureBox3, navManagePaymentsBtn);
+            AttachSidebarIcon(pictureBox4, navReceiptsBtn);
             ConfigureRoleNavigation();
+        }
+
+        private static void AttachSidebarIcon(PictureBox icon, Button button)
+        {
+            if (icon == null || button == null) return;
+            icon.Parent = button;
+            icon.BackColor = Color.Transparent;
+            icon.Size = new Size(22, 22);
+            icon.Location = new Point(24, Math.Max(0, (button.Height - icon.Height) / 2));
+            icon.Cursor = Cursors.Hand;
+            icon.Click += (s, e) => button.PerformClick();
         }
 
         private bool IsDesignTime()

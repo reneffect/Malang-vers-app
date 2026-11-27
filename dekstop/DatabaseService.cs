@@ -207,10 +207,11 @@ namespace dekstop
         public static decimal GetVerifiedQrisTotal()
         {
             const string sql = @"
-        SELECT ISNULL(SUM([pembayaran_jumlah]), 0)
-        FROM [pembayaran]
-        WHERE [pembayaran_metode] = 'QRIS'
-          AND [pembayaran_status] IN ('Verified', 'Success')";
+        SELECT ISNULL(SUM(t.[transaksi_grandtotal]), 0)
+        FROM [pembayaran] p
+        INNER JOIN [transaksi] t ON t.[transaksi_id] = p.[transaksi_id]
+        WHERE p.[pembayaran_metode] = 'QRIS'
+          AND t.[transaksi_status] = 'Success'";
             using (SqlConnection conn = GetConnection())
             using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
@@ -294,8 +295,18 @@ namespace dekstop
 
         #region Diskon CRUD
 
+        public static void DeactivateExpiredDiscounts()
+        {
+            const string sql = @"UPDATE dbo.diskon SET diskon_aktif = 0
+                WHERE diskon_aktif = 1 AND diskon_masa_berlaku IS NOT NULL AND diskon_masa_berlaku < SYSDATETIME()";
+            using (SqlConnection conn = GetConnection()) using (SqlCommand cmd = new SqlCommand(sql, conn))
+            { conn.Open(); cmd.ExecuteNonQuery(); }
+        }
+
         public static List<DiskonModel> GetDiskons(string keyword = "")
         {
+            // Deaktivasi otomatis berlaku untuk Admin maupun Kasir saat daftar voucher dibaca.
+            DeactivateExpiredDiscounts();
             var list=new List<DiskonModel>();
             const string sql=@"SELECT diskon_id,diskon_jenis,diskon_nilai,diskon_minimal_transaksi,diskon_mulai_berlaku,diskon_masa_berlaku,diskon_aktif,diskon_catatan
                 FROM dbo.diskon WHERE (@kw='' OR diskon_id LIKE @likeKw OR diskon_jenis LIKE @likeKw OR ISNULL(diskon_catatan,'') LIKE @likeKw)
@@ -363,7 +374,13 @@ namespace dekstop
             if(name.Length>100) name=name.Substring(0,100); if(phone.Length>20) phone=phone.Substring(0,20);
             const string find=@"SELECT TOP 1 pelanggan_id FROM dbo.pelanggan WHERE pelanggan_nama=@nama AND ISNULL(pelanggan_no_whatsapp,'')=@phone";
             using(SqlCommand c=new SqlCommand(find,conn,tx)){c.Parameters.Add("@nama",SqlDbType.VarChar,100).Value=name;c.Parameters.Add("@phone",SqlDbType.VarChar,20).Value=phone;object v=c.ExecuteScalar();if(v!=null&&v!=DBNull.Value)return v.ToString();}
-            string id=GenerateNextId(conn,tx,"pelanggan","pelanggan_id","PLG-",3);
+            // IDs lama memiliki format campuran (PLG-002 dan PLG-000001).
+            // Ambil angka maksimum dari seluruh ID PLG agar tidak membuat duplicate key.
+            int maxNo = 0;
+            using (SqlCommand c = new SqlCommand(@"SELECT ISNULL(MAX(TRY_CONVERT(INT, SUBSTRING(pelanggan_id, 5, 20))),0)
+                FROM dbo.pelanggan WITH (UPDLOCK, HOLDLOCK) WHERE pelanggan_id LIKE 'PLG-%'", conn, tx))
+                maxNo = Convert.ToInt32(c.ExecuteScalar());
+            string id = "PLG-" + (maxNo + 1).ToString("D6");
             using(SqlCommand c=new SqlCommand("INSERT INTO dbo.pelanggan(pelanggan_id,pelanggan_nama,pelanggan_no_whatsapp) VALUES(@id,@nama,@phone)",conn,tx)){
                 c.Parameters.Add("@id",SqlDbType.VarChar,10).Value=id;c.Parameters.Add("@nama",SqlDbType.VarChar,100).Value=name;c.Parameters.Add("@phone",SqlDbType.VarChar,20).Value=string.IsNullOrWhiteSpace(phone)?(object)DBNull.Value:phone;c.ExecuteNonQuery();}
             return id;
@@ -452,10 +469,10 @@ namespace dekstop
                         const string insPay = @"
                             INSERT INTO [pembayaran] (
                                 [pembayaran_id], [transaksi_id], [pembayaran_metode],
-                                [pembayaran_tanggal], [pembayaran_jumlah], [pembayaran_status], [pembayaran_referensi]
+                                [pembayaran_tanggal], [pembayaran_referensi]
                             ) VALUES (
                                 @payId, @trxId, @metode,
-                                NULL, @jumlah, 'Pending', @ref
+                                NULL, @ref
                             )";
 
                         using (SqlCommand pCmd = new SqlCommand(insPay, conn, tx))
@@ -463,9 +480,6 @@ namespace dekstop
                             pCmd.Parameters.Add("@payId", SqlDbType.VarChar, 15).Value = pembayaranId;
                             pCmd.Parameters.Add("@trxId", SqlDbType.VarChar, 15).Value = transaksiId;
                             pCmd.Parameters.Add("@metode", SqlDbType.VarChar, 20).Value = "QRIS";
-
-                            SqlParameter pJml = pCmd.Parameters.Add("@jumlah", SqlDbType.Decimal);
-                            pJml.Precision = 18; pJml.Scale = 2; pJml.Value = grandTotal;
 
                             string refText = string.IsNullOrWhiteSpace(customerPhone)
                                 ? null
@@ -502,19 +516,21 @@ namespace dekstop
                     t.[transaksi_diskon],
                     t.[transaksi_grandtotal],
                     t.[transaksi_status],
-                    ISNULL((
-                        SELECT TOP 1 e.[ebook_judul] +
-                            CASE WHEN (SELECT COUNT(*) FROM [transaksi_detail] td2 WHERE td2.[transaksi_id] = t.[transaksi_id]) > 1
-                                 THEN ' (+' + CAST((SELECT COUNT(*) - 1 FROM [transaksi_detail] td3 WHERE td3.[transaksi_id] = t.[transaksi_id]) AS varchar(10)) + ' item)'
-                                 ELSE '' END
+                    ISNULL(STUFF((
+                        SELECT CHAR(10) + e.[ebook_judul]
                         FROM [transaksi_detail] td
                         INNER JOIN [ebook] e ON e.[ebook_id] = td.[ebook_id]
                         WHERE td.[transaksi_id] = t.[transaksi_id]
                         ORDER BY td.[detail_id] ASC
-                    ), '-') AS [judul_ringkas],
+                        FOR XML PATH(''), TYPE
+                    ).value('.', 'nvarchar(max)'), 1, 1, ''), '-') AS [judul_ringkas],
                     p.[pembayaran_id],
                     ISNULL(p.[pembayaran_metode], '-') AS [pembayaran_metode],
-                    ISNULL(p.[pembayaran_status], '-') AS [pembayaran_status],
+                    CASE
+                        WHEN t.[transaksi_status] = 'Success' THEN 'Verified'
+                        WHEN t.[transaksi_status] = 'Canceled' THEN 'Rejected'
+                        ELSE 'Pending'
+                    END AS [pembayaran_status],
                     ISNULL(p.[pembayaran_referensi], '') AS [pembayaran_referensi],
                     p.[pembayaran_tanggal]
                 FROM [transaksi] t
@@ -638,21 +654,19 @@ namespace dekstop
                             updCmd.ExecuteNonQuery();
                         }
 
-                        // Sinkronkan status pembayaran terkait
-                        string payStatus = newStatus.Equals("Success", StringComparison.OrdinalIgnoreCase) ? "Verified"
-                                         : newStatus.Equals("Canceled", StringComparison.OrdinalIgnoreCase) ? "Rejected"
-                                         : "Pending";
-
-                        const string updPay = @"
-                            UPDATE [pembayaran]
-                            SET [pembayaran_status] = @pStatus,
-                                [pembayaran_tanggal] = CASE WHEN @pStatus = 'Verified' AND [pembayaran_tanggal] IS NULL THEN SYSDATETIME() ELSE [pembayaran_tanggal] END
-                            WHERE [transaksi_id] = @id";
-                        using (SqlCommand payCmd = new SqlCommand(updPay, conn, tx))
+                        // Status pembayaran diturunkan dari transaksi_status.
+                        // pembayaran hanya menyimpan metode, tanggal, dan referensi.
+                        if (newStatus.Equals("Success", StringComparison.OrdinalIgnoreCase))
                         {
-                            payCmd.Parameters.Add("@pStatus", SqlDbType.VarChar, 20).Value = payStatus;
-                            payCmd.Parameters.Add("@id", SqlDbType.VarChar, 15).Value = transaksiId;
-                            payCmd.ExecuteNonQuery();
+                            const string stampPayment = @"
+                                UPDATE [pembayaran]
+                                SET [pembayaran_tanggal] = ISNULL([pembayaran_tanggal], SYSDATETIME())
+                                WHERE [transaksi_id] = @id";
+                            using (SqlCommand payCmd = new SqlCommand(stampPayment, conn, tx))
+                            {
+                                payCmd.Parameters.Add("@id", SqlDbType.VarChar, 15).Value = transaksiId;
+                                payCmd.ExecuteNonQuery();
+                            }
                         }
 
                         tx.Commit();
@@ -680,8 +694,11 @@ namespace dekstop
                     t.[transaksi_status],
                     p.[pembayaran_metode],
                     p.[pembayaran_tanggal],
-                    p.[pembayaran_jumlah],
-                    p.[pembayaran_status],
+                    CASE
+                        WHEN t.[transaksi_status] = 'Success' THEN 'Verified'
+                        WHEN t.[transaksi_status] = 'Canceled' THEN 'Rejected'
+                        ELSE 'Pending'
+                    END AS [pembayaran_status],
                     ISNULL(p.[pembayaran_referensi], '') AS [pembayaran_referensi],
                     ISNULL((
                         SELECT TOP 1 e.[ebook_id]
@@ -697,13 +714,14 @@ namespace dekstop
                         WHERE td.[transaksi_id] = t.[transaksi_id]
                         ORDER BY td.[detail_id] ASC
                     ), '-') AS [ebook_status_akses],
-                    ISNULL((
-                        SELECT TOP 1 e.[ebook_judul]
+                    ISNULL(STUFF((
+                        SELECT CHAR(10) + e.[ebook_judul]
                         FROM [transaksi_detail] td
                         INNER JOIN [ebook] e ON e.[ebook_id] = td.[ebook_id]
                         WHERE td.[transaksi_id] = t.[transaksi_id]
                         ORDER BY td.[detail_id] ASC
-                    ), '-') AS [judul_ringkas]
+                        FOR XML PATH(''), TYPE
+                    ).value('.', 'nvarchar(max)'), 1, 1, ''), '-') AS [judul_ringkas]
                 FROM [pembayaran] p
                 INNER JOIN [transaksi] t ON t.[transaksi_id] = p.[transaksi_id]
                 INNER JOIN [pelanggan] c ON c.[pelanggan_id] = t.[pelanggan_id]
@@ -741,7 +759,7 @@ namespace dekstop
                             EbookStatusAkses = r["ebook_status_akses"].ToString(),
                             PembayaranMetode = r["pembayaran_metode"].ToString(),
                             PembayaranTanggal = r["pembayaran_tanggal"] == DBNull.Value ? (DateTime?)null : Convert.ToDateTime(r["pembayaran_tanggal"]),
-                            PembayaranJumlah = Convert.ToDecimal(r["pembayaran_jumlah"]),
+                            PembayaranJumlah = Convert.ToDecimal(r["transaksi_grandtotal"]),
                             TransaksiGrandtotal = Convert.ToDecimal(r["transaksi_grandtotal"]),
                             PembayaranStatus = r["pembayaran_status"].ToString(),
                             PembayaranReferensi = r["pembayaran_referensi"].ToString(),
@@ -762,46 +780,39 @@ namespace dekstop
                 {
                     try
                     {
-                        string newPayStatus = approve ? "Verified" : "Rejected";
                         string newTrxStatus = approve ? "Success" : "Canceled";
 
+                        // transaksi_status adalah satu-satunya sumber status verifikasi.
+                        const string updTrx = @"
+                            UPDATE [transaksi]
+                            SET [transaksi_status] = @status
+                            WHERE [transaksi_id] = @trxId
+                              AND [transaksi_status] NOT IN ('Success', 'Canceled')";
+                        using (SqlCommand tCmd = new SqlCommand(updTrx, conn, tx))
+                        {
+                            tCmd.Parameters.Add("@status", SqlDbType.VarChar, 20).Value = newTrxStatus;
+                            tCmd.Parameters.Add("@trxId", SqlDbType.VarChar, 15).Value = transaksiId;
+                            int affected = tCmd.ExecuteNonQuery();
+                            if (affected != 1)
+                                throw new InvalidOperationException("Transaksi ini sudah diproses atau tidak lagi menunggu verifikasi. Muat ulang daftar pembayaran.");
+                        }
+
+                        // pembayaran_tanggal dan pembayaran_referensi tetap merupakan metadata pembayaran.
                         const string updPay = @"
                             UPDATE [pembayaran]
-                            SET [pembayaran_status] = @pStatus,
-                                [pembayaran_tanggal] = ISNULL([pembayaran_tanggal], SYSDATETIME()),
+                            SET [pembayaran_tanggal] = ISNULL([pembayaran_tanggal], SYSDATETIME()),
                                 [pembayaran_referensi] = CASE
                                     WHEN @note <> '' AND ISNULL([pembayaran_referensi], '') = '' THEN LEFT(@note, 100)
                                     ELSE [pembayaran_referensi]
                                 END
-                            WHERE [pembayaran_id] = @pId";
-
-                        using (SqlCommand cmd = new SqlCommand(updPay, conn, tx))
+                            WHERE [pembayaran_id] = @payId
+                              AND [transaksi_id] = @trxId";
+                        using (SqlCommand pCmd = new SqlCommand(updPay, conn, tx))
                         {
-                            cmd.Parameters.Add("@pStatus", SqlDbType.VarChar, 20).Value = newPayStatus;
-                            cmd.Parameters.Add("@note", SqlDbType.VarChar, 100).Value = (auditNoteOrReason ?? string.Empty).Trim();
-                            cmd.Parameters.Add("@pId", SqlDbType.VarChar, 15).Value = pembayaranId;
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        const string selTrx = "SELECT [transaksi_status] FROM [transaksi] WHERE [transaksi_id] = @tId";
-                        using (SqlCommand sCmd = new SqlCommand(selTrx, conn, tx))
-                        {
-                            sCmd.Parameters.Add("@tId", SqlDbType.VarChar, 15).Value = transaksiId;
-                            using (SqlDataReader r = sCmd.ExecuteReader())
-                            {
-                                if (r.Read())
-                                {
-                                    string oldTrxStatus = r["transaksi_status"].ToString();
-                                }
-                            }
-                        }
-
-                        const string updTrx = "UPDATE [transaksi] SET [transaksi_status] = @tStatus WHERE [transaksi_id] = @tId";
-                        using (SqlCommand tCmd = new SqlCommand(updTrx, conn, tx))
-                        {
-                            tCmd.Parameters.Add("@tStatus", SqlDbType.VarChar, 20).Value = newTrxStatus;
-                            tCmd.Parameters.Add("@tId", SqlDbType.VarChar, 15).Value = transaksiId;
-                            tCmd.ExecuteNonQuery();
+                            pCmd.Parameters.Add("@note", SqlDbType.VarChar, 100).Value = (auditNoteOrReason ?? string.Empty).Trim();
+                            pCmd.Parameters.Add("@payId", SqlDbType.VarChar, 15).Value = pembayaranId;
+                            pCmd.Parameters.Add("@trxId", SqlDbType.VarChar, 15).Value = transaksiId;
+                            pCmd.ExecuteNonQuery();
                         }
 
                         tx.Commit();

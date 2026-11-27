@@ -1,4 +1,4 @@
-﻿namespace dekstop
+namespace dekstop
 {
     partial class TransactionControl
     {
@@ -160,7 +160,15 @@
             this.customerNameTextBox = new System.Windows.Forms.TextBox();
             this.customerNameCaption = new System.Windows.Forms.Label();
             this.rightBodyPanel = new System.Windows.Forms.Panel();
-            this.detailPesananStatusControl = new global::dekstop.DetailPesananStatus();
+            this.detailPesananStatusControl = new dekstop.DetailPesananStatus();
+            this.rightFooterPanel = new System.Windows.Forms.Panel();
+            this.saveTransactionBtn = new System.Windows.Forms.Button();
+            this.cancelInputBtn = new System.Windows.Forms.Button();
+            this.saveButton = new System.Windows.Forms.Button();
+            this.cancelButton = new System.Windows.Forms.Button();
+            this.rightHeaderPanel = new System.Windows.Forms.Panel();
+            this.selectedIdBadge = new System.Windows.Forms.Label();
+            this.rightHeaderTitle = new System.Windows.Forms.Label();
             this.infoNoticePanel = new System.Windows.Forms.Panel();
             this.infoNoticeLabel = new System.Windows.Forms.Label();
             this.updateGroupBox = new System.Windows.Forms.GroupBox();
@@ -178,14 +186,6 @@
             this.formatCaption = new System.Windows.Forms.Label();
             this.itemTitleValue = new System.Windows.Forms.Label();
             this.itemTitleCaption = new System.Windows.Forms.Label();
-            this.rightFooterPanel = new System.Windows.Forms.Panel();
-            this.saveTransactionBtn = new System.Windows.Forms.Button();
-            this.cancelInputBtn = new System.Windows.Forms.Button();
-            this.saveButton = new System.Windows.Forms.Button();
-            this.cancelButton = new System.Windows.Forms.Button();
-            this.rightHeaderPanel = new System.Windows.Forms.Panel();
-            this.selectedIdBadge = new System.Windows.Forms.Label();
-            this.rightHeaderTitle = new System.Windows.Forms.Label();
             this.headerPanel.SuspendLayout();
             this.filterPanel.SuspendLayout();
             this.bodyLayout.SuspendLayout();
@@ -201,12 +201,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.cartGrid)).BeginInit();
             this.memberGroupBox.SuspendLayout();
             this.rightBodyPanel.SuspendLayout();
+            this.rightFooterPanel.SuspendLayout();
+            this.rightHeaderPanel.SuspendLayout();
             this.infoNoticePanel.SuspendLayout();
             this.updateGroupBox.SuspendLayout();
             this.detailGroupBox.SuspendLayout();
             this.totalBillBox.SuspendLayout();
-            this.rightFooterPanel.SuspendLayout();
-            this.rightHeaderPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // headerPanel
@@ -409,7 +409,7 @@
             // 
             // colTitle
             // 
-            this.colTitle.FillWeight = 135F;
+            this.colTitle.FillWeight = 190F;
             this.colTitle.HeaderText = "Judul E-Book (Kamus)";
             this.colTitle.MinimumWidth = 6;
             this.colTitle.Name = "colTitle";
@@ -447,10 +447,10 @@
             // 
             // colAction
             // 
-            this.colAction.FillWeight = 83F;
+            this.colAction.FillWeight = 115F;
             this.colAction.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.colAction.HeaderText = "Aksi";
-            this.colAction.MinimumWidth = 6;
+            this.colAction.MinimumWidth = 110;
             this.colAction.Name = "colAction";
             this.colAction.ReadOnly = true;
             // 
@@ -482,14 +482,14 @@
             this.totalPageValueLabel.Name = "totalPageValueLabel";
             this.totalPageValueLabel.Size = new System.Drawing.Size(277, 17);
             this.totalPageValueLabel.TabIndex = 5;
-            this.totalPageValueLabel.Text = "Total Nilai Halaman Ini: Rp 365.000";
+            this.totalPageValueLabel.Text = "Total Pendapatan: Rp 365.000";
             // 
             // lastPageBtn
             // 
             this.lastPageBtn.BackColor = System.Drawing.Color.White;
             this.lastPageBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.lastPageBtn.Font = new System.Drawing.Font("Segoe UI", 7.5F);
-            this.lastPageBtn.Location = new System.Drawing.Point(235, 7);
+            this.lastPageBtn.Location = new System.Drawing.Point(346, 7);
             this.lastPageBtn.Margin = new System.Windows.Forms.Padding(4);
             this.lastPageBtn.Name = "lastPageBtn";
             this.lastPageBtn.Size = new System.Drawing.Size(32, 27);
@@ -502,7 +502,7 @@
             this.nextPageBtn.BackColor = System.Drawing.Color.White;
             this.nextPageBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.nextPageBtn.Font = new System.Drawing.Font("Segoe UI", 7.5F);
-            this.nextPageBtn.Location = new System.Drawing.Point(200, 7);
+            this.nextPageBtn.Location = new System.Drawing.Point(310, 7);
             this.nextPageBtn.Margin = new System.Windows.Forms.Padding(4);
             this.nextPageBtn.Name = "nextPageBtn";
             this.nextPageBtn.Size = new System.Drawing.Size(32, 27);
@@ -515,9 +515,10 @@
             this.pageInfoLabel.AutoSize = true;
             this.pageInfoLabel.Font = new System.Drawing.Font("Georgia", 8F);
             this.pageInfoLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(71)))), ((int)(((byte)(85)))), ((int)(((byte)(105)))));
-            this.pageInfoLabel.Location = new System.Drawing.Point(83, 12);
+            this.pageInfoLabel.Location = new System.Drawing.Point(83, 14);
             this.pageInfoLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.pageInfoLabel.Name = "pageInfoLabel";
+            this.pageInfoLabel.MaximumSize = new System.Drawing.Size(220, 0);
             this.pageInfoLabel.Size = new System.Drawing.Size(114, 17);
             this.pageInfoLabel.TabIndex = 2;
             this.pageInfoLabel.Text = "Halaman 1 dari 4";
@@ -566,12 +567,12 @@
             this.countInfoLabel.AutoSize = true;
             this.countInfoLabel.Font = new System.Drawing.Font("Georgia", 8F);
             this.countInfoLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(116)))), ((int)(((byte)(139)))));
-            this.countInfoLabel.Location = new System.Drawing.Point(645, 11);
+            this.countInfoLabel.Location = new System.Drawing.Point(598, 11);
             this.countInfoLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.countInfoLabel.Name = "countInfoLabel";
             this.countInfoLabel.Size = new System.Drawing.Size(261, 17);
             this.countInfoLabel.TabIndex = 1;
-            this.countInfoLabel.Text = "Menampilkan 4 dari 42 transaksi hari ini";
+            this.countInfoLabel.Text = "Menampilkan 4 dari 42 transaksi";
             // 
             // leftCardTitle
             // 
@@ -783,7 +784,7 @@
             dataGridViewCellStyle7.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
             dataGridViewCellStyle7.SelectionBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(238)))), ((int)(((byte)(242)))), ((int)(((byte)(255)))));
             dataGridViewCellStyle7.SelectionForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
-            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            dataGridViewCellStyle7.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.cartGrid.DefaultCellStyle = dataGridViewCellStyle7;
             this.cartGrid.EnableHeadersVisualStyles = false;
             this.cartGrid.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(226)))), ((int)(((byte)(232)))), ((int)(((byte)(240)))));
@@ -793,14 +794,14 @@
             this.cartGrid.ReadOnly = true;
             this.cartGrid.RowHeadersVisible = false;
             this.cartGrid.RowHeadersWidth = 51;
-            this.cartGrid.RowTemplate.Height = 25;
+            this.cartGrid.RowTemplate.Height = 40;
             this.cartGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.cartGrid.Size = new System.Drawing.Size(352, 84);
             this.cartGrid.TabIndex = 10;
             // 
             // colCartBook
             // 
-            this.colCartBook.FillWeight = 135F;
+            this.colCartBook.FillWeight = 200F;
             this.colCartBook.HeaderText = "Judul Buku";
             this.colCartBook.MinimumWidth = 6;
             this.colCartBook.Name = "colCartBook";
@@ -811,7 +812,7 @@
             dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
             dataGridViewCellStyle6.Font = new System.Drawing.Font("Segoe UI", 7.75F, System.Drawing.FontStyle.Bold);
             this.colCartSub.DefaultCellStyle = dataGridViewCellStyle6;
-            this.colCartSub.FillWeight = 78F;
+            this.colCartSub.FillWeight = 70F;
             this.colCartSub.HeaderText = "Subtotal";
             this.colCartSub.MinimumWidth = 6;
             this.colCartSub.Name = "colCartSub";
@@ -819,7 +820,7 @@
             // 
             // colCartDel
             // 
-            this.colCartDel.FillWeight = 34F;
+            this.colCartDel.FillWeight = 30F;
             this.colCartDel.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.colCartDel.HeaderText = "";
             this.colCartDel.MinimumWidth = 6;
@@ -977,11 +978,6 @@
             this.rightBodyPanel.AutoScroll = true;
             this.rightBodyPanel.BackColor = System.Drawing.Color.White;
             this.rightBodyPanel.Controls.Add(this.detailPesananStatusControl);
-            this.detailPesananStatusControl.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.detailPesananStatusControl.Location = new System.Drawing.Point(16, 15);
-            this.detailPesananStatusControl.Name = "detailPesananStatusControl";
-            this.detailPesananStatusControl.Size = new System.Drawing.Size(382, 329);
-            this.detailPesananStatusControl.TabIndex = 3;
             this.rightBodyPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.rightBodyPanel.Location = new System.Drawing.Point(0, 44);
             this.rightBodyPanel.Margin = new System.Windows.Forms.Padding(4);
@@ -990,6 +986,142 @@
             this.rightBodyPanel.Size = new System.Drawing.Size(435, 359);
             this.rightBodyPanel.TabIndex = 1;
             this.rightBodyPanel.Visible = false;
+            // 
+            // detailPesananStatusControl
+            // 
+            this.detailPesananStatusControl.AutoScroll = true;
+            this.detailPesananStatusControl.BackColor = System.Drawing.Color.White;
+            this.detailPesananStatusControl.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.detailPesananStatusControl.Location = new System.Drawing.Point(16, 15);
+            this.detailPesananStatusControl.Name = "detailPesananStatusControl";
+            this.detailPesananStatusControl.Size = new System.Drawing.Size(403, 329);
+            this.detailPesananStatusControl.TabIndex = 3;
+            // 
+            // rightFooterPanel
+            // 
+            this.rightFooterPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
+            this.rightFooterPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.rightFooterPanel.Controls.Add(this.saveTransactionBtn);
+            this.rightFooterPanel.Controls.Add(this.cancelInputBtn);
+            this.rightFooterPanel.Controls.Add(this.saveButton);
+            this.rightFooterPanel.Controls.Add(this.cancelButton);
+            this.rightFooterPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.rightFooterPanel.Location = new System.Drawing.Point(0, 403);
+            this.rightFooterPanel.Margin = new System.Windows.Forms.Padding(4);
+            this.rightFooterPanel.Name = "rightFooterPanel";
+            this.rightFooterPanel.Size = new System.Drawing.Size(435, 59);
+            this.rightFooterPanel.TabIndex = 2;
+            // 
+            // saveTransactionBtn
+            // 
+            this.saveTransactionBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.saveTransactionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(29)))), ((int)(((byte)(78)))), ((int)(((byte)(216)))));
+            this.saveTransactionBtn.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.saveTransactionBtn.FlatAppearance.BorderSize = 0;
+            this.saveTransactionBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.saveTransactionBtn.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+            this.saveTransactionBtn.ForeColor = System.Drawing.Color.White;
+            this.saveTransactionBtn.Location = new System.Drawing.Point(254, 10);
+            this.saveTransactionBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.saveTransactionBtn.Name = "saveTransactionBtn";
+            this.saveTransactionBtn.Size = new System.Drawing.Size(165, 39);
+            this.saveTransactionBtn.TabIndex = 3;
+            this.saveTransactionBtn.Text = "Simpan Transaksi";
+            this.saveTransactionBtn.UseVisualStyleBackColor = false;
+            this.saveTransactionBtn.Click += new System.EventHandler(this.SaveTransactionBtn_Click);
+            // 
+            // cancelInputBtn
+            // 
+            this.cancelInputBtn.BackColor = System.Drawing.Color.White;
+            this.cancelInputBtn.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.cancelInputBtn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
+            this.cancelInputBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cancelInputBtn.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+            this.cancelInputBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.cancelInputBtn.Location = new System.Drawing.Point(16, 10);
+            this.cancelInputBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.cancelInputBtn.Name = "cancelInputBtn";
+            this.cancelInputBtn.Size = new System.Drawing.Size(77, 39);
+            this.cancelInputBtn.TabIndex = 2;
+            this.cancelInputBtn.Text = "Batal";
+            this.cancelInputBtn.UseVisualStyleBackColor = false;
+            this.cancelInputBtn.Click += new System.EventHandler(this.CancelInputBtn_Click);
+            // 
+            // saveButton
+            // 
+            this.saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.saveButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.saveButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.saveButton.FlatAppearance.BorderSize = 0;
+            this.saveButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.saveButton.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+            this.saveButton.ForeColor = System.Drawing.Color.White;
+            this.saveButton.Location = new System.Drawing.Point(230, 10);
+            this.saveButton.Margin = new System.Windows.Forms.Padding(4);
+            this.saveButton.Name = "saveButton";
+            this.saveButton.Size = new System.Drawing.Size(189, 39);
+            this.saveButton.TabIndex = 1;
+            this.saveButton.Text = "💾  Simpan Perubahan";
+            this.saveButton.UseVisualStyleBackColor = false;
+            this.saveButton.Visible = false;
+            // 
+            // cancelButton
+            // 
+            this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.cancelButton.BackColor = System.Drawing.Color.White;
+            this.cancelButton.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.cancelButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
+            this.cancelButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cancelButton.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
+            this.cancelButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
+            this.cancelButton.Location = new System.Drawing.Point(142, 10);
+            this.cancelButton.Margin = new System.Windows.Forms.Padding(4);
+            this.cancelButton.Name = "cancelButton";
+            this.cancelButton.Size = new System.Drawing.Size(77, 39);
+            this.cancelButton.TabIndex = 0;
+            this.cancelButton.Text = "Batal";
+            this.cancelButton.UseVisualStyleBackColor = false;
+            this.cancelButton.Visible = false;
+            this.cancelButton.Click += new System.EventHandler(this.CancelButton_Click);
+            // 
+            // rightHeaderPanel
+            // 
+            this.rightHeaderPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
+            this.rightHeaderPanel.Controls.Add(this.selectedIdBadge);
+            this.rightHeaderPanel.Controls.Add(this.rightHeaderTitle);
+            this.rightHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.rightHeaderPanel.Location = new System.Drawing.Point(0, 0);
+            this.rightHeaderPanel.Margin = new System.Windows.Forms.Padding(4);
+            this.rightHeaderPanel.Name = "rightHeaderPanel";
+            this.rightHeaderPanel.Size = new System.Drawing.Size(435, 44);
+            this.rightHeaderPanel.TabIndex = 0;
+            // 
+            // selectedIdBadge
+            // 
+            this.selectedIdBadge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.selectedIdBadge.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
+            this.selectedIdBadge.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
+            this.selectedIdBadge.ForeColor = System.Drawing.Color.White;
+            this.selectedIdBadge.Location = new System.Drawing.Point(309, 10);
+            this.selectedIdBadge.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.selectedIdBadge.Name = "selectedIdBadge";
+            this.selectedIdBadge.Size = new System.Drawing.Size(112, 25);
+            this.selectedIdBadge.TabIndex = 1;
+            this.selectedIdBadge.Text = "ORD-2026-0891";
+            this.selectedIdBadge.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.selectedIdBadge.Visible = false;
+            // 
+            // rightHeaderTitle
+            // 
+            this.rightHeaderTitle.AutoSize = true;
+            this.rightHeaderTitle.Font = new System.Drawing.Font("Georgia", 9F, System.Drawing.FontStyle.Bold);
+            this.rightHeaderTitle.ForeColor = System.Drawing.Color.White;
+            this.rightHeaderTitle.Location = new System.Drawing.Point(16, 12);
+            this.rightHeaderTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.rightHeaderTitle.Name = "rightHeaderTitle";
+            this.rightHeaderTitle.Size = new System.Drawing.Size(208, 18);
+            this.rightHeaderTitle.TabIndex = 0;
+            this.rightHeaderTitle.Text = "Form Input Pesanan Baru";
             // 
             // infoNoticePanel
             // 
@@ -1228,133 +1360,6 @@
             this.itemTitleCaption.TabIndex = 0;
             this.itemTitleCaption.Text = "Judul Item:";
             // 
-            // rightFooterPanel
-            // 
-            this.rightFooterPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(250)))), ((int)(((byte)(252)))));
-            this.rightFooterPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.rightFooterPanel.Controls.Add(this.saveTransactionBtn);
-            this.rightFooterPanel.Controls.Add(this.cancelInputBtn);
-            this.rightFooterPanel.Controls.Add(this.saveButton);
-            this.rightFooterPanel.Controls.Add(this.cancelButton);
-            this.rightFooterPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.rightFooterPanel.Location = new System.Drawing.Point(0, 403);
-            this.rightFooterPanel.Margin = new System.Windows.Forms.Padding(4);
-            this.rightFooterPanel.Name = "rightFooterPanel";
-            this.rightFooterPanel.Size = new System.Drawing.Size(435, 59);
-            this.rightFooterPanel.TabIndex = 2;
-            // 
-            // saveTransactionBtn
-            // 
-            this.saveTransactionBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveTransactionBtn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(29)))), ((int)(((byte)(78)))), ((int)(((byte)(216)))));
-            this.saveTransactionBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.saveTransactionBtn.FlatAppearance.BorderSize = 0;
-            this.saveTransactionBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.saveTransactionBtn.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-            this.saveTransactionBtn.ForeColor = System.Drawing.Color.White;
-            this.saveTransactionBtn.Location = new System.Drawing.Point(254, 10);
-            this.saveTransactionBtn.Margin = new System.Windows.Forms.Padding(4);
-            this.saveTransactionBtn.Name = "saveTransactionBtn";
-            this.saveTransactionBtn.Size = new System.Drawing.Size(165, 39);
-            this.saveTransactionBtn.TabIndex = 3;
-            this.saveTransactionBtn.Text = "Simpan Transaksi";
-            this.saveTransactionBtn.UseVisualStyleBackColor = false;
-            this.saveTransactionBtn.Click += new System.EventHandler(this.SaveTransactionBtn_Click);
-            // 
-            // cancelInputBtn
-            // 
-            this.cancelInputBtn.BackColor = System.Drawing.Color.White;
-            this.cancelInputBtn.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.cancelInputBtn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
-            this.cancelInputBtn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cancelInputBtn.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-            this.cancelInputBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.cancelInputBtn.Location = new System.Drawing.Point(16, 10);
-            this.cancelInputBtn.Margin = new System.Windows.Forms.Padding(4);
-            this.cancelInputBtn.Name = "cancelInputBtn";
-            this.cancelInputBtn.Size = new System.Drawing.Size(77, 39);
-            this.cancelInputBtn.TabIndex = 2;
-            this.cancelInputBtn.Text = "Batal";
-            this.cancelInputBtn.UseVisualStyleBackColor = false;
-            this.cancelInputBtn.Click += new System.EventHandler(this.CancelInputBtn_Click);
-            // 
-            // saveButton
-            // 
-            this.saveButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.saveButton.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
-            this.saveButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.saveButton.FlatAppearance.BorderSize = 0;
-            this.saveButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.saveButton.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-            this.saveButton.ForeColor = System.Drawing.Color.White;
-            this.saveButton.Location = new System.Drawing.Point(230, 10);
-            this.saveButton.Margin = new System.Windows.Forms.Padding(4);
-            this.saveButton.Name = "saveButton";
-            this.saveButton.Size = new System.Drawing.Size(189, 39);
-            this.saveButton.TabIndex = 1;
-            this.saveButton.Text = "💾  Simpan Perubahan";
-            this.saveButton.UseVisualStyleBackColor = false;
-            this.saveButton.Visible = false;
-            this.saveButton.Click += new System.EventHandler(this.SaveButton_Click);
-            // 
-            // cancelButton
-            // 
-            this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.cancelButton.BackColor = System.Drawing.Color.White;
-            this.cancelButton.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.cancelButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
-            this.cancelButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cancelButton.Font = new System.Drawing.Font("Segoe UI", 8.5F, System.Drawing.FontStyle.Bold);
-            this.cancelButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(51)))), ((int)(((byte)(65)))), ((int)(((byte)(85)))));
-            this.cancelButton.Location = new System.Drawing.Point(142, 10);
-            this.cancelButton.Margin = new System.Windows.Forms.Padding(4);
-            this.cancelButton.Name = "cancelButton";
-            this.cancelButton.Size = new System.Drawing.Size(77, 39);
-            this.cancelButton.TabIndex = 0;
-            this.cancelButton.Text = "Batal";
-            this.cancelButton.UseVisualStyleBackColor = false;
-            this.cancelButton.Visible = false;
-            this.cancelButton.Click += new System.EventHandler(this.CancelButton_Click);
-            // 
-            // rightHeaderPanel
-            // 
-            this.rightHeaderPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(41)))), ((int)(((byte)(59)))));
-            this.rightHeaderPanel.Controls.Add(this.selectedIdBadge);
-            this.rightHeaderPanel.Controls.Add(this.rightHeaderTitle);
-            this.rightHeaderPanel.Dock = System.Windows.Forms.DockStyle.Top;
-            this.rightHeaderPanel.Location = new System.Drawing.Point(0, 0);
-            this.rightHeaderPanel.Margin = new System.Windows.Forms.Padding(4);
-            this.rightHeaderPanel.Name = "rightHeaderPanel";
-            this.rightHeaderPanel.Size = new System.Drawing.Size(435, 44);
-            this.rightHeaderPanel.TabIndex = 0;
-            // 
-            // selectedIdBadge
-            // 
-            this.selectedIdBadge.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.selectedIdBadge.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(99)))), ((int)(((byte)(235)))));
-            this.selectedIdBadge.Font = new System.Drawing.Font("Segoe UI", 7.5F, System.Drawing.FontStyle.Bold);
-            this.selectedIdBadge.ForeColor = System.Drawing.Color.White;
-            this.selectedIdBadge.Location = new System.Drawing.Point(309, 10);
-            this.selectedIdBadge.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.selectedIdBadge.Name = "selectedIdBadge";
-            this.selectedIdBadge.Size = new System.Drawing.Size(112, 25);
-            this.selectedIdBadge.TabIndex = 1;
-            this.selectedIdBadge.Text = "ORD-2026-0891";
-            this.selectedIdBadge.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.selectedIdBadge.Visible = false;
-            // 
-            // rightHeaderTitle
-            // 
-            this.rightHeaderTitle.AutoSize = true;
-            this.rightHeaderTitle.Font = new System.Drawing.Font("Georgia", 9F, System.Drawing.FontStyle.Bold);
-            this.rightHeaderTitle.ForeColor = System.Drawing.Color.White;
-            this.rightHeaderTitle.Location = new System.Drawing.Point(16, 12);
-            this.rightHeaderTitle.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.rightHeaderTitle.Name = "rightHeaderTitle";
-            this.rightHeaderTitle.Size = new System.Drawing.Size(208, 18);
-            this.rightHeaderTitle.TabIndex = 0;
-            this.rightHeaderTitle.Text = "Form Input Pesanan Baru";
-            // 
             // TransactionControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -1388,6 +1393,9 @@
             this.memberGroupBox.ResumeLayout(false);
             this.memberGroupBox.PerformLayout();
             this.rightBodyPanel.ResumeLayout(false);
+            this.rightFooterPanel.ResumeLayout(false);
+            this.rightHeaderPanel.ResumeLayout(false);
+            this.rightHeaderPanel.PerformLayout();
             this.infoNoticePanel.ResumeLayout(false);
             this.updateGroupBox.ResumeLayout(false);
             this.updateGroupBox.PerformLayout();
@@ -1395,9 +1403,6 @@
             this.detailGroupBox.PerformLayout();
             this.totalBillBox.ResumeLayout(false);
             this.totalBillBox.PerformLayout();
-            this.rightFooterPanel.ResumeLayout(false);
-            this.rightHeaderPanel.ResumeLayout(false);
-            this.rightHeaderPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }

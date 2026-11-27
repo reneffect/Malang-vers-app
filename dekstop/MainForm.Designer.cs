@@ -36,6 +36,7 @@ namespace dekstop
 
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.sidebarPanel = new System.Windows.Forms.Panel();
             this.menuPanel = new System.Windows.Forms.Panel();
             this.navReceiptsBtn = new System.Windows.Forms.Button();
@@ -55,11 +56,21 @@ namespace dekstop
             this.logoBox = new System.Windows.Forms.Panel();
             this.logoLabel = new System.Windows.Forms.Label();
             this.contentPanel = new System.Windows.Forms.Panel();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.pictureBox2 = new System.Windows.Forms.PictureBox();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.pictureBox3 = new System.Windows.Forms.PictureBox();
+            this.pictureBox4 = new System.Windows.Forms.PictureBox();
             this.sidebarPanel.SuspendLayout();
             this.menuPanel.SuspendLayout();
             this.footerPanel.SuspendLayout();
             this.brandPanel.SuspendLayout();
             this.logoBox.SuspendLayout();
+            this.contentPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).BeginInit();
             this.SuspendLayout();
             // 
             // sidebarPanel
@@ -70,7 +81,7 @@ namespace dekstop
             this.sidebarPanel.Controls.Add(this.brandPanel);
             this.sidebarPanel.Dock = System.Windows.Forms.DockStyle.Left;
             this.sidebarPanel.Location = new System.Drawing.Point(0, 0);
-            this.sidebarPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sidebarPanel.Margin = new System.Windows.Forms.Padding(4);
             this.sidebarPanel.Name = "sidebarPanel";
             this.sidebarPanel.Size = new System.Drawing.Size(304, 935);
             this.sidebarPanel.TabIndex = 0;
@@ -78,6 +89,9 @@ namespace dekstop
             // menuPanel
             // 
             this.menuPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(26)))), ((int)(((byte)(34)))), ((int)(((byte)(45)))));
+            this.menuPanel.Controls.Add(this.pictureBox4);
+            this.menuPanel.Controls.Add(this.pictureBox2);
+            this.menuPanel.Controls.Add(this.pictureBox3);
             this.menuPanel.Controls.Add(this.navReceiptsBtn);
             this.menuPanel.Controls.Add(this.navManagePaymentsBtn);
             this.menuPanel.Controls.Add(this.navTransactionBtn);
@@ -87,7 +101,7 @@ namespace dekstop
             this.menuPanel.Controls.Add(this.navEbookBtn);
             this.menuPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.menuPanel.Location = new System.Drawing.Point(0, 89);
-            this.menuPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.menuPanel.Margin = new System.Windows.Forms.Padding(4);
             this.menuPanel.Name = "menuPanel";
             this.menuPanel.Size = new System.Drawing.Size(304, 780);
             this.menuPanel.TabIndex = 1;
@@ -102,7 +116,7 @@ namespace dekstop
             this.navReceiptsBtn.Font = new System.Drawing.Font("Georgia", 9F);
             this.navReceiptsBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.navReceiptsBtn.Location = new System.Drawing.Point(0, 118);
-            this.navReceiptsBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navReceiptsBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navReceiptsBtn.Name = "navReceiptsBtn";
             this.navReceiptsBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navReceiptsBtn.Size = new System.Drawing.Size(304, 49);
@@ -111,7 +125,6 @@ namespace dekstop
             this.navReceiptsBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navReceiptsBtn.UseVisualStyleBackColor = false;
             this.navReceiptsBtn.Click += new System.EventHandler(this.NavButton_Click);
-            this.navReceiptsBtn.Visible = true;
             // 
             // navManagePaymentsBtn
             // 
@@ -123,7 +136,7 @@ namespace dekstop
             this.navManagePaymentsBtn.Font = new System.Drawing.Font("Georgia", 9F);
             this.navManagePaymentsBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.navManagePaymentsBtn.Location = new System.Drawing.Point(0, 66);
-            this.navManagePaymentsBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navManagePaymentsBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navManagePaymentsBtn.Name = "navManagePaymentsBtn";
             this.navManagePaymentsBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navManagePaymentsBtn.Size = new System.Drawing.Size(304, 49);
@@ -132,7 +145,6 @@ namespace dekstop
             this.navManagePaymentsBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navManagePaymentsBtn.UseVisualStyleBackColor = false;
             this.navManagePaymentsBtn.Click += new System.EventHandler(this.NavButton_Click);
-            this.navManagePaymentsBtn.Visible = true;
             // 
             // navTransactionBtn
             // 
@@ -144,7 +156,7 @@ namespace dekstop
             this.navTransactionBtn.Font = new System.Drawing.Font("Georgia", 9F);
             this.navTransactionBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.navTransactionBtn.Location = new System.Drawing.Point(0, 15);
-            this.navTransactionBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navTransactionBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navTransactionBtn.Name = "navTransactionBtn";
             this.navTransactionBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navTransactionBtn.Size = new System.Drawing.Size(304, 49);
@@ -153,7 +165,6 @@ namespace dekstop
             this.navTransactionBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navTransactionBtn.UseVisualStyleBackColor = false;
             this.navTransactionBtn.Click += new System.EventHandler(this.NavButton_Click);
-            this.navTransactionBtn.Visible = true;
             // 
             // badgeQrisLabel
             // 
@@ -166,8 +177,8 @@ namespace dekstop
             this.badgeQrisLabel.Size = new System.Drawing.Size(64, 22);
             this.badgeQrisLabel.TabIndex = 3;
             this.badgeQrisLabel.Text = "New: 14";
-            this.badgeQrisLabel.Visible = false;
             this.badgeQrisLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.badgeQrisLabel.Visible = false;
             // 
             // navQrisBtn
             // 
@@ -179,7 +190,7 @@ namespace dekstop
             this.navQrisBtn.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.navQrisBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.navQrisBtn.Location = new System.Drawing.Point(0, 118);
-            this.navQrisBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navQrisBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navQrisBtn.Name = "navQrisBtn";
             this.navQrisBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navQrisBtn.Size = new System.Drawing.Size(304, 49);
@@ -187,8 +198,8 @@ namespace dekstop
             this.navQrisBtn.Text = "⊞   QRIS Transaction";
             this.navQrisBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navQrisBtn.UseVisualStyleBackColor = false;
-            this.navQrisBtn.Click += new System.EventHandler(this.NavButton_Click);
             this.navQrisBtn.Visible = false;
+            this.navQrisBtn.Click += new System.EventHandler(this.NavButton_Click);
             // 
             // navDiscountBtn
             // 
@@ -200,7 +211,7 @@ namespace dekstop
             this.navDiscountBtn.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.navDiscountBtn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(203)))), ((int)(((byte)(213)))), ((int)(((byte)(225)))));
             this.navDiscountBtn.Location = new System.Drawing.Point(0, 66);
-            this.navDiscountBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navDiscountBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navDiscountBtn.Name = "navDiscountBtn";
             this.navDiscountBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navDiscountBtn.Size = new System.Drawing.Size(304, 49);
@@ -208,8 +219,8 @@ namespace dekstop
             this.navDiscountBtn.Text = "🏷   Manage Discount";
             this.navDiscountBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navDiscountBtn.UseVisualStyleBackColor = false;
-            this.navDiscountBtn.Click += new System.EventHandler(this.NavButton_Click);
             this.navDiscountBtn.Visible = false;
+            this.navDiscountBtn.Click += new System.EventHandler(this.NavButton_Click);
             // 
             // navEbookBtn
             // 
@@ -220,7 +231,7 @@ namespace dekstop
             this.navEbookBtn.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.navEbookBtn.ForeColor = System.Drawing.Color.White;
             this.navEbookBtn.Location = new System.Drawing.Point(0, 15);
-            this.navEbookBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.navEbookBtn.Margin = new System.Windows.Forms.Padding(4);
             this.navEbookBtn.Name = "navEbookBtn";
             this.navEbookBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navEbookBtn.Size = new System.Drawing.Size(304, 49);
@@ -228,8 +239,8 @@ namespace dekstop
             this.navEbookBtn.Text = "📖   Manage E-Book";
             this.navEbookBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navEbookBtn.UseVisualStyleBackColor = false;
-            this.navEbookBtn.Click += new System.EventHandler(this.NavButton_Click);
             this.navEbookBtn.Visible = false;
+            this.navEbookBtn.Click += new System.EventHandler(this.NavButton_Click);
             // 
             // footerPanel
             // 
@@ -238,7 +249,7 @@ namespace dekstop
             this.footerPanel.Controls.Add(this.footerDivider);
             this.footerPanel.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.footerPanel.Location = new System.Drawing.Point(0, 869);
-            this.footerPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.footerPanel.Margin = new System.Windows.Forms.Padding(4);
             this.footerPanel.Name = "footerPanel";
             this.footerPanel.Size = new System.Drawing.Size(304, 66);
             this.footerPanel.TabIndex = 2;
@@ -254,7 +265,7 @@ namespace dekstop
             this.logoutButton.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.logoutButton.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(148)))), ((int)(((byte)(163)))), ((int)(((byte)(184)))));
             this.logoutButton.Location = new System.Drawing.Point(0, 1);
-            this.logoutButton.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.logoutButton.Margin = new System.Windows.Forms.Padding(4);
             this.logoutButton.Name = "logoutButton";
             this.logoutButton.Padding = new System.Windows.Forms.Padding(24, 0, 16, 0);
             this.logoutButton.Size = new System.Drawing.Size(304, 65);
@@ -269,7 +280,7 @@ namespace dekstop
             this.footerDivider.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(52)))), ((int)(((byte)(68)))));
             this.footerDivider.Dock = System.Windows.Forms.DockStyle.Top;
             this.footerDivider.Location = new System.Drawing.Point(0, 0);
-            this.footerDivider.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.footerDivider.Margin = new System.Windows.Forms.Padding(4);
             this.footerDivider.Name = "footerDivider";
             this.footerDivider.Size = new System.Drawing.Size(304, 1);
             this.footerDivider.TabIndex = 0;
@@ -283,7 +294,7 @@ namespace dekstop
             this.brandPanel.Controls.Add(this.logoBox);
             this.brandPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.brandPanel.Location = new System.Drawing.Point(0, 0);
-            this.brandPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.brandPanel.Margin = new System.Windows.Forms.Padding(4);
             this.brandPanel.Name = "brandPanel";
             this.brandPanel.Size = new System.Drawing.Size(304, 89);
             this.brandPanel.TabIndex = 0;
@@ -293,7 +304,7 @@ namespace dekstop
             this.brandDivider.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(42)))), ((int)(((byte)(52)))), ((int)(((byte)(68)))));
             this.brandDivider.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.brandDivider.Location = new System.Drawing.Point(0, 88);
-            this.brandDivider.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.brandDivider.Margin = new System.Windows.Forms.Padding(4);
             this.brandDivider.Name = "brandDivider";
             this.brandDivider.Size = new System.Drawing.Size(304, 1);
             this.brandDivider.TabIndex = 3;
@@ -306,7 +317,7 @@ namespace dekstop
             this.brandSubtitleLabel.Location = new System.Drawing.Point(83, 48);
             this.brandSubtitleLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.brandSubtitleLabel.Name = "brandSubtitleLabel";
-            this.brandSubtitleLabel.Size = new System.Drawing.Size(90, 19);
+            this.brandSubtitleLabel.Size = new System.Drawing.Size(96, 17);
             this.brandSubtitleLabel.TabIndex = 2;
             this.brandSubtitleLabel.Text = "Terminal POS";
             // 
@@ -318,16 +329,17 @@ namespace dekstop
             this.brandTitleLabel.Location = new System.Drawing.Point(83, 22);
             this.brandTitleLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.brandTitleLabel.Name = "brandTitleLabel";
-            this.brandTitleLabel.Size = new System.Drawing.Size(183, 25);
+            this.brandTitleLabel.Size = new System.Drawing.Size(186, 21);
             this.brandTitleLabel.TabIndex = 1;
             this.brandTitleLabel.Text = "MalangVerse Kasir";
             // 
             // logoBox
             // 
             this.logoBox.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(43)))), ((int)(((byte)(91)))), ((int)(((byte)(226)))));
+            this.logoBox.Controls.Add(this.pictureBox1);
             this.logoBox.Controls.Add(this.logoLabel);
             this.logoBox.Location = new System.Drawing.Point(21, 21);
-            this.logoBox.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.logoBox.Margin = new System.Windows.Forms.Padding(4);
             this.logoBox.Name = "logoBox";
             this.logoBox.Size = new System.Drawing.Size(48, 44);
             this.logoBox.TabIndex = 0;
@@ -342,18 +354,69 @@ namespace dekstop
             this.logoLabel.Name = "logoLabel";
             this.logoLabel.Size = new System.Drawing.Size(48, 44);
             this.logoLabel.TabIndex = 0;
-            this.logoLabel.Text = "▣";
+            this.logoLabel.Text = "M";
             this.logoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // contentPanel
             // 
             this.contentPanel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(246)))), ((int)(((byte)(250)))));
+            this.contentPanel.Controls.Add(this.panel1);
             this.contentPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.contentPanel.Location = new System.Drawing.Point(304, 0);
-            this.contentPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.contentPanel.Margin = new System.Windows.Forms.Padding(4);
             this.contentPanel.Name = "contentPanel";
             this.contentPanel.Size = new System.Drawing.Size(1517, 935);
             this.contentPanel.TabIndex = 1;
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(-21, -6);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(92, 50);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 0;
+            this.pictureBox1.TabStop = false;
+            // 
+            // pictureBox2
+            // 
+            this.pictureBox2.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox2.Image")));
+            this.pictureBox2.Location = new System.Drawing.Point(26, 15);
+            this.pictureBox2.Name = "pictureBox2";
+            this.pictureBox2.Size = new System.Drawing.Size(27, 50);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox2.TabIndex = 0;
+            this.pictureBox2.TabStop = false;
+            // 
+            // panel1
+            // 
+            this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(244)))), ((int)(((byte)(246)))), ((int)(((byte)(250)))));
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(1517, 935);
+            this.panel1.TabIndex = 2;
+            // 
+            // pictureBox3
+            // 
+            this.pictureBox3.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox3.Image")));
+            this.pictureBox3.Location = new System.Drawing.Point(26, 71);
+            this.pictureBox3.Name = "pictureBox3";
+            this.pictureBox3.Size = new System.Drawing.Size(27, 50);
+            this.pictureBox3.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox3.TabIndex = 7;
+            this.pictureBox3.TabStop = false;
+            // 
+            // pictureBox4
+            // 
+            this.pictureBox4.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox4.Image")));
+            this.pictureBox4.Location = new System.Drawing.Point(26, 122);
+            this.pictureBox4.Name = "pictureBox4";
+            this.pictureBox4.Size = new System.Drawing.Size(27, 50);
+            this.pictureBox4.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox4.TabIndex = 8;
+            this.pictureBox4.TabStop = false;
             // 
             // MainForm
             // 
@@ -363,7 +426,7 @@ namespace dekstop
             this.ClientSize = new System.Drawing.Size(1821, 935);
             this.Controls.Add(this.contentPanel);
             this.Controls.Add(this.sidebarPanel);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.MinimumSize = new System.Drawing.Size(1567, 826);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -375,10 +438,21 @@ namespace dekstop
             this.brandPanel.ResumeLayout(false);
             this.brandPanel.PerformLayout();
             this.logoBox.ResumeLayout(false);
+            this.contentPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox4)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
+
+        private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.PictureBox pictureBox3;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.PictureBox pictureBox4;
     }
 }

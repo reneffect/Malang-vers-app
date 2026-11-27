@@ -1,11 +1,11 @@
-namespace dekstop
+﻿namespace dekstop
 {
     partial class MainFormAdmin
     {
         private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.Panel sidebarPanel;
         private System.Windows.Forms.Panel brandPanel;
-        private System.Windows.Forms.Panel logoBox;
+        private System.Windows.Forms.PictureBox logoBox;
         private System.Windows.Forms.Label logoLabel;
         private System.Windows.Forms.Label brandTitleLabel;
         private System.Windows.Forms.Label brandSubtitleLabel;
@@ -52,15 +52,15 @@ namespace dekstop
             this.brandDivider = new System.Windows.Forms.Panel();
             this.brandSubtitleLabel = new System.Windows.Forms.Label();
             this.brandTitleLabel = new System.Windows.Forms.Label();
-            this.logoBox = new System.Windows.Forms.Panel();
+            this.logoBox = new System.Windows.Forms.PictureBox();
             this.logoLabel = new System.Windows.Forms.Label();
             this.contentPanel = new System.Windows.Forms.Panel();
             this.sidebarPanel.SuspendLayout();
             this.menuPanel.SuspendLayout();
             this.footerPanel.SuspendLayout();
             this.brandPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).BeginInit();
             this.logoBox.SuspendLayout();
-            this.contentPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // sidebarPanel
@@ -108,7 +108,7 @@ namespace dekstop
             this.navReceiptsBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navReceiptsBtn.Size = new System.Drawing.Size(304, 49);
             this.navReceiptsBtn.TabIndex = 6;
-            this.navReceiptsBtn.Text = "🧾   Receipts";
+            this.navReceiptsBtn.Text = "🧾   QRIS Transaction";
             this.navReceiptsBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navReceiptsBtn.UseVisualStyleBackColor = false;
             this.navReceiptsBtn.Visible = false;
@@ -129,7 +129,7 @@ namespace dekstop
             this.navManagePaymentsBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navManagePaymentsBtn.Size = new System.Drawing.Size(304, 49);
             this.navManagePaymentsBtn.TabIndex = 5;
-            this.navManagePaymentsBtn.Text = "💳   Manage Payments";
+            this.navManagePaymentsBtn.Text = "💳   Manage Discouunt";
             this.navManagePaymentsBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navManagePaymentsBtn.UseVisualStyleBackColor = false;
             this.navManagePaymentsBtn.Visible = false;
@@ -150,7 +150,7 @@ namespace dekstop
             this.navTransactionBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navTransactionBtn.Size = new System.Drawing.Size(304, 49);
             this.navTransactionBtn.TabIndex = 4;
-            this.navTransactionBtn.Text = "🏧   Transaction";
+            this.navTransactionBtn.Text = "🏧   Manage E-Boook";
             this.navTransactionBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navTransactionBtn.UseVisualStyleBackColor = false;
             this.navTransactionBtn.Visible = false;
@@ -166,7 +166,7 @@ namespace dekstop
             this.badgeQrisLabel.Name = "badgeQrisLabel";
             this.badgeQrisLabel.Size = new System.Drawing.Size(64, 22);
             this.badgeQrisLabel.TabIndex = 3;
-            this.badgeQrisLabel.Text = "New: 14";
+            this.badgeQrisLabel.Text = "0";
             this.badgeQrisLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // navQrisBtn
@@ -184,7 +184,7 @@ namespace dekstop
             this.navQrisBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navQrisBtn.Size = new System.Drawing.Size(304, 49);
             this.navQrisBtn.TabIndex = 2;
-            this.navQrisBtn.Text = "⊞   QRIS Transaction";
+            this.navQrisBtn.Text = "QRIS Transaction";
             this.navQrisBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navQrisBtn.UseVisualStyleBackColor = false;
             this.navQrisBtn.Click += new System.EventHandler(this.NavButton_Click);
@@ -204,7 +204,7 @@ namespace dekstop
             this.navDiscountBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navDiscountBtn.Size = new System.Drawing.Size(304, 49);
             this.navDiscountBtn.TabIndex = 1;
-            this.navDiscountBtn.Text = "🏷   Manage Discount";
+            this.navDiscountBtn.Text = "Manage Discount";
             this.navDiscountBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navDiscountBtn.UseVisualStyleBackColor = false;
             this.navDiscountBtn.Click += new System.EventHandler(this.NavButton_Click);
@@ -223,7 +223,7 @@ namespace dekstop
             this.navEbookBtn.Padding = new System.Windows.Forms.Padding(21, 0, 16, 0);
             this.navEbookBtn.Size = new System.Drawing.Size(304, 49);
             this.navEbookBtn.TabIndex = 0;
-            this.navEbookBtn.Text = "📖   Manage E-Book";
+            this.navEbookBtn.Text = "Manage E-Book";
             this.navEbookBtn.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.navEbookBtn.UseVisualStyleBackColor = false;
             this.navEbookBtn.Click += new System.EventHandler(this.NavButton_Click);
@@ -303,9 +303,9 @@ namespace dekstop
             this.brandSubtitleLabel.Location = new System.Drawing.Point(83, 48);
             this.brandSubtitleLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.brandSubtitleLabel.Name = "brandSubtitleLabel";
-            this.brandSubtitleLabel.Size = new System.Drawing.Size(90, 19);
+            this.brandSubtitleLabel.Size = new System.Drawing.Size(49, 19);
             this.brandSubtitleLabel.TabIndex = 2;
-            this.brandSubtitleLabel.Text = "Boso Walikan";
+            this.brandSubtitleLabel.Text = "Admin";
             // 
             // brandTitleLabel
             // 
@@ -327,10 +327,13 @@ namespace dekstop
             this.logoBox.Margin = new System.Windows.Forms.Padding(4);
             this.logoBox.Name = "logoBox";
             this.logoBox.Size = new System.Drawing.Size(48, 44);
+            this.logoBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.logoBox.TabIndex = 0;
+            this.logoBox.TabStop = false;
             // 
             // logoLabel
             // 
+            this.logoLabel.BackColor = System.Drawing.Color.Transparent;
             this.logoLabel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.logoLabel.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.logoLabel.ForeColor = System.Drawing.Color.White;
@@ -371,8 +374,8 @@ namespace dekstop
             this.footerPanel.ResumeLayout(false);
             this.brandPanel.ResumeLayout(false);
             this.brandPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.logoBox)).EndInit();
             this.logoBox.ResumeLayout(false);
-            this.contentPanel.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }

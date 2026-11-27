@@ -11,6 +11,9 @@ namespace dekstop
         public ManagePaymentsControl()
         {
             InitializeComponent();
+            paymentsGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            paymentsGrid.RowTemplate.MinimumHeight = 48;
+            paymentsGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             searchOrderBox.Text = string.Empty;
             if (!DatabaseService.IsDesignMode())
             {

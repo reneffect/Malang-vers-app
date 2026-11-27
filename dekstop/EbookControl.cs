@@ -28,6 +28,7 @@ namespace dekstop
             btnPage1.Click += (s, e) => { currentPage = 1; ApplyEbookPage(); };
             btnPage2.Click += (s, e) => { currentPage = Math.Min(2, GetEbookPageCount()); ApplyEbookPage(); };
             btnPage3.Click += (s, e) => { currentPage = Math.Min(3, GetEbookPageCount()); ApplyEbookPage(); };
+            pnlPagination.Resize += (s, e) => LayoutPaginationButtons();
             SetupNumericInputs();
             SetupDataGridView();
             if (cmbCategory.Items.Count > 0) cmbCategory.SelectedIndex = 0;
@@ -105,7 +106,7 @@ namespace dekstop
                         $"{eb.EbookTotalEntri:N0} Word",
                         eb.EbookPenulis,
                         DatabaseService.FormatRupiah(eb.EbookHarga),
-                        eb.EbookStatusAkses,
+                        eb.EbookStatusAkses == "Free dan Premium" ? "Free / Premium" : eb.EbookStatusAkses,
                         eb.EbookAktif ? "Aktif" : "Nonaktif",
                         eb.EbookHarga,
                         eb.EbookTotalEntri,
@@ -179,9 +180,9 @@ namespace dekstop
                 string status = e.Value?.ToString() ?? "";
                 e.CellStyle.Font = new Font("Segoe UI", 8F, FontStyle.Bold);
 
-                if (status.Contains("Free / Premium"))
+                if (status.Contains("Free / Premium") || status.Contains("Free dan Premium"))
                 {
-                    e.CellStyle.BackColor = Color.FromArgb(220, 252, 231);
+                    e.CellStyle.BackColor = Color.FromArgb(223, 167, 243);
                     e.CellStyle.ForeColor = Color.FromArgb(22, 101, 52);
                 }
                 else if (status.Contains("Premium"))
@@ -317,7 +318,9 @@ namespace dekstop
 
             decimal harga = ParseDecimalClean(txtPrice.Text);
             int totalEntri = ParseIntClean(txtEntryEst.Text);
-            string statusAkses = cmbAccessStatus.SelectedItem?.ToString() ?? "Free / Premium";
+            string statusAksesUI = cmbAccessStatus.SelectedItem?.ToString() ?? "Free / Premium";
+            // Samakan label UI dengan nilai yang diizinkan CHECK constraint SQL Server.
+            string statusAkses = statusAksesUI == "Free / Premium" ? "Free dan Premium" : statusAksesUI;
             string kategori = cmbCategory.SelectedItem?.ToString() ?? "Umum";
             string catatanBersih = txtDesc.Text.Trim();
 
@@ -408,7 +411,24 @@ namespace dekstop
             btnPage3.Visible = pages > 2;
             btnPageFirst.Enabled = btnPagePrev.Enabled = currentPage > 1;
             btnPageNext.Enabled = btnPageLast.Enabled = currentPage < pages;
+            LayoutPaginationButtons();
             dgvKamus.Refresh();
+        }
+
+        private void LayoutPaginationButtons()
+        {
+            Button[] buttons = { btnPageFirst, btnPagePrev, btnPage1, btnPage2, btnPage3, btnPageNext, btnPageLast };
+            int right = pnlPagination.ClientSize.Width - 10;
+            int y = Math.Max(4, (pnlPagination.ClientSize.Height - btnPageFirst.Height) / 2);
+            const int gap = 4;
+
+            for (int i = buttons.Length - 1; i >= 0; i--)
+            {
+                if (!buttons[i].Visible) continue;
+                right -= buttons[i].Width;
+                buttons[i].Location = new Point(right, y);
+                right -= gap;
+            }
         }
 
         private void UpdatePaginationLabel()
@@ -432,6 +452,11 @@ namespace dekstop
                 txtSearch.Text = SearchPlaceholder;
                 txtSearch.ForeColor = Color.Gray;
             }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

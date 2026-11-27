@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -55,10 +55,13 @@ namespace dekstop
 
             suppressFilter = true;
             statusFilterCombo.SelectedIndex = 0;
-            detailPesananStatusControl.SelectedStatusIndex = 0;
             if (discountSelectCombo.Items.Count > 0) discountSelectCombo.SelectedIndex = 0;
             suppressFilter = false;
 
+            orderGrid.RowTemplate.MinimumHeight = 44;
+            orderGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
+            cartGrid.RowTemplate.MinimumHeight = 32;
+            cartGrid.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders;
             WireEvents();
             SwitchToInputMode();
 
@@ -216,7 +219,8 @@ namespace dekstop
             cancelInputBtn.Visible = false;
             saveTransactionBtn.Visible = false;
             cancelButton.Visible = true;
-            saveButton.Visible = true;
+            saveButton.Visible = false;
+            cancelButton.Location = new Point(Math.Max(8, rightFooterPanel.ClientSize.Width - cancelButton.Width - 16), 10);
 
             PopulateDetailPanel(trx);
             RefreshGridRowHighlights();
@@ -254,8 +258,6 @@ namespace dekstop
                 formatText,
                 methodText,
                 DatabaseService.FormatRupiah(trx.TransaksiGrandtotal));
-            detailPesananStatusControl.SetStatusFromText(trx.TransaksiStatus);
-            detailPesananStatusControl.CashierNote = string.Empty;
         }
 
         private void LoadFormMasterData()
@@ -341,7 +343,30 @@ namespace dekstop
             }
 
             cartCaption.Text = $"Daftar Buku Dipilih ({cartItems.Count} judul):";
+            AdjustCartGridLayout();
             RecalculateInputTotals();
+        }
+
+        private void AdjustCartGridLayout()
+        {
+            int rowsHeight = 0;
+            foreach (DataGridViewRow row in cartGrid.Rows)
+            {
+                rowsHeight += row.Height;
+            }
+
+            int minGridHeight = 64;
+            int targetGridHeight = Math.Max(minGridHeight, cartGrid.ColumnHeadersHeight + rowsHeight + 4);
+
+            cartGrid.Height = targetGridHeight;
+            discountSelectCaption.Top = cartGrid.Bottom + 8;
+            discountSelectCombo.Top = discountSelectCaption.Bottom + 3;
+            finalSubtotalCaption.Top = discountSelectCombo.Bottom + 8;
+            finalSubtotalBox.Top = finalSubtotalCaption.Bottom + 3;
+            ebookInputGroupBox.Height = finalSubtotalBox.Bottom + 12;
+
+            paymentInputGroupBox.Top = ebookInputGroupBox.Bottom + 10;
+            inputBottomSpacer.Top = paymentInputGroupBox.Bottom + 8;
         }
 
         private void CartGrid_CellContentClick(object sender, DataGridViewCellEventArgs e)
@@ -359,8 +384,9 @@ namespace dekstop
             if (e.RowIndex < 0 || e.ColumnIndex != colCartDel.Index) return;
             e.PaintBackground(e.ClipBounds, true);
 
-            Rectangle rect = new Rectangle(e.CellBounds.X + 4, e.CellBounds.Y + 3,
-                Math.Max(18, e.CellBounds.Width - 8), Math.Max(16, e.CellBounds.Height - 6));
+            int btnH = Math.Min(20, Math.Max(16, e.CellBounds.Height - 6));
+            Rectangle rect = new Rectangle(e.CellBounds.X + 4, e.CellBounds.Y + (e.CellBounds.Height - btnH) / 2,
+                Math.Max(18, e.CellBounds.Width - 8), btnH);
             using (SolidBrush bg = new SolidBrush(Color.FromArgb(254, 226, 226)))
             using (Pen border = new Pen(Color.FromArgb(252, 165, 165)))
             {
@@ -479,9 +505,13 @@ namespace dekstop
                 rowNumber++;
             }
 
-            countInfoLabel.Text = $"Menampilkan {pageItems.Count} dari {totalRecords} transaksi hari ini";
+            countInfoLabel.Text = $"Menampilkan {pageItems.Count} dari {totalRecords} transaksi";
+            countInfoLabel.Left = Math.Max(200, leftCardHeader.ClientSize.Width - countInfoLabel.Width - 14);
             pageInfoLabel.Text = $"Halaman {currentPage} dari {totalPages}";
-            totalPageValueLabel.Text = "Total Nilai Halaman Ini: " + DatabaseService.FormatRupiah(pageTotalSum);
+            int nextX = Math.Max(205, pageInfoLabel.Right + 10);
+            nextPageBtn.Location = new Point(nextX, nextPageBtn.Location.Y);
+            lastPageBtn.Location = new Point(nextX + nextPageBtn.Width + 4, lastPageBtn.Location.Y);
+            totalPageValueLabel.Text = "Total Pendapatan: " + DatabaseService.FormatRupiah(pageTotalSum);
 
             RefreshGridRowHighlights();
         }
@@ -554,8 +584,12 @@ namespace dekstop
                     isActive = string.Equals(trx.TransaksiId, activeDetailTransactionId, StringComparison.OrdinalIgnoreCase);
                 }
 
-                Rectangle btnRect = e.CellBounds;
-                btnRect.Inflate(-10, -11);
+                int btnHeight = Math.Min(28, Math.Max(22, e.CellBounds.Height - 10));
+                Rectangle btnRect = new Rectangle(
+                    e.CellBounds.X + 4,
+                    e.CellBounds.Y + (e.CellBounds.Height - btnHeight) / 2,
+                    Math.Max(40, e.CellBounds.Width - 8),
+                    btnHeight);
 
                 Color fill = isActive ? Color.FromArgb(37, 99, 235) : Color.White;
                 Color border = isActive ? Color.FromArgb(29, 78, 216) : Color.FromArgb(203, 213, 225);
@@ -570,7 +604,7 @@ namespace dekstop
 
                 TextRenderer.DrawText(
                     e.Graphics,
-                    "👁  Lihat Detail",
+                    "👁 Lihat Detail",
                     new Font("Georgia", 7.75F, isActive ? FontStyle.Bold : FontStyle.Regular),
                     btnRect,
                     textCol,
@@ -684,43 +718,6 @@ namespace dekstop
         private void CancelInputBtn_Click(object sender, EventArgs e)
         {
             ResetInputForm();
-        }
-
-        private void SaveButton_Click(object sender, EventArgs e)
-        {
-            if (selectedTransaction == null) return;
-
-            string chosen = detailPesananStatusControl.SelectedStatusIndex >= 0
-                ? detailPesananStatusControl.SelectedStatusIndex == 1 ? "Success"
-                    : detailPesananStatusControl.SelectedStatusIndex == 2 ? "Canceled" : "Pending"
-                : "Pending";
-            string shortStatus = chosen.StartsWith("Success") ? "Success"
-                               : chosen.StartsWith("Canceled") ? "Canceled"
-                               : "Pending";
-
-            try
-            {
-                string targetId = selectedTransaction.TransaksiId;
-                DatabaseService.UpdateTransactionStatus(targetId, shortStatus);
-                MessageBox.Show("Perubahan status pesanan " + targetId + " berhasil disimpan ke database.",
-                    "MalangVerse Kasir", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                LoadTransactionsFromDb();
-                var refreshed = allTransactions.FirstOrDefault(t => t.TransaksiId == targetId);
-                if (refreshed != null)
-                {
-                    SwitchToDetailMode(refreshed);
-                }
-                else
-                {
-                    SwitchToInputMode();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Gagal memperbarui status pesanan:\n" + ex.Message,
-                    "Kesalahan Database", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
